@@ -2,7 +2,7 @@
   "name": "e2e",
   "$schema": "../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "implicitDependencies": ["org"],
+  "implicitDependencies": ["artificium"],
   "targets": {
     "e2e": {
       "executor": "@nx/jest:jest",
@@ -11,7 +11,7 @@
         "jestConfig": "e2e/jest.config.ts",
         "passWithNoTests": true
       },
-      "dependsOn": ["org:build"]
+      "dependsOn": ["artificium:build"]
     }
   }
 }

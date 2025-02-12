@@ -1,5 +1,5 @@
 {
-  "name": "org",
+  "name": "artificium",
   "$schema": "node_modules/nx/schemas/project-schema.json",
   "includedScripts": [],
   "sourceRoot": "src",
@@ -12,7 +12,7 @@
       "defaultConfiguration": "production",
       "options": {
         "platform": "node",
-        "outputPath": "dist/org",
+        "outputPath": "dist/artificium",
         "format": ["cjs"],
         "bundle": false,
         "main": "src/main.ts",
@@ -44,15 +44,15 @@
       "defaultConfiguration": "development",
       "dependsOn": ["build"],
       "options": {
-        "buildTarget": "org:build",
+        "buildTarget": "artificium:build",
         "runBuildTargetDependencies": false
       },
       "configurations": {
         "development": {
-          "buildTarget": "org:build:development"
+          "buildTarget": "artificium:build:development"
         },
         "production": {
-          "buildTarget": "org:build:production"
+          "buildTarget": "artificium:build:production"
         }
       }
     },
@@ -63,7 +63,7 @@
     },
     "docker-build": {
       "dependsOn": ["build"],
-      "command": "docker build -f Dockerfile . -t org"
+      "command": "docker build -f Dockerfile . -t artificium"
     }
   }
 }
