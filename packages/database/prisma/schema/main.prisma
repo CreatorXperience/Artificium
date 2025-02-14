@@ -1,0 +1,8 @@
+generator server {
+    provider = "prisma-client-js"
+}
+
+datasource server {
+    provider = "mongodb"
+    url      = env("DATABASE_URL")
+}
