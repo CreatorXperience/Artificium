@@ -16,7 +16,8 @@
     "paths": {
       "@org/auth": ["packages/auth/src/index.ts"],
       "@org/authentication": ["src/lib/authentication/src/index.ts"],
-      "@org/database": ["packages/database/src/index.ts"]
+      "@org/database": ["packages/database/src/index.ts"],
+      "@org/users": ["packages/users/src/index.ts"]
     },
     "esModuleInterop": true
   },
