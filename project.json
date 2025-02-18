@@ -42,7 +42,7 @@
     "serve": {
       "executor": "@nx/js:node",
       "defaultConfiguration": "development",
-      "dependsOn": ["build"],
+      "dependsOn": ["^build","build"],
       "options": {
         "buildTarget": "artificium:build",
         "runBuildTargetDependencies": false

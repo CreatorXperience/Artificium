@@ -15,6 +15,5 @@ app.get('/me', (c) => {
 
 app.route('/', auth.app);
 app.route('/', user.app);
-
 serve({ fetch: app.fetch, port: PORT });
 export default app;

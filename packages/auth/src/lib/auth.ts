@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
+import { getToken, login } from '../controllers/auth.controller';
 
 const app = new Hono().basePath('/auth');
 
-app.post('/login', (c) => {
-  return c.text('login');
-});
+app.get('/token', getToken);
+
+app.post('/login', login);
 
 app.post('/signup', (c) => {
   return c.text('signup');
