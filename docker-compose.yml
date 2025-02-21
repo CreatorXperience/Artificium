@@ -1,0 +1,17 @@
+name: "artificium"
+services:
+  artificium:
+    build:
+      context: .
+    port:
+      - 3030:3030
+    volumes:
+      - ./packages:/app/packages
+      - .:/app
+  mongodb:
+    image: mongodb/mongodb-atlas-local
+    volumes:
+      - mongo_vol:/app/mongodb
+volumes:
+  mongo_vol:
+    driver: local

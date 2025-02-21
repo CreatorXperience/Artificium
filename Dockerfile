@@ -4,21 +4,34 @@
 # Tip: Modify "docker-build" options in project.json to change docker build args.
 #
 # Run the container with `docker run -p 3000:3000 -t org`.
-FROM docker.io/node:lts-alpine
 
-ENV HOST=0.0.0.0
-ENV PORT=3000
+FROM node:hydrogen-alpine3.21 AS base
 
+
+WORKDIR  /app
+COPY package.json package-lock.json ./
+RUN npm install
+
+
+
+
+FROM base AS builder
 WORKDIR /app
+COPY .  .
+RUN npm install
+RUN npx nx build
 
-RUN addgroup --system org && \
-          adduser --system -G org org
 
-COPY dist/org org/
-RUN chown -R org:org .
 
-# You can remove this install step if you build with `--bundle` option.
-# The bundled output will include external dependencies.
-RUN npm --prefix org --omit=dev -f install
+FROM  node:hydrogen-alpine3.21 AS finalStage
+WORKDIR /app
+COPY  --from=builder /app/ .
 
-CMD [ "node", "org" ]
+
+EXPOSE 3030
+CMD [ "npm", "start" ]
+
+
+
+
+
