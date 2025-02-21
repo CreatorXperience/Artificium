@@ -7,4 +7,5 @@ export default {
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: '../../coverage/packages/auth',
+  setupFilesAfterEnv: ['./jest.setup.ts', './singleton.ts'],
 };

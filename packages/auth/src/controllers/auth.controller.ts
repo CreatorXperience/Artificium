@@ -1,23 +1,15 @@
 import * as database from '@org/database';
 import generatePrivateKey from '../utils/generatePrivateKey';
-import { PrismaClient } from '@prisma/client';
 import paseto from 'paseto';
 import { Context } from 'hono';
 import { BlankEnv, BlankInput } from 'hono/types';
-import {
-  getCookie,
-  getSignedCookie,
-  setCookie,
-  setSignedCookie,
-  deleteCookie,
-} from 'hono/cookie';
+import { deleteCookie, setSignedCookie } from 'hono/cookie';
 import dotenv from 'dotenv';
+import { findUser } from '../utils/auth.utils';
+import { PrismaClient } from '@prisma/client';
 dotenv.config();
 const { V4 } = paseto;
-console.log(process.env.SIGNED_KEY);
-
 const prisma = new PrismaClient();
-
 const login = async (c: Context<BlankEnv, '/auth/login', BlankInput>) => {
   const { email, password } = await c.req.json();
   const data = database.authSchemaValidator({ email, password });
@@ -27,26 +19,21 @@ const login = async (c: Context<BlankEnv, '/auth/login', BlankInput>) => {
     return c.json({ status: 400, message: data.error.issues[0].message });
   }
 
+  const user = await findUser({ email, password }, prisma);
+  if (!user) {
+    c.status(404);
+    return c.json({ status: 404, message: "user doesn't exist" });
+  }
+
   const key = await generatePrivateKey();
-  const user = await prisma.user.create({
-    data: {
-      email,
-      password,
-    },
+  const public_key = await V4.sign({ userId: user.id }, key);
+
+  await setSignedCookie(c, 'signed_key', public_key, process.env.SECRET, {
+    maxAge: 60 * 60,
+    httpOnly: true,
+    path: '/',
+    sameSite: 'Strict',
   });
-
-  const public_key = await V4.sign(
-    { userId: user.id, exp: Math.floor(Date.now() / 1000) + 3600 },
-    key
-  );
-
-  await setSignedCookie(
-    c,
-    'signed_public-key',
-    public_key,
-    Buffer.from(process.env.SIGNED_KEY),
-    { maxAge: 60 * 60, httpOnly: true, path: '/' }
-  );
 
   return c.json({
     status: 200,
@@ -55,10 +42,9 @@ const login = async (c: Context<BlankEnv, '/auth/login', BlankInput>) => {
   });
 };
 
-const getToken = async (c: Context<BlankEnv, '/auth/login', BlankInput>) => {
-  const token = await getSignedCookie(c, process.env.SIGNED_KEY);
-  console.log(token);
-  c.json({ token });
+const logout = async (c: Context<BlankEnv, '/auth/login', BlankInput>) => {
+  deleteCookie(c, 'signed_key');
+  return c.json({ messaage: 'cookie removed successfully', status: 200 });
 };
 
-export { login, getToken };
+export { login, logout };

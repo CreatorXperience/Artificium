@@ -24,9 +24,8 @@
       "dependsOn": ["^build"],
       "cache": true
     },
-    "start": {
-      "dependsOn": ["build"],
-      "inputs": ["development", "^development"]
+    "test": {
+      "cache": false
     },
     "@nx/js:tsc": {
       "cache": true,

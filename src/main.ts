@@ -4,7 +4,6 @@ import * as auth from '@org/auth';
 import * as user from '@org/users';
 const app = new Hono();
 const PORT = Number(process.env.port) || 3030;
-
 app.get('/', (c) => {
   return c.text('Hello world');
 });

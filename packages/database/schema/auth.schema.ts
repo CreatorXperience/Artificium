@@ -5,9 +5,11 @@ const user = z.object({
   password: z.string().min(6, { message: 'password not long enough' }),
 });
 
-const authSchemaValidator = (userPayload: z.infer<typeof user>) => {
+type TAuth = z.infer<typeof user>;
+
+const authSchemaValidator = (userPayload: TAuth) => {
   user.required();
   return user.safeParse(userPayload);
 };
 
-export default authSchemaValidator;
+export { authSchemaValidator, TAuth };
