@@ -26,11 +26,11 @@ RUN npx nx build
 FROM  node:hydrogen-alpine3.21 AS finalStage
 WORKDIR /app
 COPY  --from=builder /app/ .
+RUN npx prisma generate --schema=packages/database/prisma/schema
 
 
 EXPOSE 3030
 CMD [ "npm", "start" ]
-
 
 
 
