@@ -10,9 +10,10 @@ import { PrismaClient } from '@prisma/client';
 dotenv.config();
 const { V4 } = paseto;
 const prisma = new PrismaClient();
+
 const login = async (c: Context<BlankEnv, '/auth/login', BlankInput>) => {
   const { email, password } = await c.req.json();
-  const data = database.authSchemaValidator({ email, password });
+  const data = database.loginSchemaValidator({ email, password });
 
   if (data.error) {
     c.status(400);
@@ -47,4 +48,34 @@ const logout = async (c: Context<BlankEnv, '/auth/login', BlankInput>) => {
   return c.json({ messaage: 'cookie removed successfully', status: 200 });
 };
 
-export { login, logout };
+const signup = async (c: Context<BlankEnv, '/auth/signup', BlankInput>) => {
+  const userPayload = await c.req.json();
+
+  const data = database.signupSchemaValidator(userPayload);
+
+  if (data.error) {
+    c.status(400);
+    return c.json({
+      message: data.error.errors.map((err) => err.path[0] + ' ' + err.message),
+      status: 400,
+    });
+  }
+  const user = await prisma.user.create({
+    data: {
+      ...userPayload,
+    },
+  });
+
+  c.status(200);
+  return c.json({
+    message: 'user created successfully',
+    data: {
+      id: user.id,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      email: user.email,
+    },
+    status: 200,
+  });
+};
+export { login, logout, signup };

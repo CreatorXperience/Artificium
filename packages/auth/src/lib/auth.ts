@@ -1,14 +1,11 @@
 import { Hono } from 'hono';
-import { login, logout } from '../controllers/auth.controller';
-import auth from '../middlewares/auth.middleware';
+import { login, logout, signup } from '../controllers/auth.controller';
 
 const app = new Hono().basePath('/auth');
 app.post('/login', login);
 
-app.post('/signup', auth, (c) => {
-  return c.text('signup');
-});
+app.post('/signup', signup);
 
 app.delete('/logout', logout);
 
-export { app };
+export default app;

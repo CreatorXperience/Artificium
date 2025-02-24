@@ -1,4 +1,4 @@
-import { app } from './auth';
+import app from './auth';
 import {} from '@org/database';
 import hashPassword from '../utils/hashPassword';
 const EXISTING_USER_EMAIL = 'tester2@gmail.com';
@@ -26,6 +26,8 @@ describe('auth', () => {
     const user = {
       email: EXISTING_USER_EMAIL,
       password: EXISTING_USER_PASS,
+      firstname: 'Joe',
+      lastname: 'frazier',
     };
 
     await prisma.user.create({

@@ -44,7 +44,7 @@
       "defaultConfiguration": "development",
       "dependsOn": ["build"],
       "options": {
-        "buildTarget": "artificium:build",
+        "buildTarget": ["artificium:build"],
         "runBuildTargetDependencies": false
       },
       "configurations": {

@@ -6,4 +6,4 @@ app.post('/profile', (c) => {
   return c.text('user profile');
 });
 
-export { app };
+export default app;

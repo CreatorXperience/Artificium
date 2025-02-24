@@ -1,1 +1,3 @@
-export * from './lib/users';
+import users from './lib/users';
+
+export { users };
