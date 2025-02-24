@@ -1,10 +1,17 @@
 import { Context, Next } from 'hono';
 import { getSignedCookie } from 'hono/cookie';
 import { createMiddleware } from 'hono/factory';
+import { V4 } from 'paseto';
 
 const auth = createMiddleware(async (c: Context, next: Next) => {
-  const signed_key = await getSignedCookie(c, process.env.SECRET, 'signed_key');
-  if (signed_key) {
+  const token = await getSignedCookie(c, process.env.SECRET, 'signed_key');
+  if (token) {
+    const key = await V4.generateKey('public');
+    const id = await V4.verify(token, key);
+    console.log(id);
+  }
+
+  if (token) {
     await next();
   } else {
     c.status(401);

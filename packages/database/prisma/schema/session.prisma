@@ -1,0 +1,5 @@
+model Session {
+    id   String @id @default(auto()) @map("_id") @db.ObjectId
+    key  Bytes
+    user String
+}
