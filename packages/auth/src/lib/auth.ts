@@ -13,7 +13,7 @@ app.post('/login', login);
 
 app.post('/signup', signup);
 
-app.get('/otp/:id', auth, sendOtp);
+app.get('/otp', auth, sendOtp);
 
 app.post('/verify/otp', auth, verifyOtp);
 

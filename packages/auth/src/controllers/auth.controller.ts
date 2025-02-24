@@ -31,14 +31,19 @@ const login = async (c: Context<BlankEnv, '/auth/login', BlankInput>) => {
   }
 
   const key = await generatePrivateKey();
+  const keyBytes = V4.keyObjectToBytes(key);
   // await prisma.sess
 
-  // TODO :
-  // session key in session
-  // provide an abstract of prisma
-  //  make auth middleware verify token and retieve userId from it and also resolve to a user object
-
+  const session = await prisma.session.findUnique({ where: { user: user.id } });
+  if (session) {
+    await prisma.session.deleteMany({ where: { id: session.id } });
+  }
   const public_key = await V4.sign({ userId: user.id }, key);
+
+  await database.create<Omit<database.TSession, 'id'>>(
+    { key: keyBytes, user: user.id, token: public_key },
+    'session'
+  );
 
   await setSignedCookie(c, 'signed_key', public_key, process.env.SECRET, {
     maxAge: 60 * 60,
@@ -98,8 +103,8 @@ const signup = async (c: Context<BlankEnv, '/auth/signup', BlankInput>) => {
   });
 };
 
-const sendOtp = async (c: Context<BlankEnv, '/auth/otp/:id', BlankInput>) => {
-  const id = c.req.param('id');
+const sendOtp = async (c: Context) => {
+  const id = c.var.getUser().userId;
   const otp = Math.floor(Math.random() * 999999).toString();
 
   const existingUserOtp = await prisma.otp.findUnique({
@@ -125,8 +130,12 @@ const sendOtp = async (c: Context<BlankEnv, '/auth/otp/:id', BlankInput>) => {
   }
 };
 
-const verifyOtp = async (c: Context<BlankEnv, '/auth/otp', BlankInput>) => {
-  const otpPayload: database.TOtp = await c.req.json();
+const verifyOtp = async (c: Context) => {
+  const otpPayload: Omit<
+    Required<database.TOtp>,
+    'id' | 'userId' | 'expiresIn'
+  > = await c.req.json();
+  const userId = c.var.getUser().userId;
   const data = database.validateOtp(otpPayload);
   if (data.error) {
     c.status(400);
@@ -141,30 +150,37 @@ const verifyOtp = async (c: Context<BlankEnv, '/auth/otp', BlankInput>) => {
   const otpGenDate = new Date(otpPayload.createdAt);
 
   if (currentDate.getDate() !== otpGenDate.getDate()) {
-    await prisma.otp.deleteMany({ where: { userId: otpPayload.userId } });
+    await prisma.otp.deleteMany({ where: { userId: userId } });
     return c.json({ message: 'otp expired' });
   }
   if (currentDate.getHours() !== otpGenDate.getHours()) {
-    await prisma.otp.deleteMany({ where: { userId: otpPayload.userId } });
+    await prisma.otp.deleteMany({ where: { userId: userId } });
     return c.json({ message: 'otp expired' });
   }
   if (currentDate.getMinutes() - otpGenDate.getMinutes() < 5) {
+    const otp = await prisma.otp.findFirst({
+      where: { otp: otpPayload.otp, userId },
+    });
+    if (!otp) {
+      c.status(404);
+      return c.json({ message: 'Incorrect or Malformed otp ', status: 404 });
+    }
     const user = await prisma.user.findUnique({
-      where: { id: otpPayload.userId },
+      where: { id: userId },
     });
 
     if (user) {
       const newUser = { ...user, isVerified: true };
       await prisma.user.update({
         data: _.omit(newUser, ['id']),
-        where: { id: otpPayload.userId },
+        where: { id: userId },
       });
       c.status(200);
-      await prisma.otp.deleteMany({ where: { userId: otpPayload.userId } });
+      await prisma.otp.deleteMany({ where: { userId: userId } });
       return c.json({ message: 'otp verified successfully', user: newUser });
     }
   } else {
-    await prisma.otp.deleteMany({ where: { userId: otpPayload.userId } });
+    await prisma.otp.deleteMany({ where: { userId: userId } });
     return c.json({ message: 'otp expired' });
   }
 };

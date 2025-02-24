@@ -1,9 +1,8 @@
 import z from 'zod';
 
 const otp = z.object({
-  id: z.string(),
+  otp: z.string().min(6, { message: 'otp length must be six' }),
   userId: z.string(),
-  otp: z.string(),
   expiresIn: z.number(),
   createdAt: z.string(),
 });
@@ -11,8 +10,10 @@ const otp = z.object({
 type TOtp = z.infer<typeof otp>;
 
 const validateOtp = (payload: z.infer<typeof otp>) => {
-  otp.required();
-  return otp.safeParse(payload);
+  const newOtp = otp
+    .partial({ userId: true, expiresIn: true })
+    .required({ otp: true, createdAt: true });
+  return newOtp.safeParse(payload);
 };
 
 export { validateOtp, TOtp };
