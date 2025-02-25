@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "start": "nx serve && nx watch",
+    "start": "nx serve",
     "build": "nx build",
     "test": "./test.sh",
     "generate-dev-prisma": "npx prisma generate --schema=packages/database/prisma/schema",

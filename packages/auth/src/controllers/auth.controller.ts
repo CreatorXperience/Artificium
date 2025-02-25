@@ -133,7 +133,7 @@ const sendOtp = async (c: Context) => {
 const verifyOtp = async (c: Context) => {
   const otpPayload: Omit<
     Required<database.TOtp>,
-    'id' | 'userId' | 'expiresIn'
+    'id' | 'userId' | 'expiresIn' | 'createdAt'
   > = await c.req.json();
   const userId = c.var.getUser().userId;
   const data = database.validateOtp(otpPayload);
@@ -144,17 +144,25 @@ const verifyOtp = async (c: Context) => {
     });
   }
 
+  const otp = await prisma.otp.findUnique({ where: { userId: userId } });
+  if (!otp) {
+    c.status(404);
+    return c.json({ status: 404, message: 'Invalid otp' });
+  }
+
   // check expiry
 
   const currentDate = new Date();
-  const otpGenDate = new Date(otpPayload.createdAt);
+  const otpGenDate = new Date(otp.createdAt);
 
   if (currentDate.getDate() !== otpGenDate.getDate()) {
     await prisma.otp.deleteMany({ where: { userId: userId } });
+    console.log('1');
     return c.json({ message: 'otp expired' });
   }
   if (currentDate.getHours() !== otpGenDate.getHours()) {
     await prisma.otp.deleteMany({ where: { userId: userId } });
+    console.log('2');
     return c.json({ message: 'otp expired' });
   }
   if (currentDate.getMinutes() - otpGenDate.getMinutes() < 5) {
@@ -181,6 +189,7 @@ const verifyOtp = async (c: Context) => {
     }
   } else {
     await prisma.otp.deleteMany({ where: { userId: userId } });
+    console.log('3');
     return c.json({ message: 'otp expired' });
   }
 };
