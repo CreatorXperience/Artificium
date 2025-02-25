@@ -6,7 +6,9 @@
   "scripts": {
     "start": "nx serve && nx watch",
     "build": "nx build",
-    "test": "nx test"
+    "test": "./test.sh",
+    "generate-dev-prisma": "npx prisma generate --schema=packages/database/prisma/schema",
+    "generate-test-prisma": "npx prisma generate --schema=packages/database/prisma/tests"
   },
   "nx": {
     "includedScripts": []

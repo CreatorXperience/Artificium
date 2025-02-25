@@ -36,7 +36,7 @@ const login = async (c: Context<BlankEnv, '/auth/login', BlankInput>) => {
 
   const session = await prisma.session.findUnique({ where: { user: user.id } });
   if (session) {
-    await prisma.session.deleteMany({ where: { id: session.id } });
+    await prisma.session.delete({ where: { id: session.id } });
   }
   const public_key = await V4.sign({ userId: user.id }, key);
 

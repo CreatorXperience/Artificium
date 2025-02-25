@@ -1,15 +1,24 @@
 name: "artificium"
 services:
-  artificium:
+  artificium-serve:
     build:
       context: .
     ports:
       - 3030:3030
     depends_on:
+      - artificium-build
+    volumes:
+      - ./packages:/app/packages
+      - ./src:/app/src
+    command: sleep 10 && npx nx serve
+  artificium-build:
+    build: .
+    depends_on:
       - mongodb
     volumes:
       - ./packages:/app/packages
       - ./src:/app/src
+    command: npx nx run-many -t=build --projects=packages/auth,packages/database,packages/users  --parallel --watch
   mongodb:
     image: mongodb/mongodb-atlas-local
     ports:

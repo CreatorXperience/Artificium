@@ -27,12 +27,5 @@ FROM  node:hydrogen-alpine3.21 AS finalStage
 WORKDIR /app
 COPY  --from=builder /app/ .
 RUN npx prisma generate --schema=packages/database/prisma/schema
-RUN npx prisma generate --schema=packages/database/prisma/tests
-
 
 EXPOSE 3030
-CMD npx nx run-many --target=build --all --watch & && npx nx serve --watch
-
-
-
-

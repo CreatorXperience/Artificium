@@ -11,7 +11,7 @@ beforeEach(async () => {
   EXISTING_USER_PASS = await hashPassword(EXISTING_USER_PASS);
 });
 
-describe('auth', () => {
+describe('auth/login', () => {
   test("should return a status of 404  if user doesn't exist", async () => {
     const res = await app.request('/auth/login', {
       method: 'POST',
@@ -30,8 +30,9 @@ describe('auth', () => {
       lastname: 'frazier',
     };
 
-    await prisma.user.create({
-      data: user,
+    await app.request('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(user),
     });
 
     const res = await app.request('/auth/login', {
@@ -71,5 +72,51 @@ describe('auth', () => {
     });
 
     expect(res.status).toBe(404);
+  });
+});
+
+describe('/auth/signup', () => {
+  const incompletePayload = {
+    email: 'tester@gmail.com',
+    password: '123456',
+    firstname: 'Joe',
+  };
+  test('should return 400 error if payload is bad or incomplete', async () => {
+    const res = await app.request('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(incompletePayload),
+    });
+
+    expect(res.status).toBe(400);
+  });
+
+  test('should return a 400 error if user already exist', async () => {
+    const completePayload = { ...incompletePayload, lastname: 'Frazier' };
+    await prisma.user.create({
+      data: {
+        ...completePayload,
+      },
+    });
+    const res = await app.request('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(completePayload),
+    });
+
+    expect(res.status).toBe(400);
+  });
+
+  test('should return a 200 success status code if user is a new not-existing user', async () => {
+    const newUser = {
+      email: 'newuser@gmail.com',
+      password: 'newuser0123',
+      firstname: 'Muhammad',
+      lastname: 'Ali',
+    };
+    const res = await app.request('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(newUser),
+    });
+
+    expect(res.status).toBe(200);
   });
 });

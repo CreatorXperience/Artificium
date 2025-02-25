@@ -5,7 +5,6 @@ const prisma = new PrismaClient();
 
 beforeAll(async () => {
   process.env.PRISMA_SCHEMA = '../database/prisma/tests';
-
   await prisma.$connect();
 });
 
