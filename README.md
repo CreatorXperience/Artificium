@@ -16,7 +16,6 @@ and also view the artificium flow chart [here](https://miro.com/app/board/uXjVLn
 ### 1. Installation
 
 ```sh
-
     git clone https://github.com/CreatorXperience/Artificium.git
 ```
 
@@ -38,7 +37,6 @@ make sure the following `env` variables are provided before starting the server:
 ### 3. Start DEV server
 
 ```sh
-
     npm start
 ```
 
