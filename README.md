@@ -1,4 +1,3 @@
-<img width="924" alt="Screenshot 2025-02-28 at 10 21 58 PM" src="https://github.com/user-attachments/assets/7a103bb4-7523-49d5-914d-bb44225167fa" />
 # Project Artificium 🚀
 
 A cutting-edge AI-powered 🦾 web application backend designed to revolutionize content creation. The platform will enable users to collaborate , generate, edit, and optimize various types of content using advanced artificial intelligence algorithms and agents
