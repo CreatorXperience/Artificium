@@ -5,18 +5,26 @@
   "license": "MIT",
   "scripts": {
     "start": "nx serve",
-    "build": "tsc -b  --watch",
-    "test": "nx test"
+    "build": "nx build",
+    "test": "./test.sh",
+    "generate-dev-prisma": "npx prisma generate --schema=packages/database/prisma/schema",
+    "generate-test-prisma": "npx prisma generate --schema=packages/database/prisma/tests"
   },
   "nx": {
     "includedScripts": []
   },
   "dependencies": {
     "@hono/node-server": "^1.13.8",
+    "@prisma/client": "^6.4.1",
     "axios": "^1.6.0",
+    "bcryptjs": "^3.0.1",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "hono": "^4.7.0",
-    "mongoose": "^8.10.0"
+    "lodash": "^4.17.21",
+    "mongoose": "^8.10.0",
+    "paseto": "^3.1.4",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
@@ -33,6 +41,7 @@
     "@swc/helpers": "~0.5.11",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.12",
+    "@types/lodash": "^4.17.15",
     "@types/node": "~18.16.9",
     "concurrently": "^9.1.2",
     "esbuild": "^0.19.2",
@@ -40,9 +49,11 @@
     "eslint-config-prettier": "^9.0.0",
     "jest": "^29.7.0",
     "jest-environment-node": "^29.7.0",
+    "jest-mock-extended": "^4.0.0-beta1",
     "nodemon": "^3.1.9",
     "nx": "20.4.2",
     "prettier": "^2.6.2",
+    "prisma": "^6.4.1",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",

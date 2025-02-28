@@ -1,0 +1,7 @@
+model Otp {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    userId    String   @unique
+    otp       String
+    expiresIn Int
+    createdAt DateTime
+}

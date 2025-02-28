@@ -1,1 +1,2 @@
-export * from './lib/auth';
+import auth from './lib/auth';
+export { auth };
