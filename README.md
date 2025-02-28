@@ -57,7 +57,6 @@ The following steps assumes you have docker installed :
 1. pull `mongodb/mongodb-atlas-local` image so test ENV can test against a local database instead of cloud database
 
    ```sh
-
        docker pull mongodb/mongodb-atlas-local
    ```
 
