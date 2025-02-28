@@ -8,6 +8,8 @@ import dotenv from 'dotenv';
 import { findUser } from '../utils/auth.utils';
 import { PrismaClient } from '@prisma/client';
 import _ from 'lodash';
+import hashPassword from '../utils/hashPassword';
+import bcrypt from 'bcryptjs';
 dotenv.config();
 const { V4 } = paseto;
 const prisma = new PrismaClient();
@@ -24,10 +26,16 @@ const login = async (c: Context<BlankEnv, '/auth/login', BlankInput>) => {
     });
   }
 
-  const user = await findUser({ email, password }, prisma);
+  const user = await findUser({ email }, prisma);
   if (!user) {
     c.status(404);
     return c.json({ status: 404, message: "user doesn't exist" });
+  }
+
+  const matched = await bcrypt.compare(password, user.password);
+  if (!matched) {
+    c.status(404);
+    return c.json({ messages: 'Invalid email or password', status: 404 });
   }
 
   const key = await generatePrivateKey();
@@ -82,6 +90,8 @@ const signup = async (c: Context<BlankEnv, '/auth/signup', BlankInput>) => {
     c.status(400);
     return c.json({ message: 'user already exists', status: 400 });
   }
+
+  userPayload.password = await hashPassword(userPayload.password);
   const user = await database.create<database.TAuth>(
     {
       ...userPayload,

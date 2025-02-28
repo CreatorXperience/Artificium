@@ -11,6 +11,7 @@ beforeAll(async () => {
 afterAll(async () => {
   console.info('Suite Test ended successfully, database clean up');
   await prisma.user.deleteMany();
+  await prisma.session.deleteMany();
   await prisma.$disconnect();
 });
 

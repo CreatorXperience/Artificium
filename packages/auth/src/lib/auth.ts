@@ -9,7 +9,7 @@ import {
 import auth from '../middlewares/auth.middleware';
 
 const app = new Hono().basePath('/auth');
-console.log('workunholy here my man');
+
 app.post('/login', login);
 
 app.post('/signup', signup);

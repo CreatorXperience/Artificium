@@ -1,21 +1,38 @@
 import app from './auth';
 import {} from '@org/database';
 import hashPassword from '../utils/hashPassword';
-const EXISTING_USER_EMAIL = 'tester2@gmail.com';
-let EXISTING_USER_PASS = '123456';
-const NON_EXISTING_USER_EMAIL = 'newuser@gmail.com';
-const NON_EXISTING_USER_PASS = '123456';
 import prisma from '../../jest.setup';
+const NON_EXISTING_USER_EMAIL = 'non@gmail.com';
+const NON_EXISTING_USER_PASS = 'non-securepass';
+const PASSWORD = '123456';
+let user;
 
-beforeEach(async () => {
-  EXISTING_USER_PASS = await hashPassword(EXISTING_USER_PASS);
+beforeAll(async () => {
+  user = {
+    email: 'tester@gmail.com',
+    password: await hashPassword(PASSWORD),
+    firstname: 'Joe',
+    lastname: 'frazier',
+  };
+});
+
+afterEach(async () => {
+  await prisma.user.deleteMany();
 });
 
 describe('auth/login', () => {
-  test("should return a status of 404  if user doesn't exist", async () => {
+  test('should return a status of 404 if password is invalid', async () => {
+    await prisma.user.create({
+      data: {
+        email: user.email,
+        password: user.password,
+        firstname: user.firstname,
+        lastname: user.lastname,
+      },
+    });
     const res = await app.request('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email: 'peter@gmail.com', password: '123456' }),
+      body: JSON.stringify({ email: user.email, password: '1234578' }),
       headers: new Headers({ 'Content-Type': 'application/json' }),
     });
 
@@ -23,24 +40,15 @@ describe('auth/login', () => {
   });
 
   test('should return a status of 200 if user exist', async () => {
-    const user = {
-      email: EXISTING_USER_EMAIL,
-      password: EXISTING_USER_PASS,
-      firstname: 'Joe',
-      lastname: 'frazier',
-    };
-
-    await app.request('/auth/signup', {
-      method: 'POST',
-      body: JSON.stringify(user),
-    });
+    await prisma.user.create({ data: { ...user } });
 
     const res = await app.request('/auth/login', {
       method: 'POST',
       body: JSON.stringify({
-        email: EXISTING_USER_EMAIL,
-        password: EXISTING_USER_PASS,
+        email: user.email,
+        password: PASSWORD,
       }),
+      headers: new Headers({ 'Content-Type': 'application/json' }),
     });
 
     expect(res.status).toBe(200);
@@ -73,12 +81,40 @@ describe('auth/login', () => {
 
     expect(res.status).toBe(404);
   });
+
+  test('database should include a session private key for a logged in user', async () => {
+    const newUser = await prisma.user.create({
+      data: {
+        email: user.email,
+        password: user.password,
+        firstname: user.firstname,
+        lastname: user.lastname,
+      },
+    });
+
+    let session = await prisma.session.findFirst({
+      where: { user: newUser.id },
+    });
+    expect(session).toBeNull();
+
+    const loggedInuser = await app.request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email: user.email, password: PASSWORD }),
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+    });
+
+    const userData = await loggedInuser.json();
+    session = await prisma.session.findFirst({
+      where: { user: userData.data.id },
+    });
+    expect(session).not.toBeNull();
+  });
 });
 
 describe('/auth/signup', () => {
   const incompletePayload = {
     email: 'tester@gmail.com',
-    password: '123456',
+    password: PASSWORD,
     firstname: 'Joe',
   };
   test('should return 400 error if payload is bad or incomplete', async () => {
