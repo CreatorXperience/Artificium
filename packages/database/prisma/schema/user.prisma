@@ -6,3 +6,11 @@ model User {
   lastname   String
   isVerified Boolean @default(false)
 }
+
+model Forgot {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  hash   String
+  userId String @unique
+  email  String @unique
+  ttl    String
+}

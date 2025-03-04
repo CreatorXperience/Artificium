@@ -5,3 +5,10 @@ model User {
     firstname String
     lastname  String
 }
+
+model Forgot {
+    id     String @id @default(auto()) @map("_id") @db.ObjectId
+    hash   String
+    userId String @unique
+    ttl    String
+}

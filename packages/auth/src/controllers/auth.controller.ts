@@ -10,29 +10,34 @@ import { PrismaClient } from '@prisma/client';
 import _ from 'lodash';
 import hashPassword from '../utils/hashPassword';
 import bcrypt from 'bcryptjs';
+import { createHash } from 'node:crypto';
 dotenv.config();
 const { V4 } = paseto;
 const prisma = new PrismaClient();
 
+type TReq = {
+  email: string;
+  password: string;
+};
 const login = async (c: Context<BlankEnv, '/auth/login', BlankInput>) => {
-  const { email, password } = await c.req.json();
-  const data = database.loginSchemaValidator({ email, password });
+  const req: TReq = await c.req.json();
+  const data = database.loginSchemaValidator(req);
 
   if (data.error) {
     c.status(400);
     return c.json({
       status: 400,
-      message: data.error,
+      message: data.error.errors[0].message,
     });
   }
 
-  const user = await findUser({ email }, prisma);
+  const user = await findUser({ email: req.email }, prisma);
   if (!user) {
     c.status(404);
     return c.json({ status: 404, message: "user doesn't exist" });
   }
 
-  const matched = await bcrypt.compare(password, user.password);
+  const matched = await bcrypt.compare(req.password, user.password);
   if (!matched) {
     c.status(404);
     return c.json({ messages: 'Invalid email or password', status: 404 });
@@ -80,7 +85,7 @@ const signup = async (c: Context<BlankEnv, '/auth/signup', BlankInput>) => {
   if (data.error) {
     c.status(400);
     return c.json({
-      message: data.error,
+      message: data.error.errors[0].message,
       status: 400,
     });
   }
@@ -102,13 +107,7 @@ const signup = async (c: Context<BlankEnv, '/auth/signup', BlankInput>) => {
   c.status(200);
   return c.json({
     message: 'user created successfully',
-    data: {
-      id: user.id,
-      firstname: user.firstname,
-      lastname: user.lastname,
-      email: user.email,
-      isVerified: user.isVerified,
-    },
+    data: _.omit(user, ['password']),
     status: 200,
   });
 };
@@ -150,7 +149,7 @@ const verifyOtp = async (c: Context) => {
   if (data.error) {
     c.status(400);
     return c.json({
-      message: data.error.errors.map((err) => err.path[0] + ' ' + err.message),
+      message: data.error.errors[0].message,
     });
   }
 
@@ -203,4 +202,93 @@ const verifyOtp = async (c: Context) => {
     return c.json({ message: 'otp expired' });
   }
 };
-export { login, logout, signup, sendOtp, verifyOtp };
+
+const forgotPassword = async (c: Context) => {
+  const body = await c.req.json();
+  const data = database.forgotPasswordValidator(body);
+  if (data.error) {
+    c.status(400);
+    return c.json({ messages: data.error.errors[0].message, status: 400 });
+  }
+
+  const user = await prisma.user.findUnique({ where: { email: body.email } });
+  if (!user) {
+    c.status(404);
+    return c.json({ message: 'user not found', status: 404 });
+  }
+
+  await prisma.forgot.deleteMany({ where: { userId: user.id } });
+  const hash = createHash('sha256');
+
+  hash.update(user.id);
+
+  const hashed = hash.digest('hex');
+
+  await prisma.forgot.create({
+    data: {
+      hash: hashed,
+      userId: user.id,
+      email: user.email,
+      ttl: Date.now().toString(),
+    },
+  });
+
+  return c.json({
+    message: 'forgotten password successfully, check your email',
+    status: 200,
+    token: hashed,
+    email: user.email,
+  });
+};
+
+const resetPassword = async (c: Context) => {
+  const payload = await c.req.json();
+  const data = database.resetPassValidator(payload);
+
+  if (data.error) {
+    c.status(404);
+    return c.json({ message: data.error.errors[0].message });
+  }
+
+  const forgot = await prisma.forgot.findUnique({
+    where: { email: payload.email },
+  });
+  const currentTime = Math.floor(Date.now());
+
+  console.log(forgot.ttl, currentTime);
+  if (currentTime - +forgot.ttl === 0) {
+    c.status(404);
+    return c.json({
+      message: 'forgot password token expired try again',
+      status: 404,
+    });
+  }
+
+  if (!(forgot.hash === payload.token)) {
+    c.status(400);
+    return c.json({ message: 'bad token, try again', status: 400 });
+  }
+
+  const salt = await bcrypt.genSalt(10);
+
+  const hash = await bcrypt.hash(payload.password, salt);
+
+  const user = await prisma.user.update({
+    where: { email: payload.email },
+    data: { password: hash },
+  });
+
+  return c.json({
+    message: 'password updated successfully',
+    data: _.omit(user, ['password']),
+  });
+};
+export {
+  login,
+  logout,
+  signup,
+  sendOtp,
+  verifyOtp,
+  forgotPassword,
+  resetPassword,
+};

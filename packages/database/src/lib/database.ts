@@ -2,7 +2,9 @@ import { PrismaClient } from '@prisma/client';
 import {
   loginSchemaValidator,
   signupSchemaValidator,
+  forgotPasswordValidator,
   TAuth,
+  resetPassValidator,
 } from '../../schema/auth.schema';
 import { validateOtp, TOtp } from '../../schema/otp.schema';
 import { validateSession, TSession } from '../../schema/session.schema';
@@ -27,5 +29,7 @@ export {
   TOtp,
   validateSession,
   TSession,
+  forgotPasswordValidator,
+  resetPassValidator,
   // prismaMock,
 };
