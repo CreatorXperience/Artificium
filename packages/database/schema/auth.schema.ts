@@ -2,10 +2,22 @@ import z from 'zod';
 
 const user = z.object({
   email: z.string({ message: 'email is required' }),
-  password: z.string().min(6, { message: 'password not long enough' }),
+  password: z
+    .string({ message: 'password is required' })
+    .min(6, { message: 'password not long enough' }),
   firstname: z.string({ message: 'firstname is required' }),
   lastname: z.string({ message: 'lastname is required' }),
 });
+
+const resetPassPayload = z.object({
+  email: z.string({ message: 'email is required and must be a string' }),
+  token: z.string({ message: 'invalid token' }),
+  password: z
+    .string({ message: 'password is required' })
+    .min(6, { message: 'password not long enough' }),
+});
+
+type TResetPassPayload = z.infer<typeof resetPassPayload>;
 
 type TAuth = Required<z.infer<typeof user>>;
 
@@ -22,4 +34,22 @@ const signupSchemaValidator = (userPayload: TAuth) => {
   return user.safeParse(userPayload);
 };
 
-export { loginSchemaValidator, signupSchemaValidator, TAuth };
+const forgotPasswordValidator = (userPayload: Partial<TAuth>) => {
+  const forgotPassUser = user
+    .partial({ firstname: true, lastname: true, password: true })
+    .required({ email: true });
+
+  return forgotPassUser.safeParse(userPayload);
+};
+
+const resetPassValidator = (payload: TResetPassPayload) => {
+  return resetPassPayload.required().safeParse(payload);
+};
+
+export {
+  loginSchemaValidator,
+  signupSchemaValidator,
+  TAuth,
+  forgotPasswordValidator,
+  resetPassValidator,
+};
