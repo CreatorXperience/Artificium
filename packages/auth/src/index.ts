@@ -1,2 +1,3 @@
 import auth from './lib/auth';
-export { auth };
+import authMiddleWare from './middlewares/auth.middleware';
+export { auth, authMiddleWare };
