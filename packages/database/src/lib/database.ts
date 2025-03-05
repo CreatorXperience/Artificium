@@ -7,6 +7,12 @@ import {
   resetPassValidator,
 } from '../../schema/auth.schema';
 import { validateOtp, TOtp } from '../../schema/otp.schema';
+import {
+  workspaceValidator,
+  TCreateWorkspace,
+  updateWorkspaceValidator,
+  TWorkspace,
+} from '../../schema/workspace.schema';
 import { validateSession, TSession } from '../../schema/session.schema';
 
 const prisma = new PrismaClient();
@@ -31,5 +37,8 @@ export {
   TSession,
   forgotPasswordValidator,
   resetPassValidator,
-  // prismaMock,
+  workspaceValidator,
+  TCreateWorkspace,
+  updateWorkspaceValidator,
+  TWorkspace,
 };
