@@ -29,6 +29,7 @@ const auth = createMiddleware<TMiddlewareContext>(
         return c.json({ message: 'Unauthorized user.', status: 401 });
       }
     }
+    c.status(401);
     return c.json({ message: 'Unauthorized user', status: 401 });
   }
 );
