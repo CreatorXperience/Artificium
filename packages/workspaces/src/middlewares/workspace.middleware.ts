@@ -63,6 +63,8 @@ const createWorkspace = async (c: Context) => {
     totalMembers: 1,
     workspaceAdmin: [owner],
     members: [owner],
+    readAccess: [owner],
+    writeAccess: [owner],
   };
 
   const user = await prisma.user.findUnique({ where: { id: owner } });
