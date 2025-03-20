@@ -224,12 +224,14 @@ const forgotPassword = async (c: Context) => {
 
   const hashed = hash.digest('hex');
 
+  const ttl = Math.floor(Date.now());
+
   await prisma.forgot.create({
     data: {
       hash: hashed,
       userId: user.id,
       email: user.email,
-      ttl: Date.now().toString(),
+      ttl: `${ttl}`,
     },
   });
 
@@ -246,7 +248,7 @@ const resetPassword = async (c: Context) => {
   const data = database.resetPassValidator(payload);
 
   if (data.error) {
-    c.status(404);
+    c.status(400);
     return c.json({ message: data.error.errors[0].message });
   }
 
@@ -255,8 +257,13 @@ const resetPassword = async (c: Context) => {
   });
   const currentTime = Math.floor(Date.now());
 
-  console.log(forgot.ttl, currentTime);
-  if (currentTime - +forgot.ttl === 0) {
+  const ONE_HOUR = 60 * 60 * 1000;
+
+  const convertTTLtoNum = +forgot.ttl;
+
+  const remainingTime = currentTime - convertTTLtoNum;
+
+  if (remainingTime > ONE_HOUR) {
     c.status(404);
     return c.json({
       message: 'forgot password token expired try again',

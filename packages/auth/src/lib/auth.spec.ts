@@ -230,7 +230,7 @@ describe('POST /auth/verify-otp', () => {
 
   test('should return 200 if otp is found ', async () => {
     const data = await res.json();
-    const otpRes = await prisma.otp.create({
+    await prisma.otp.create({
       data: {
         otp: '234556',
         createdAt: new Date().toISOString(),
@@ -246,5 +246,139 @@ describe('POST /auth/verify-otp', () => {
     });
 
     expect(verify_res.status).toBe(200);
+  });
+});
+
+describe('POST /forgot-password', () => {
+  let newUser;
+  beforeEach(async () => {
+    newUser = {
+      email: 'newuser@gmail.com',
+      password: 'newuser0123',
+      firstname: 'Muhammad',
+      lastname: 'Ali',
+    };
+    await app.request('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(newUser),
+    });
+  });
+
+  test('should return a 400 error if payload is bad', async () => {
+    const forgottenRes = await app.request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ bad: 'payload' }),
+    });
+
+    expect(forgottenRes.status).toBe(400);
+  });
+
+  test("should return 404 if user doesn't exist", async () => {
+    const res = await app.request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email: 'unknownuser@gmail.com' }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  test('should return 200 status if user exist and  email is provided', async () => {
+    const res = await app.request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email: newUser.email }),
+    });
+
+    expect(res.status).toBe(200);
+  });
+});
+
+describe('POST reset-password', () => {
+  let forgotRes;
+  let newUser;
+  beforeEach(async () => {
+    newUser = {
+      email: 'newuser@gmail.com',
+      password: 'newuser0123',
+      firstname: 'Muhammad',
+      lastname: 'Ali',
+    };
+    await app.request('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(newUser),
+    });
+
+    forgotRes = await app.request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email: newUser.email }),
+    });
+  });
+
+  afterEach(async () => {
+    await prisma.forgot.deleteMany();
+  });
+  test('should return 400 if payload is bad or incomplete', async () => {
+    const res = await app.request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ badprop: '', password: '123456789' }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test('should return 404 if password expire', async () => {
+    const ONE_HOUR = 60 * 60 * 1000;
+    const forgotResBody = await forgotRes.json();
+    const forgot = await prisma.forgot.findUnique({
+      where: { email: newUser.email },
+    });
+
+    await prisma.forgot.update({
+      where: { email: newUser.email },
+      data: { ttl: `${+forgot.ttl - ONE_HOUR}` },
+    });
+    const reset = await app.request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({
+        token: forgotResBody.token,
+        email: newUser.email,
+        password: 'newpass',
+      }),
+    });
+
+    expect(reset.status).toBe(404);
+  });
+
+  test('should return 404 if hashed are not equally the same', async () => {
+    const reset = await app.request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({
+        token: 'badhash',
+        email: newUser.email,
+        password: 'newpass',
+      }),
+    });
+    expect(reset.status).toBe(400);
+  });
+
+  test('should return 200 if payload is correct', async () => {
+    const NEW_PASS = 'newpass';
+
+    const forgot = await prisma.forgot.findUnique({
+      where: { email: newUser.email },
+    });
+
+    const reset = await app.request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({
+        token: forgot.hash,
+        email: newUser.email,
+        password: NEW_PASS,
+      }),
+    });
+    expect(reset.status).toBe(200);
+    const res = await app.request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email: newUser.email, password: NEW_PASS }),
+    });
+
+    expect(res.status).toBe(200);
   });
 });
