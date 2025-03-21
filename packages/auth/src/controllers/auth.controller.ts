@@ -11,6 +11,7 @@ import _ from 'lodash';
 import hashPassword from '../utils/hashPassword';
 import bcrypt from 'bcryptjs';
 import { createHash } from 'node:crypto';
+import { SafeParseReturnType } from 'zod';
 dotenv.config();
 const { V4 } = paseto;
 const prisma = new PrismaClient();
@@ -80,7 +81,9 @@ const logout = async (c: Context<BlankEnv, '/auth/login', BlankInput>) => {
 const signup = async (c: Context<BlankEnv, '/auth/signup', BlankInput>) => {
   const userPayload: database.TAuth = await c.req.json();
 
-  const data = database.signupSchemaValidator(userPayload);
+  const data = database.signupSchemaValidator(
+    userPayload
+  ) as SafeParseReturnType<database.TAuth, database.TAuth>;
 
   if (data.error) {
     c.status(400);
@@ -99,7 +102,7 @@ const signup = async (c: Context<BlankEnv, '/auth/signup', BlankInput>) => {
   userPayload.password = await hashPassword(userPayload.password);
   const user = await database.create<database.TAuth>(
     {
-      ...userPayload,
+      ...data.data,
     },
     'user'
   );
@@ -211,7 +214,9 @@ const forgotPassword = async (c: Context) => {
     return c.json({ messages: data.error.errors[0].message, status: 400 });
   }
 
-  const user = await prisma.user.findUnique({ where: { email: body.email } });
+  const user = await prisma.user.findUnique({
+    where: { email: data.data.email },
+  });
   if (!user) {
     c.status(404);
     return c.json({ message: 'user not found', status: 404 });

@@ -25,10 +25,12 @@ model WorkspaceMember {
 }
 
 model Project {
-    id          String @id @default(auto()) @map("_id") @db.ObjectId
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
     name        String
     purpose     String
-    workspaceId String @unique @db.ObjectId
+    workspaceId String   @unique @db.ObjectId
+    createdAt   DateTime
+    members     String[]
 }
 
 model ProjectMember {
@@ -41,12 +43,13 @@ model ProjectMember {
 }
 
 model Channel {
-    id          String  @id @default(auto()) @map("_id") @db.ObjectId
-    projectId   String  @unique @db.ObjectId
-    workspaceId String  @unique @db.ObjectId
-    visibility  Boolean
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
+    projectId   String   @unique @db.ObjectId
+    workspaceId String   @unique @db.ObjectId
+    visibility  Boolean  @default(false)
     name        String
-    stars       Int
+    stars       Int      @default(0)
+    members     String[]
 }
 
 model channelMember {
@@ -58,13 +61,35 @@ model channelMember {
     userId    String @db.ObjectId
 }
 
+model JoinChannelRequest {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    name      String
+    userId    String   @unique
+    channelId String   @unique
+    toAdmin   String   @unique
+    accept    Boolean  @default(false)
+    revoke    Boolean  @default(false)
+    timestamp DateTime @default(now())
+}
+
 model Message {
-    id           String  @id @default(auto()) @map("_id") @db.ObjectId
+    id           String   @id @default(auto()) @map("_id") @db.ObjectId
     type         String
     text         String
     image        String?
-    channelId    String  @unique @db.ObjectId
+    channelId    String   @unique @db.ObjectId
     commentCount Int
+    timestamp    DateTime
+}
+
+model ArtificiumChat {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    projectId String   @unique
+    text      String
+    belongsTo String   @unique
+    type      String
+    timestamp DateTime
+    image     String?
 }
 
 model Comment {

@@ -14,6 +14,24 @@ import {
   TWorkspace,
 } from '../../schema/workspace.schema';
 import { validateSession, TSession } from '../../schema/session.schema';
+import {
+  projectValidator,
+  TProject,
+  projectUpdateValidator,
+} from '../../schema/project.schema';
+
+import {
+  TChannel,
+  channelValidator,
+  channelUpdateValidator,
+} from '../../schema/channel.schema';
+
+import {
+  TChannelReq,
+  channelReqValidator,
+} from '../../schema/channelReq.shema';
+
+import { acceptOrRejectReqValidator } from '../../schema/acceptOrRejReq.schema';
 
 const prisma = new PrismaClient();
 export function database(): string {
@@ -41,4 +59,13 @@ export {
   TCreateWorkspace,
   updateWorkspaceValidator,
   TWorkspace,
+  projectValidator,
+  TProject,
+  projectUpdateValidator,
+  TChannel,
+  channelValidator,
+  channelUpdateValidator,
+  TChannelReq,
+  channelReqValidator,
+  acceptOrRejectReqValidator,
 };
