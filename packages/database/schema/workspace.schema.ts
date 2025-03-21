@@ -1,4 +1,4 @@
-import z from 'zod';
+import z, { SafeParseReturnType } from 'zod';
 
 // id             String   @id @default(auto()) @map("_id") @db.ObjectId
 // url            String?  @unique @default("")
@@ -47,12 +47,14 @@ const access = z.object({
 
 type TWorkspace = Required<z.infer<typeof workspace>>;
 
-type TCreateWorkspace = Required<z.infer<typeof createWorkspace>>;
+type TCreateWorkspace = z.infer<typeof createWorkspace>;
 
-const workspaceValidator = (payload: z.infer<typeof createWorkspace>) => {
-  return createWorkspace.safeParse(payload);
+const workspaceValidator = (
+  payload: TCreateWorkspace
+): SafeParseReturnType<TCreateWorkspace, TCreateWorkspace> => {
+  return createWorkspace.required({ name: true }).safeParse(payload);
 };
-const updateWorkspaceValidator = (payload: z.infer<typeof workspace>) => {
+const updateWorkspaceValidator = (payload: TWorkspace) => {
   const workspaceSchema = workspace.partial();
   return workspaceSchema.safeParse(payload);
 };

@@ -29,9 +29,7 @@ const loginSchemaValidator = (userPayload: Partial<TAuth>) => {
 };
 
 const signupSchemaValidator = (userPayload: TAuth) => {
-  user.required();
-
-  return user.safeParse(userPayload);
+  return user.required().safeParse(userPayload);
 };
 
 const forgotPasswordValidator = (userPayload: Partial<TAuth>) => {
