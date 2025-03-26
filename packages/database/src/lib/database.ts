@@ -32,7 +32,7 @@ import {
 } from '../../schema/channelReq.shema';
 
 import { acceptOrRejectReqValidator } from '../../schema/acceptOrRejReq.schema';
-
+import isHex from '../../utils/isHex';
 const prisma = new PrismaClient();
 export function database(): string {
   return 'database';
@@ -68,4 +68,5 @@ export {
   TChannelReq,
   channelReqValidator,
   acceptOrRejectReqValidator,
+  isHex,
 };

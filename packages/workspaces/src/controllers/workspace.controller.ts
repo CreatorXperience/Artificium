@@ -9,6 +9,7 @@ import {
   channelUpdateValidator,
   channelReqValidator,
   acceptOrRejectReqValidator,
+  isHex,
 } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Context } from 'hono';
@@ -17,7 +18,7 @@ import { ObjectId } from 'mongodb';
 const prisma = new PrismaClient();
 
 const getAllUserWorkspace = async (c: Context) => {
-  const userId = c.var.getUser().userId;
+  const userId = c.var.getUser().id;
   const publicWorkspace = await prisma.workspace.findMany({
     take: 20,
     where: { visibility: false, NOT: { members: { has: userId } } },
@@ -43,7 +44,7 @@ const getWorkspace = async (c: Context) => {
 
 const createWorkspace = async (c: Context) => {
   const body = (await c.req.json()) as TCreateWorkspace;
-  const owner = c.var.getUser().userId;
+  const owner = c.var.getUser().id;
   const data = workspaceValidator(body) as any;
   const workspaceID = new ObjectId().toHexString();
   if (data.error) {
@@ -61,6 +62,17 @@ const createWorkspace = async (c: Context) => {
     c.status(401);
     return c.json({ message: 'workspace with the same name already exist' });
   }
+  const user = c.var.getUser();
+
+  const newMember = await prisma.workspaceMember.create({
+    data: {
+      email: user.email,
+      image: user.image,
+      name: `${user.firstname} ${user.lastname}`,
+      userId: owner,
+      workspaceId: workspaceID,
+    },
+  });
 
   const workspaceObj = {
     ...data.data,
@@ -69,12 +81,10 @@ const createWorkspace = async (c: Context) => {
     url: `http://localhost:3030/workspace/${workspaceID}`,
     totalMembers: 1,
     workspaceAdmin: [owner],
-    members: [owner],
+    members: [newMember.id],
     readAccess: [owner],
     writeAccess: [owner],
   };
-
-  const user = await prisma.user.findUnique({ where: { id: owner } });
 
   const workspace = await prisma.workspace.create({
     data: {
@@ -82,15 +92,6 @@ const createWorkspace = async (c: Context) => {
     },
   });
 
-  await prisma.workspaceMember.create({
-    data: {
-      email: user.email,
-      image: user.image,
-      name: `${user.firstname} ${user.lastname}`,
-      userId: owner,
-      workspaceId: workspace.id,
-    },
-  });
   return c.json({ messages: 'workspace created', data: workspace });
 };
 
@@ -128,20 +129,31 @@ const getWorkspaceMembers = async (c: Context) => {
 
 const joinWorkspace = async (c: Context) => {
   const workspaceId = c.req.query('workspaceId');
-  const userID = c.var.getUser().userId;
+  const userID = c.var.getUser().id;
   if (!workspaceId) {
     c.status(400);
     return c.json({ message: 'incomplete query param' });
   }
-
+  if (!ObjectId.isValid(workspaceId)) {
+    c.status(400);
+    return c.json({ message: 'empty or bad workspace Id' });
+  }
   const member = await prisma.workspaceMember.findUnique({
     where: { userId: userID, workspaceId: workspaceId },
   });
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+  });
+  if (!workspace) {
+    c.status(404);
+    return c.json({ message: 'workspace not found' });
+  }
   if (member) {
+    c.status(201);
     return c.json({ message: 'user is already a member of this workspace' });
   }
 
-  const user = await prisma.user.findUnique({ where: { id: userID } });
+  const user = c.var.getUser();
   const newMember = await prisma.workspaceMember.create({
     data: {
       email: user.email,
@@ -152,23 +164,73 @@ const joinWorkspace = async (c: Context) => {
     },
   });
 
-  const workspace = await prisma.workspace.findUnique({
+  const updatedWorkspace = await prisma.workspace.update({
     where: { id: workspaceId },
-  });
-
-  await prisma.workspace.update({
-    where: { id: workspaceId },
-    data: { members: [...workspace.members, user.id] },
+    data: { members: [...workspace.members, newMember.id] },
   });
 
   return c.json({
     message: 'your are now a member of this workspace',
-    data: newMember,
+    data: updatedWorkspace,
   });
+};
+
+const leaveworkspace = async (c: Context) => {
+  const workspaceId = c.req.query('workspaceId');
+  const userID =
+    (c.req.query('userId') as string) || (c.var.getUser().id as string);
+
+  if (!workspaceId) {
+    c.status(400);
+    return c.json({ message: 'empty or bad workspace Id' });
+  }
+  if (!ObjectId.isValid(workspaceId)) {
+    c.status(400);
+    return c.json({ message: 'empty or bad workspace Id' });
+  }
+
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+  });
+
+  if (!workspace) {
+    c.status(404);
+    return c.json({ message: 'workspace not found, Bad workspaceId' });
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: userID } });
+
+  if (!user) {
+    c.status(404);
+    return c.json({ message: 'user not found, Bad user ID' });
+  }
+
+  const filteredMembers = workspace.members.filter((item) => item !== userID);
+
+  await prisma.workspace.update({
+    where: { id: workspaceId },
+    data: { members: filteredMembers },
+  });
+
+  await prisma.workspaceMember.delete({
+    where: { userId: userID, workspaceId: workspace.id },
+  });
+
+  return c.json({ message: 'successfully removed user from  workspace' });
 };
 
 const getAllWorskpaceProjects = async (c: Context) => {
   const workspaceId = c.req.param('workspaceId');
+  if (!workspaceId) {
+    c.status(400);
+    return c.json({ message: 'invalid or empty workspace ID' });
+  }
+
+  if (!ObjectId.isValid(workspaceId)) {
+    c.status(400);
+    return c.json({ message: 'invalid or empty workspace ID' });
+  }
+
   const projects = await prisma.project.findMany({
     where: { workspaceId },
     orderBy: { createdAt: 'asc' },
@@ -181,7 +243,7 @@ const getAllWorskpaceProjects = async (c: Context) => {
 };
 
 const createNewWorkspaceProject = async (c: Context) => {
-  const creator = c.var.getUser().userId;
+  const creator = c.var.getUser().id;
   const body: TProject = await c.req.json();
   const data = projectValidator(body);
   if (data.error) {
@@ -190,11 +252,16 @@ const createNewWorkspaceProject = async (c: Context) => {
       message: `Validation error: ${data.error.errors[0].message}`,
     });
   }
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: data.data.workspaceId },
+  });
+  if (!workspace) {
+    c.status(404);
+    return c.json({ message: 'workspace id is bad or invalid' });
+  }
   const project = await prisma.project.create({
     data: {
-      name: data.data.name,
-      purpose: data.data.purpose,
-      workspaceId: data.data.workspaceId,
+      ...data.data,
       createdAt: new Date(),
       members: [creator],
     },
@@ -228,7 +295,7 @@ const getAllProjectChannel = async (c: Context) => {
 };
 
 const createChannel = async (c: Context) => {
-  const creator = c.var.getUser().userId;
+  const creator = c.var.getUser().id;
   const body = await c.req.json();
 
   const { data, error } = channelValidator(body);
@@ -238,6 +305,14 @@ const createChannel = async (c: Context) => {
     return c.json({ message: `Validation Error: ${error.errors[0].message}` });
   }
 
+  const project = await prisma.project.findUnique({
+    where: { id: data.projectId },
+  });
+  if (!project) return c.json({ message: 'invalid or bad project id' });
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: data.workspaceId },
+  });
+  if (!workspace) return c.json({ message: 'invalid or bad workspace id' });
   const channel = await prisma.channel.create({
     data: {
       ...data,
@@ -297,7 +372,7 @@ const leaveChannel = async (c: Context) => {
 };
 
 const joinChannelRequest = async (c: Context) => {
-  const userId = c.var.getUser().userId;
+  const userId = c.var.getUser().id;
   const body = await c.req.json();
   const { data, error } = channelReqValidator(body);
   if (error) {
@@ -374,4 +449,5 @@ export {
   leaveChannel,
   joinChannelRequest,
   acceptOrRevokeChannelReq,
+  leaveworkspace,
 };

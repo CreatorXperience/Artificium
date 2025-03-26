@@ -27,7 +27,7 @@ model WorkspaceMember {
 model Project {
     id          String   @id @default(auto()) @map("_id") @db.ObjectId
     name        String
-    purpose     String
+    purpose     String?  @default("")
     workspaceId String   @unique @db.ObjectId
     createdAt   DateTime
     members     String[]
