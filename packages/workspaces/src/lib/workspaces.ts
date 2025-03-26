@@ -17,14 +17,17 @@ import {
   acceptOrRevokeChannelReq,
   leaveChannel,
   updateChannel,
-} from '../controllers/workspace.middleware';
+  leaveworkspace,
+} from '../controllers/workspace.controller';
 const app = new Hono().basePath('/workspace');
 
 app.get('/', authMiddleWare, getAllUserWorkspace);
 
 app.get('/members', authMiddleWare, getWorkspaceMembers);
 
-app.post('/members', authMiddleWare, joinWorkspace);
+app.post('/join', authMiddleWare, joinWorkspace);
+
+app.post('/leave', authMiddleWare, leaveworkspace);
 
 app.get('/:id', authMiddleWare, getWorkspace);
 

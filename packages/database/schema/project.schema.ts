@@ -1,4 +1,4 @@
-import z from 'zod';
+import z, { SafeParseReturnType } from 'zod';
 const project = z.object({
   name: z
     .string({ message: 'name is required' })
@@ -9,7 +9,10 @@ const project = z.object({
 
 type TProject = Required<z.infer<typeof project>>;
 const projectValidator = (payload: TProject) => {
-  return project.required().safeParse(payload);
+  return project
+    .required({ name: true, workspaceId: true })
+    .partial({ purpose: true })
+    .safeParse(payload) as SafeParseReturnType<TProject, TProject>;
 };
 
 const projectUpdateValidator = (payload: Partial<TProject>) => {

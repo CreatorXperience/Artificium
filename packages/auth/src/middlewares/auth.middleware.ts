@@ -22,7 +22,7 @@ const auth = createMiddleware<TMiddlewareContext>(
         where: { id: user.userId },
       });
       if (isExistingUser) {
-        c.set('getUser', () => user);
+        c.set('getUser', () => isExistingUser);
         await next();
       } else {
         c.status(401);

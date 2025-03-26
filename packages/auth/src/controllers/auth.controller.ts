@@ -99,10 +99,11 @@ const signup = async (c: Context<BlankEnv, '/auth/signup', BlankInput>) => {
     return c.json({ message: 'user already exists', status: 400 });
   }
 
-  userPayload.password = await hashPassword(userPayload.password);
+  const hashedPassword = await hashPassword(userPayload.password);
   const user = await database.create<database.TAuth>(
     {
       ...data.data,
+      password: hashedPassword,
     },
     'user'
   );
@@ -116,7 +117,7 @@ const signup = async (c: Context<BlankEnv, '/auth/signup', BlankInput>) => {
 };
 
 const sendOtp = async (c: Context) => {
-  const id = c.var.getUser().userId;
+  const id = c.var.getUser().id;
   const otp = Math.floor(Math.random() * 999999).toString();
 
   const existingUserOtp = await prisma.otp.findUnique({
@@ -147,7 +148,7 @@ const verifyOtp = async (c: Context) => {
     Required<database.TOtp>,
     'id' | 'userId' | 'expiresIn' | 'createdAt'
   > = await c.req.json();
-  const userId = c.var.getUser().userId;
+  const userId = c.var.getUser().id;
   const data = database.validateOtp(otpPayload);
   if (data.error) {
     c.status(400);
@@ -169,12 +170,12 @@ const verifyOtp = async (c: Context) => {
 
   if (currentDate.getDate() !== otpGenDate.getDate()) {
     await prisma.otp.deleteMany({ where: { userId: userId } });
-    console.log('1');
+    c.status(404);
     return c.json({ message: 'otp expired' });
   }
   if (currentDate.getHours() !== otpGenDate.getHours()) {
     await prisma.otp.deleteMany({ where: { userId: userId } });
-    console.log('2');
+    c.status(404);
     return c.json({ message: 'otp expired' });
   }
   if (currentDate.getMinutes() - otpGenDate.getMinutes() < 5) {
