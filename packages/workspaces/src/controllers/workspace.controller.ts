@@ -9,7 +9,6 @@ import {
   channelUpdateValidator,
   channelReqValidator,
   acceptOrRejectReqValidator,
-  isHex,
 } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Context } from 'hono';
@@ -252,12 +251,17 @@ const createNewWorkspaceProject = async (c: Context) => {
       message: `Validation error: ${data.error.errors[0].message}`,
     });
   }
+
+  if (!ObjectId.isValid(data.data.workspaceId)) {
+    c.status(400);
+    return c.json({ message: 'Malformed Object Id' });
+  }
   const workspace = await prisma.workspace.findUnique({
     where: { id: data.data.workspaceId },
   });
   if (!workspace) {
     c.status(404);
-    return c.json({ message: 'workspace id is bad or invalid' });
+    return c.json({ message: 'No workspace is attached to this object Id' });
   }
   const project = await prisma.project.create({
     data: {
@@ -304,15 +308,27 @@ const createChannel = async (c: Context) => {
     c.status(400);
     return c.json({ message: `Validation Error: ${error.errors[0].message}` });
   }
-
+  if (
+    !ObjectId.isValid(data.projectId) ||
+    !ObjectId.isValid(data.workspaceId)
+  ) {
+    c.status(404);
+    return c.json({ message: 'Invalid Id(s)' });
+  }
   const project = await prisma.project.findUnique({
     where: { id: data.projectId },
   });
-  if (!project) return c.json({ message: 'invalid or bad project id' });
+  if (!project) {
+    c.status(404);
+    return c.json({ message: 'invalid or bad project id' });
+  }
   const workspace = await prisma.workspace.findUnique({
     where: { id: data.workspaceId },
   });
-  if (!workspace) return c.json({ message: 'invalid or bad workspace id' });
+  if (!workspace) {
+    c.status(404);
+    return c.json({ message: 'invalid or bad workspace id' });
+  }
   const channel = await prisma.channel.create({
     data: {
       ...data,
@@ -332,6 +348,19 @@ const updateChannel = async (c: Context) => {
     return c.json({ message: `Validation Error: ${error.errors[0].message}` });
   }
 
+  if (!ObjectId.isValid(channelId)) {
+    c.status(404);
+    return c.json({ message: 'invalid channelId' });
+  }
+
+  const exist_channel = await prisma.channel.findUnique({
+    where: { id: channelId },
+  });
+  if (!exist_channel) {
+    c.status(404);
+    return c.json({ message: 'channel not found' });
+  }
+
   const channel = await prisma.channel.update({
     where: { id: channelId },
     data: data,
@@ -342,11 +371,30 @@ const updateChannel = async (c: Context) => {
 const joinChannel = async (c: Context) => {
   const param = c.req.param();
 
+  if (
+    !ObjectId.isValid(param['channelId']) ||
+    !ObjectId.isValid(param['userId'])
+  ) {
+    c.status(404);
+    return c.json({ message: 'invalid ids' });
+  }
   const data = await prisma.channel.findUnique({
     where: { id: param['channelId'] },
   });
+
+  if (!data) {
+    c.status(404);
+    return c.json({ message: 'channel not found' });
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: param['userId'] } });
+  if (!user) {
+    c.status(404);
+    return c.json({ message: 'channel not found' });
+  }
+
   const channel = await prisma.channel.update({
-    where: { id: param['channelId'] },
+    where: { id: param['channelId'], visibility: false },
     data: { members: [...data.members, param['userId']] },
   });
 
@@ -381,12 +429,11 @@ const joinChannelRequest = async (c: Context) => {
   }
 
   const req = await prisma.joinChannelRequest.findUnique({
-    where: { userId },
+    where: { userId, channelId: data.channelId },
   });
   if (req) {
     return c.json({ message: 'request sent', data: req });
   }
-
   const channelReq = await prisma.joinChannelRequest.create({
     data: {
       name: data.name,
@@ -426,6 +473,7 @@ const acceptOrRevokeChannelReq = async (c: Context) => {
       where: { id: data.channelId },
       data: { members: [...channel.members, data.userId] },
     });
+    console.log(data.channelId);
     await prisma.joinChannelRequest.delete({
       where: { channelId: data.channelId },
     });
