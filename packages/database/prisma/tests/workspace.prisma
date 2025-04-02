@@ -27,19 +27,10 @@ model WorkspaceMember {
 model Project {
     id          String   @id @default(auto()) @map("_id") @db.ObjectId
     name        String
-    purpose     String
+    purpose     String?  @default("")
     workspaceId String   @unique @db.ObjectId
     createdAt   DateTime
     members     String[]
-}
-
-model ProjectMember {
-    id        String @id @default(auto()) @map("_id") @db.ObjectId
-    projectId String @db.ObjectId
-    name      String
-    email     String
-    image     String
-    userId    String
 }
 
 model Channel {
@@ -50,15 +41,6 @@ model Channel {
     name        String
     stars       Int      @default(0)
     members     String[]
-}
-
-model channelMember {
-    id        String @id @default(auto()) @map("_id") @db.ObjectId
-    channelID String @unique @db.ObjectId
-    name      String
-    email     String
-    image     String
-    userId    String @db.ObjectId
 }
 
 model JoinChannelRequest {
@@ -73,23 +55,26 @@ model JoinChannelRequest {
 }
 
 model Message {
-    id           String   @id @default(auto()) @map("_id") @db.ObjectId
-    type         String
-    text         String
-    image        String?
-    channelId    String   @unique @db.ObjectId
-    commentCount Int
-    timestamp    DateTime
+    id         String   @id @default(auto()) @map("_id") @db.ObjectId
+    user       String
+    userId     String   @unique
+    text       String
+    mediaType  String
+    mediaLinks String[]
+    channelId  String   @unique @db.ObjectId
+    timestamp  DateTime
+    reference  String?  @default("")
 }
 
 model ArtificiumChat {
     id        String   @id @default(auto()) @map("_id") @db.ObjectId
     projectId String   @unique
+    userId    String   @unique
+    reference String   @unique @default("")
     text      String
-    belongsTo String   @unique
-    type      String
+    user      String
     timestamp DateTime
-    image     String?
+    media     Json?
 }
 
 model Comment {
