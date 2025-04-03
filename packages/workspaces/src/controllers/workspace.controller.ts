@@ -10,10 +10,18 @@ import {
   channelReqValidator,
   acceptOrRejectReqValidator,
   artificiumMessagePayloadValidator,
+  Redis,
 } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Context } from 'hono';
 import { ObjectId } from 'mongodb';
+import logger from '../../utils/logger';
+
+const redis = new Redis();
+
+redis.connect().then(() => {
+  logger.log({ level: 'info', message: 'connected to redis successfully' });
+});
 
 const prisma = new PrismaClient();
 

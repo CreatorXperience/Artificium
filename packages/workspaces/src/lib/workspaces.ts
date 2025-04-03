@@ -20,9 +20,9 @@ import {
   leaveworkspace,
   chatWithArtificium,
 } from '../controllers/workspace.controller';
-import { Redis } from '@org/database';
 import winston = require('winston');
-const logger = winston.createLogger({
+
+winston.createLogger({
   level: 'error',
   format: customFormat,
   exceptionHandlers: [
@@ -42,12 +42,6 @@ const logger = winston.createLogger({
   ],
 });
 const app = new Hono().basePath('/workspace');
-
-const redis = new Redis();
-
-redis.connect().then(() => {
-  logger.log({ level: 'info', message: 'connected to redis successfully' });
-});
 
 app.get('/', authMiddleWare, getAllUserWorkspace);
 
