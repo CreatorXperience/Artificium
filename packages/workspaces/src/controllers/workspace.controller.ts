@@ -9,6 +9,7 @@ import {
   channelUpdateValidator,
   channelReqValidator,
   acceptOrRejectReqValidator,
+  artificiumMessagePayloadValidator,
 } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Context } from 'hono';
@@ -480,6 +481,23 @@ const acceptOrRevokeChannelReq = async (c: Context) => {
   }
 };
 
+const chatWithArtificium = async (c: Context) => {
+  const payload = await c.req.json();
+  const { error, data } = artificiumMessagePayloadValidator(payload);
+  if (error) {
+    return c.json({ message: error.errors[0].message }, 400);
+  }
+
+  await prisma.artificiumChat.create({
+    data: {
+      channelId: data.channelId,
+      projectId: data.projectId,
+      text: data.text,
+      user: data.user,
+      userId: data.userId,
+    },
+  });
+};
 export {
   getAllUserWorkspace,
   createWorkspace,
@@ -498,4 +516,5 @@ export {
   joinChannelRequest,
   acceptOrRevokeChannelReq,
   leaveworkspace,
+  chatWithArtificium,
 };
