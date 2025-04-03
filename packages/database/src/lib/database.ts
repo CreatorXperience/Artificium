@@ -33,6 +33,8 @@ import {
 
 import { acceptOrRejectReqValidator } from '../../schema/acceptOrRejReq.schema';
 import isHex from '../../utils/isHex';
+import { artificiumMessagePayloadValidator } from '../../schema/artificiumMessage.schema';
+import Redis from '../../redis/redis';
 const prisma = new PrismaClient();
 export function database(): string {
   return 'database';
@@ -69,4 +71,6 @@ export {
   channelReqValidator,
   acceptOrRejectReqValidator,
   isHex,
+  artificiumMessagePayloadValidator,
+  Redis,
 };

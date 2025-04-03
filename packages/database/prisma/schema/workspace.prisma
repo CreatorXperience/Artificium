@@ -29,7 +29,7 @@ model Project {
     name        String
     purpose     String?  @default("")
     workspaceId String   @unique @db.ObjectId
-    createdAt   DateTime
+    createdAt   DateTime @default(now())
     members     String[]
 }
 
@@ -67,14 +67,16 @@ model Message {
 }
 
 model ArtificiumChat {
-    id        String   @id @default(auto()) @map("_id") @db.ObjectId
-    projectId String   @unique
-    userId    String   @unique
-    reference String   @unique @default("")
-    text      String
-    user      String
-    timestamp DateTime
-    media     Json?
+    id         String   @id @default(auto()) @map("_id") @db.ObjectId
+    projectId  String   @unique
+    channelId  String   @unique
+    userId     String   @unique
+    reference  String   @unique @default("")
+    text       String
+    user       String
+    timestamp  DateTime @default(now())
+    mediaType  String   @default("text")
+    mediaLinks String[]
 }
 
 model Comment {

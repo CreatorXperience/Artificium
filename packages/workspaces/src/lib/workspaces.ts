@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { authMiddleWare } from '@org/auth';
+import { authMiddleWare, customFormat } from '@org/auth';
 import {
   createChannel,
   createNewWorkspaceProject,
@@ -18,8 +18,36 @@ import {
   leaveChannel,
   updateChannel,
   leaveworkspace,
+  chatWithArtificium,
 } from '../controllers/workspace.controller';
+import { Redis } from '@org/database';
+import winston = require('winston');
+const logger = winston.createLogger({
+  level: 'error',
+  format: customFormat,
+  exceptionHandlers: [
+    new winston.transports.File({ level: 'error', filename: 'error.log' }),
+    new winston.transports.Console({ level: 'error' }),
+  ],
+  rejectionHandlers: [
+    new winston.transports.File({ level: 'error', filename: 'error.log' }),
+    new winston.transports.Console({ level: 'error' }),
+  ],
+  handleExceptions: true,
+  handleRejections: true,
+  transports: [
+    new winston.transports.File({ level: 'error', filename: 'error.log' }),
+    new winston.transports.Console({ level: 'error' }),
+    new winston.transports.Console({ level: 'info' }),
+  ],
+});
 const app = new Hono().basePath('/workspace');
+
+const redis = new Redis();
+
+redis.connect().then(() => {
+  logger.log({ level: 'info', message: 'connected to redis successfully' });
+});
 
 app.get('/', authMiddleWare, getAllUserWorkspace);
 
@@ -54,6 +82,8 @@ app.post('/channel/leave/:channelId/:userId', authMiddleWare, leaveChannel);
 app.post('/channel/request', authMiddleWare, joinChannelRequest);
 
 app.post('/channel/request/action', authMiddleWare, acceptOrRevokeChannelReq);
+
+app.post('/chat/artificium', authMiddleWare, chatWithArtificium);
 
 app.post('/new', (c) => {
   return c.json({ messages: 'workspace created  successfully', data: {} });

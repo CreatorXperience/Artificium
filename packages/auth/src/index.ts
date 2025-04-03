@@ -1,3 +1,4 @@
 import auth from './lib/auth';
 import authMiddleWare from './middlewares/auth.middleware';
-export { auth, authMiddleWare };
+import customFormat from './utils/customFormat';
+export { auth, authMiddleWare, customFormat };
