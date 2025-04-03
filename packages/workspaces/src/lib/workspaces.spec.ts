@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import workspace from './workspaces';
+import app from './workspaces';
 import { auth } from '@org/auth';
 
 const prisma = new PrismaClient();
@@ -34,7 +34,7 @@ describe('/workspace', () => {
 
   describe('GET /workspace', () => {
     test('should return status of 200 if or not workspace(s) is found', async () => {
-      const res = await workspace.request('/workspace', {
+      const res = await app.request('/workspace', {
         method: 'GET',
         headers: { Cookie: user.headers.get('set-cookie') },
       });
@@ -53,7 +53,7 @@ describe('/workspace', () => {
         },
       });
 
-      const workspaceRes = await workspace.request('/workspace', {
+      const workspaceRes = await app.request('/workspace', {
         method: 'GET',
         headers: { Cookie: user.headers.get('set-cookie') },
       });
@@ -68,7 +68,7 @@ describe('/workspace', () => {
 
   describe('POST /workspace', () => {
     test('should return status code of 400 if payload is invalid or empty', async () => {
-      const res = await workspace.request('/workspace', {
+      const res = await app.request('/workspace', {
         method: 'POST',
         body: JSON.stringify({
           badprop: 'bad-payload',
@@ -88,7 +88,7 @@ describe('/workspace', () => {
           owner: userData.data.id,
         },
       });
-      const res = await workspace.request('/workspace', {
+      const res = await app.request('/workspace', {
         method: 'POST',
         body: JSON.stringify({
           name: 'example-workspace',
@@ -99,7 +99,7 @@ describe('/workspace', () => {
     });
 
     test('should return 200 if payload is good and unique', async () => {
-      const res = await workspace.request('/workspace', {
+      const res = await app.request('/workspace', {
         method: 'POST',
         body: JSON.stringify({
           name: 'unique-workspace',
@@ -123,7 +123,7 @@ describe('/workspace', () => {
       });
     });
     test('should return 200 status', async () => {
-      const res = await workspace.request(`/workspace/${newWorkspace.id}`, {
+      const res = await app.request(`/workspace/${newWorkspace.id}`, {
         method: 'PATCH',
         body: JSON.stringify({
           name: 'change workspace',
@@ -139,7 +139,7 @@ describe('/workspace', () => {
     });
 
     test('should return 400 status is payload is bad or empty', async () => {
-      const res = await workspace.request(`/workspace/${newWorkspace.id}`, {
+      const res = await app.request(`/workspace/${newWorkspace.id}`, {
         method: 'PATCH',
         body: JSON.stringify(null),
         headers: { Cookie: user.headers.get('set-cookie') },
@@ -165,7 +165,7 @@ describe('/workspace', () => {
       await prisma.workspaceMember.deleteMany();
     });
     test('should return 400 if query param is empty or not set', async () => {
-      const res = await workspace.request(`/workspace/join?workspaceId=`, {
+      const res = await app.request(`/workspace/join?workspaceId=`, {
         method: 'POST',
         headers: { Cookie: user.headers.get('set-cookie') },
       });
@@ -174,13 +174,10 @@ describe('/workspace', () => {
     });
 
     test('should return 400 if query param workspaceId is not a valid ObjectId', async () => {
-      const res = await workspace.request(
-        `/workspace/join?workspaceId=${1234}`,
-        {
-          method: 'POST',
-          headers: { Cookie: user.headers.get('set-cookie') },
-        }
-      );
+      const res = await app.request(`/workspace/join?workspaceId=${1234}`, {
+        method: 'POST',
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
 
       expect(res.status).toBe(400);
     });
@@ -196,7 +193,7 @@ describe('/workspace', () => {
         },
       });
 
-      const res = await workspace.request(
+      const res = await app.request(
         `/workspace/join?workspaceId=${newWorkspace.id}`,
         {
           method: 'POST',
@@ -208,7 +205,7 @@ describe('/workspace', () => {
     });
 
     test('should return status code of 200 if payload is valid and user is not a member of the provided workspace id', async () => {
-      const res = await workspace.request(
+      const res = await app.request(
         `/workspace/join?workspaceId=${newWorkspace.id}`,
         {
           method: 'POST',
@@ -241,7 +238,7 @@ describe('/workspace', () => {
       await prisma.workspaceMember.deleteMany();
     });
     test('should return 400 if workspace id is empty or bad', async () => {
-      const res = await workspace.request('/workspace/leave?workspaceId=', {
+      const res = await app.request('/workspace/leave?workspaceId=', {
         method: 'POST',
         headers: { Cookie: user.headers.get('set-cookie') },
       });
@@ -249,20 +246,17 @@ describe('/workspace', () => {
     });
 
     test('should return 400 if  workspaceId is not a valid objectId', async () => {
-      const res = await workspace.request(
-        `/workspace/leave?workspaceId=${'123'}`,
-        {
-          method: 'POST',
-          headers: { Cookie: user.headers.get('set-cookie') },
-        }
-      );
+      const res = await app.request(`/workspace/leave?workspaceId=${'123'}`, {
+        method: 'POST',
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
 
       expect(res.status).toBe(400);
     });
 
     test('should return 404 if workspaceId is valid but no workspace attached to it', async () => {
       await prisma.workspace.delete({ where: { id: newWorkspace.id } });
-      const res = await workspace.request(
+      const res = await app.request(
         `/workspace/leave?workspaceId=${newWorkspace.id}`,
         {
           method: 'POST',
@@ -292,7 +286,7 @@ describe('/workspace', () => {
           workspaceId: newWorkspace.id,
         },
       });
-      const res = await workspace.request(
+      const res = await app.request(
         `/workspace/leave?workspaceId=${newWorkspace.id}`,
         {
           method: 'POST',
@@ -326,7 +320,7 @@ describe('/workspace', () => {
       await prisma.workspaceMember.deleteMany();
     });
     test('should return 400 if workspaceId is Invalid or empty', async () => {
-      const res = await workspace.request(`/workspace/project/${123445}`, {
+      const res = await app.request(`/workspace/project/${123445}`, {
         method: 'GET',
         headers: { Cookie: user.headers.get('set-cookie') },
       });
@@ -334,13 +328,10 @@ describe('/workspace', () => {
     });
 
     test('should return 400 if workspaceId is Invalid or empty', async () => {
-      const res = await workspace.request(
-        `/workspace/project/${newWorkspace.id}`,
-        {
-          method: 'GET',
-          headers: { Cookie: user.headers.get('set-cookie') },
-        }
-      );
+      const res = await app.request(`/workspace/project/${newWorkspace.id}`, {
+        method: 'GET',
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
       expect(res.status).toBe(200);
     });
   });
@@ -362,7 +353,7 @@ describe('/workspace', () => {
       await prisma.workspaceMember.deleteMany();
     });
     test('should return 400 if data is bad or incomplete', async () => {
-      const res = await workspace.request(`/workspace/project`, {
+      const res = await app.request(`/workspace/project`, {
         method: 'POST',
         body: JSON.stringify({}),
         headers: { Cookie: user.headers.get('set-cookie') },
@@ -372,7 +363,7 @@ describe('/workspace', () => {
 
     test('should return 404 if no workspace is attached to the workspaceId', async () => {
       //  const  await
-      const res = await workspace.request(`/workspace/project`, {
+      const res = await app.request(`/workspace/project`, {
         method: 'POST',
         body: JSON.stringify({
           workspaceId: '1234567890',
@@ -387,7 +378,7 @@ describe('/workspace', () => {
     test('should return 404 if workspace is deleted ', async () => {
       //  const  await
       await prisma.workspace.delete({ where: { id: newWorkspace.id } });
-      const res = await workspace.request(`/workspace/project`, {
+      const res = await app.request(`/workspace/project`, {
         method: 'POST',
         body: JSON.stringify({
           workspaceId: newWorkspace.id,
@@ -400,7 +391,7 @@ describe('/workspace', () => {
     });
 
     test('should return 200', async () => {
-      const res = await workspace.request(`/workspace/project`, {
+      const res = await app.request(`/workspace/project`, {
         method: 'POST',
         body: JSON.stringify({
           workspaceId: newWorkspace.id,
@@ -426,19 +417,16 @@ describe('/workspace', () => {
       });
     });
     test('should return 500 if payload is empty or bad', async () => {
-      const res = await workspace.request(
-        `/workspace/project/${newWorkspace.id}`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify({ joe: 'frazier' }),
-          headers: { Cookie: user.headers.get('set-cookie') },
-        }
-      );
+      const res = await app.request(`/workspace/project/${newWorkspace.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ joe: 'frazier' }),
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
       expect(res.status).toBe(500);
     });
 
     test('should return 200 if payload is okay and project exists', async () => {
-      const projectRes = await workspace.request(`/workspace/project`, {
+      const projectRes = await app.request(`/workspace/project`, {
         method: 'POST',
         body: JSON.stringify({
           workspaceId: newWorkspace.id,
@@ -448,14 +436,11 @@ describe('/workspace', () => {
         headers: { Cookie: user.headers.get('set-cookie') },
       });
       const project = await projectRes.json();
-      const res = await workspace.request(
-        `/workspace/project/${project.data.id}`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify({ name: 'Project two' }),
-          headers: { Cookie: user.headers.get('set-cookie') },
-        }
-      );
+      const res = await app.request(`/workspace/project/${project.data.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ name: 'Project two' }),
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
       expect(res.status).toBe(200);
     });
   });
@@ -489,7 +474,7 @@ describe('/workspace', () => {
       await prisma.$disconnect();
     });
     test('should return 400 if data is bad or incomplete', async () => {
-      const res = await workspace.request(`/workspace/channel`, {
+      const res = await app.request(`/workspace/channel`, {
         method: 'POST',
         body: JSON.stringify({}),
         headers: { Cookie: user.headers.get('set-cookie') },
@@ -499,7 +484,7 @@ describe('/workspace', () => {
 
     test('should return 404 workspaceIds and projectIds are invalid', async () => {
       //  const  await
-      const res = await workspace.request(`/workspace/channel`, {
+      const res = await app.request(`/workspace/channel`, {
         method: 'POST',
         body: JSON.stringify({
           workspaceId: '1234567890',
@@ -515,7 +500,7 @@ describe('/workspace', () => {
       //  const  await
       await prisma.workspace.delete({ where: { id: newWorkspace.id } });
       await prisma.project.delete({ where: { id: newProject.id } });
-      const res = await workspace.request(`/workspace/channel`, {
+      const res = await app.request(`/workspace/channel`, {
         method: 'POST',
         body: JSON.stringify({
           workspaceId: newWorkspace.id,
@@ -528,7 +513,7 @@ describe('/workspace', () => {
     });
 
     test('should return 200', async () => {
-      const res = await workspace.request(`/workspace/channel`, {
+      const res = await app.request(`/workspace/channel`, {
         method: 'POST',
         body: JSON.stringify({
           workspaceId: newWorkspace.id,
@@ -579,19 +564,16 @@ describe('/workspace', () => {
       await prisma.$disconnect();
     });
     test('should return 400 if updateChannel data is invalid', async () => {
-      const res = await workspace.request(
-        `/workspace/channel/${newChannel.id}`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify({ name: 1 }),
-          headers: { Cookie: user.headers.get('set-cookie') },
-        }
-      );
+      const res = await app.request(`/workspace/channel/${newChannel.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ name: 1 }),
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
       expect(res.status).toBe(400);
     });
 
     test('should return 404 if updating a non-existent channel', async () => {
-      const res = await workspace.request(`/workspace/channel/invalidId`, {
+      const res = await app.request(`/workspace/channel/invalidId`, {
         method: 'PATCH',
         body: JSON.stringify({ name: 'Updated Name' }),
         headers: { Cookie: user.headers.get('set-cookie') },
@@ -612,7 +594,7 @@ describe('/workspace', () => {
     // });
 
     test('should return 404 if joining a non-existent channel', async () => {
-      const res = await workspace.request(
+      const res = await app.request(
         `/workspace/channel/join/invalidChannelId/user123`,
         {
           method: 'POST',
@@ -623,7 +605,7 @@ describe('/workspace', () => {
     });
 
     test('should return 200 when leaving a channel successfully', async () => {
-      const res = await workspace.request(
+      const res = await app.request(
         `/workspace/channel/leave/${newChannel.id}/${userData.data.id}`,
         {
           method: 'POST',
@@ -634,7 +616,7 @@ describe('/workspace', () => {
     });
 
     test('should return 200 when sending a join channel request successfully', async () => {
-      const res = await workspace.request(`/workspace/channel/request`, {
+      const res = await app.request(`/workspace/channel/request`, {
         method: 'POST',
         body: JSON.stringify({
           name: 'Kelvin Chukwu',
@@ -647,7 +629,7 @@ describe('/workspace', () => {
     });
 
     test('should return 400 if join request data is invalid', async () => {
-      const res = await workspace.request(`/workspace/channel/request`, {
+      const res = await app.request(`/workspace/channel/request`, {
         method: 'POST',
         body: JSON.stringify({}),
         headers: { Cookie: user.headers.get('set-cookie') },
@@ -681,7 +663,7 @@ describe('/workspace', () => {
     // });
 
     test('should return 200 when revoking a join request', async () => {
-      const res = await workspace.request(`/workspace/channel/request/action`, {
+      const res = await app.request(`/workspace/channel/request/action`, {
         method: 'POST',
         body: JSON.stringify({
           signal: 'revoke',
@@ -694,7 +676,7 @@ describe('/workspace', () => {
     });
 
     test('should return 400 if request action data is invalid', async () => {
-      const res = await workspace.request(`/workspace/channel/request/action`, {
+      const res = await app.request(`/workspace/channel/request/action`, {
         method: 'POST',
         body: JSON.stringify({}),
         headers: { Cookie: user.headers.get('set-cookie') },
