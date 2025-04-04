@@ -51,7 +51,6 @@ app.delete('/logout', auth, logout);
 app.onError((err, c) => {
   return c.json(
     {
-      success: false,
       message: err.message || 'Internal Server Error',
       stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
     },

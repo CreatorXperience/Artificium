@@ -19,8 +19,9 @@ import {
   updateChannel,
   leaveworkspace,
   chatWithArtificium,
+  getUserChatWithArtificium,
 } from '../controllers/workspace.controller';
-import winston = require('winston');
+import winston from 'winston';
 
 winston.createLogger({
   level: 'error',
@@ -79,8 +80,19 @@ app.post('/channel/request/action', authMiddleWare, acceptOrRevokeChannelReq);
 
 app.post('/chat/artificium', authMiddleWare, chatWithArtificium);
 
+app.get('/chat/artificium', authMiddleWare, getUserChatWithArtificium);
+
 app.post('/new', (c) => {
   return c.json({ messages: 'workspace created  successfully', data: {} });
 });
 
+app.onError((err, c) => {
+  return c.json(
+    {
+      message: err.message || 'Internal Server Error',
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    },
+    500
+  );
+});
 export default app;
