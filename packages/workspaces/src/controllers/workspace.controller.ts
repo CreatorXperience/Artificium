@@ -14,14 +14,19 @@ import {
 } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Context } from 'hono';
-import { ObjectId } from 'mongodb';
+import mongodb, { ObjectId } from 'mongodb';
 import logger from '../../utils/logger';
 
 const redis = new Redis();
 
-redis.connect().then(() => {
-  logger.log({ level: 'info', message: 'connected to redis successfully' });
-});
+redis
+  .connect()
+  .then(() => {
+    logger.log({ level: 'info', message: 'connected to redis successfully' });
+  })
+  .catch(() => {
+    logger.log('error', 'encountered an error while connecting to redis');
+  });
 
 const prisma = new PrismaClient();
 
@@ -495,15 +500,60 @@ const chatWithArtificium = async (c: Context) => {
   if (error) {
     return c.json({ message: error.errors[0].message }, 400);
   }
+  const message_length = await redis.client.LLEN('new_message');
+  if (message_length >= 1) {
+    const messages = await redis.client.LRANGE('new_messsage', 0, 50);
+    const parsed_messages = messages.map((message) => JSON.parse(message));
+    await prisma.artificiumChat.createMany({
+      data: [...parsed_messages],
+    });
 
-  await prisma.artificiumChat.create({
-    data: {
-      channelId: data.channelId,
+    await redis.client.LTRIM('artificium_messages', 50, -1);
+  }
+  await redis.client.LPUSH(
+    'new_message',
+    JSON.stringify({
+      id: new ObjectId().toHexString(),
       projectId: data.projectId,
       text: data.text,
       user: data.user,
       userId: data.userId,
-    },
+      timestamp: Date.now(),
+      reference: data.reference,
+    })
+  );
+
+  return c.json({ message: 'message sent successfully' });
+};
+
+const getUserChatWithArtificium = async (c: Context) => {
+  const param = c.req.query();
+  if (!param['projectId'] && !param['userId']) {
+    return c.json(
+      {
+        message: "parameter 'projectId' and 'userId' are required",
+      },
+      400
+    );
+  }
+  const redisCacheMessages = await redis.client.LRANGE('new_message', 0, 50);
+  const cacheMessages = redisCacheMessages
+    .map((message) => JSON.parse(message))
+    .filter(
+      (message) =>
+        message.projectId === param['projectId'] &&
+        message.userId === param['userId']
+    );
+
+  const dbMessages = await prisma.artificiumChat.findMany({
+    where: { projectId: param['projectId'], userId: param['userId'] },
+  });
+
+  const groupMessages = [...dbMessages, ...cacheMessages];
+
+  return c.json({
+    message: 'message retrieved successfully',
+    data: groupMessages,
   });
 };
 export {
@@ -525,4 +575,5 @@ export {
   acceptOrRevokeChannelReq,
   leaveworkspace,
   chatWithArtificium,
+  getUserChatWithArtificium,
 };
