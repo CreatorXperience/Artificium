@@ -1,6 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import app from './workspaces';
 import { auth } from '@org/auth';
+import redis from 'redis';
+
+const redisClient = redis.createClient();
 
 const prisma = new PrismaClient();
 describe('/workspace', () => {
@@ -445,7 +448,7 @@ describe('/workspace', () => {
     });
   });
 
-  describe('POST /workspace/channel', () => {
+  describe('POST /workspace/channel/', () => {
     let newWorkspace;
     let newProject;
     beforeEach(async () => {
@@ -526,7 +529,7 @@ describe('/workspace', () => {
     });
   });
 
-  describe('Channel API Endpoints', () => {
+  describe(' (CONT...) POST /workspace/channel/ ', () => {
     let newWorkspace;
     let newProject;
     let newChannel;
@@ -682,6 +685,122 @@ describe('/workspace', () => {
         headers: { Cookie: user.headers.get('set-cookie') },
       });
       expect(res.status).toBe(400);
+    });
+  });
+
+  describe('POST /workspace/chat/artificium', () => {
+    beforeEach(async () => {
+      await prisma.artificiumChat.deleteMany();
+    });
+    test('should return 200 when sending a valid message to artificium', async () => {
+      const res = await app.request('/workspace/chat/artificium', {
+        method: 'POST',
+        body: JSON.stringify({
+          projectId: '85830204820',
+          userId: '02893453928',
+          text: "What's your name?",
+          user: 'HUMAN',
+        }),
+        headers: {
+          Cookie: user.headers.get('set-cookie'),
+        },
+      });
+
+      expect(res.status).toBe(200);
+      const chat = await prisma.artificiumChat.findMany();
+      expect(chat.length).toBe(0);
+    });
+
+    test('should return 400 when required fields are missing', async () => {
+      const res = await app.request('/workspace/chat/artificium', {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: '02893453928', // projectId and text are missing
+        }),
+        headers: {
+          Cookie: user.headers.get('set-cookie'),
+        },
+      });
+
+      expect(res.status).toBe(400);
+    });
+
+    test('should return 400 when payload is invalid (wrong types)', async () => {
+      const res = await app.request('/workspace/chat/artificium', {
+        method: 'POST',
+        body: JSON.stringify({
+          projectId: 85830204820, // should be string
+          userId: '02893453928',
+          text: 123, // should be string
+          user: 'HUMAN',
+        }),
+        headers: {
+          Cookie: user.headers.get('set-cookie'),
+        },
+      });
+
+      expect(res.status).toBe(400);
+    });
+
+    test('should return 401 if no auth cookie is provided', async () => {
+      const res = await app.request('/workspace/chat/artificium', {
+        method: 'POST',
+        body: JSON.stringify({
+          projectId: '85830204820',
+          userId: '02893453928',
+          text: "What's your name?",
+          user: 'HUMAN',
+        }),
+        // Missing Cookie header
+      });
+
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe('GET /workspace/chat/artificium?projectId=&userId=', () => {
+    afterAll(async () => {
+      await prisma.artificiumChat.deleteMany();
+    });
+    test('should return 400 if projectId and userId are missing', async () => {
+      const res = await app.request('/workspace/chat/artificium', {
+        method: 'GET',
+        headers: {
+          Cookie: user.headers.get('set-cookie'),
+        },
+      });
+
+      expect(res.status).toBe(400);
+    });
+
+    test('should return 200 and messages when projectId and userId are present', async () => {
+      const projectId = '85830204820';
+      const userId = '02893453928';
+
+      await prisma.artificiumChat.create({
+        data: {
+          projectId,
+          userId,
+          text: 'Hello from db',
+          timestamp: new Date(),
+          user: 'HUMAN',
+        },
+      });
+
+      const res = await app.request(
+        `/workspace/chat/artificium?projectId=${projectId}`,
+        {
+          method: 'GET',
+          headers: {
+            Cookie: user.headers.get('set-cookie'),
+          },
+        }
+      );
+
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.message).toBe('message retrieved successfully');
+      expect(json.data.length).toBeGreaterThan(0);
     });
   });
 });

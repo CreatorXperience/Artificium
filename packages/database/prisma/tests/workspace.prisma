@@ -68,25 +68,24 @@ model Message {
 
 model ArtificiumChat {
     id         String   @id @default(auto()) @map("_id") @db.ObjectId
-    projectId  String   @unique
-    channelId  String   @unique
-    userId     String   @unique
-    reference  String   @unique @default("")
+    projectId  String
+    userId     String
+    reference  String   @default("")
     text       String
     user       String
     timestamp  DateTime @default(now())
     mediaType  String   @default("text")
-    mediaLinks String[]
+    mediaLinks String[] @default([])
 }
 
-model Comment {
-    id           String @id @default(auto()) @map("_id") @db.ObjectId
-    type         String
-    text         String
-    image        String
-    messageId    String @unique //parentComment 
-    commentCount Int
-}
+// model Comment {
+//     id           String @id @default(auto()) @map("_id") @db.ObjectId
+//     type         String
+//     text         String
+//     image        String
+//     messageId    String @unique //parentComment 
+//     commentCount Int
+// }
 
 // model SubComment {
 //     id            String @id @default(auto()) @map("_id") @db.ObjectId

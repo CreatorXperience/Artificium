@@ -68,9 +68,9 @@ model Message {
 
 model ArtificiumChat {
     id         String   @id @default(auto()) @map("_id") @db.ObjectId
-    projectId  String   @unique
-    userId     String   @unique
-    reference  String   @unique @default("")
+    projectId  String
+    userId     String
+    reference  String   @default("")
     text       String
     user       String
     timestamp  DateTime @default(now())
