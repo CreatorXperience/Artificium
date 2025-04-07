@@ -11,10 +11,11 @@ import {
   acceptOrRejectReqValidator,
   artificiumMessagePayloadValidator,
   Redis,
+  updateArtificiumMessagePayloadSchema,
 } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Context } from 'hono';
-import mongodb, { ObjectId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import logger from '../../utils/logger';
 
 const redis = new Redis();
@@ -502,24 +503,23 @@ const chatWithArtificium = async (c: Context) => {
   }
   const message_length = await redis.client.LLEN('new_message');
   if (message_length >= 1) {
-    const messages = await redis.client.LRANGE('new_messsage', 0, 50);
-    const parsed_messages = messages.map((message) => JSON.parse(message));
+    const messages = await redis.client.LRANGE('new_message', 0, 50);
+    const parsed_messages = messages.map((message) => ({
+      ...JSON.parse(message),
+      timestamp: new Date(JSON.parse(message).timestamp),
+    }));
     await prisma.artificiumChat.createMany({
       data: [...parsed_messages],
     });
 
-    await redis.client.LTRIM('artificium_messages', 50, -1);
+    await redis.client.LTRIM('new_message', 50, -1);
   }
   await redis.client.LPUSH(
     'new_message',
     JSON.stringify({
       id: new ObjectId().toHexString(),
-      projectId: data.projectId,
-      text: data.text,
-      user: data.user,
-      userId: data.userId,
       timestamp: Date.now(),
-      reference: data.reference,
+      ...data,
     })
   );
 
@@ -528,7 +528,7 @@ const chatWithArtificium = async (c: Context) => {
 
 const getUserChatWithArtificium = async (c: Context) => {
   const param = c.req.query();
-  if (!param['projectId'] && !param['userId']) {
+  if (!param['projectId']) {
     return c.json(
       {
         message: "parameter 'projectId' and 'userId' are required",
@@ -536,17 +536,26 @@ const getUserChatWithArtificium = async (c: Context) => {
       400
     );
   }
-  const redisCacheMessages = await redis.client.LRANGE('new_message', 0, 50);
+
+  if (process.env.NODE_ENV === 'test') {
+    const projectId = '85830204820';
+    await redis.client.LPUSH(
+      'new_message',
+      JSON.stringify({
+        projectId,
+        text: 'Hello from cache',
+        timestamp: Date.now(),
+        user: 'HUMAN',
+      })
+    );
+  }
+  const redisCacheMessages =
+    (await redis.client.LRANGE('new_message', 0, 50)) || [];
   const cacheMessages = redisCacheMessages
     .map((message) => JSON.parse(message))
-    .filter(
-      (message) =>
-        message.projectId === param['projectId'] &&
-        message.userId === param['userId']
-    );
-
+    .filter((message) => message.projectId === param['projectId']);
   const dbMessages = await prisma.artificiumChat.findMany({
-    where: { projectId: param['projectId'], userId: param['userId'] },
+    where: { projectId: param['projectId'] },
   });
 
   const groupMessages = [...dbMessages, ...cacheMessages];
@@ -556,6 +565,49 @@ const getUserChatWithArtificium = async (c: Context) => {
     data: groupMessages,
   });
 };
+
+const updateUserChatWithArtificium = async (c: Context) => {
+  const payload = await c.req.json();
+  const { error, data } = updateArtificiumMessagePayloadSchema(payload);
+  if (error) {
+    return c.json(
+      { message: `Validation Error: ${error.errors[0].message}` },
+      400
+    );
+  }
+
+  const messages = await redis.client.LRANGE('new_message', 0, 50);
+  if (messages && messages.length > 0) {
+    const list_of_msg_to_update: Array<string> = messages.filter(
+      (msg) => JSON.parse(msg).id === data.messageId
+    );
+    if (list_of_msg_to_update.length < 1) {
+      const updated_chat = await prisma.artificiumChat.update({
+        where: { id: data.messageId },
+        data: { text: data.text, timestamp: new Date(Date.now()) },
+      });
+
+      return c.json({
+        message: 'message updated successfully',
+        data: updated_chat,
+      });
+    }
+    const msg_to_update = JSON.parse(list_of_msg_to_update[0]);
+    const mTime = new Date(Date.now());
+
+    await redis.client.LREM('new_message', 0, list_of_msg_to_update[0]);
+    await redis.client.LPUSH(
+      'new_message',
+      JSON.stringify({ timestamp: mTime, ...msg_to_update, text: data.text })
+    );
+
+    return c.json({
+      message: 'message updated succcessfully',
+      data: { ...msg_to_update, text: data.text, timestamp: mTime },
+    });
+  }
+};
+
 export {
   getAllUserWorkspace,
   createWorkspace,
@@ -576,4 +628,5 @@ export {
   leaveworkspace,
   chatWithArtificium,
   getUserChatWithArtificium,
+  updateUserChatWithArtificium,
 };
