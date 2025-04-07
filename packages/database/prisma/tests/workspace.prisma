@@ -1,0 +1,98 @@
+model Workspace {
+    id             String   @id @default(auto()) @map("_id") @db.ObjectId
+    url            String?  @unique @default("")
+    visibility     Boolean  @default(false)
+    readAccess     Json?
+    writeAccess    Json?
+    totalMembers   Int
+    name           String   @unique
+    description    String?  @default("")
+    RandR          String?  @default("")
+    image          String?  @default("https://i.pinimg.com/736x/4e/38/e7/4e38e73208c8a9c2410e4f1d9cb90ee5.jpg")
+    workspaceAdmin String[]
+    owner          String   @db.ObjectId
+    plan           String?  @default("free")
+    members        String[] @default([])
+}
+
+model WorkspaceMember {
+    id          String @id @default(auto()) @map("_id") @db.ObjectId
+    userId      String @db.ObjectId
+    name        String
+    email       String
+    image       String
+    workspaceId String @unique @db.ObjectId
+}
+
+model Project {
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
+    name        String
+    purpose     String?  @default("")
+    workspaceId String   @unique @db.ObjectId
+    createdAt   DateTime @default(now())
+    members     String[]
+}
+
+model Channel {
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
+    projectId   String   @unique @db.ObjectId
+    workspaceId String   @unique @db.ObjectId
+    visibility  Boolean  @default(false)
+    name        String
+    stars       Int      @default(0)
+    members     String[]
+}
+
+model JoinChannelRequest {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    name      String
+    userId    String   @unique
+    channelId String   @unique
+    toAdmin   String   @unique
+    accept    Boolean  @default(false)
+    revoke    Boolean  @default(false)
+    timestamp DateTime @default(now())
+}
+
+model Message {
+    id         String   @id @default(auto()) @map("_id") @db.ObjectId
+    user       String
+    userId     String   @unique
+    text       String
+    mediaType  String
+    mediaLinks String[]
+    channelId  String   @unique @db.ObjectId
+    timestamp  DateTime
+    reference  String?  @default("")
+}
+
+model ArtificiumChat {
+    id         String   @id @default(auto()) @map("_id") @db.ObjectId
+    projectId  String
+    userId     String
+    reference  String   @default("")
+    text       String
+    user       String
+    timestamp  DateTime @default(now())
+    mediaType  String   @default("text")
+    mediaLinks String[] @default([])
+}
+
+// model Comment {
+//     id           String @id @default(auto()) @map("_id") @db.ObjectId
+//     type         String
+//     text         String
+//     image        String
+//     messageId    String @unique //parentComment 
+//     commentCount Int
+// }
+
+// model SubComment {
+//     id            String @id @default(auto()) @map("_id") @db.ObjectId
+//     parentComment String @db.ObjectId
+//     type          String
+//     text          String
+//     image         String
+//     messageId     String
+//     commentCount  Int
+// }

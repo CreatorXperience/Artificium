@@ -1,0 +1,20 @@
+{
+  "name": "workspaces",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/workspaces/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/workspaces",
+        "tsConfig": "packages/workspaces/tsconfig.lib.json",
+        "packageJson": "packages/workspaces/package.json",
+        "main": "packages/workspaces/src/index.ts",
+        "assets": ["packages/workspaces/*.md"]
+      }
+    }
+  }
+}

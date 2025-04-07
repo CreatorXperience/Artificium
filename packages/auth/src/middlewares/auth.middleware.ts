@@ -22,13 +22,14 @@ const auth = createMiddleware<TMiddlewareContext>(
         where: { id: user.userId },
       });
       if (isExistingUser) {
-        c.set('getUser', () => user);
+        c.set('getUser', () => isExistingUser);
         await next();
       } else {
         c.status(401);
         return c.json({ message: 'Unauthorized user.', status: 401 });
       }
     }
+    c.status(401);
     return c.json({ message: 'Unauthorized user', status: 401 });
   }
 );

@@ -19,7 +19,6 @@ and also view the artificium flow chart [here](https://miro.com/app/board/uXjVLn
 ### 1. Installation
 
 ```sh
-
     git clone https://github.com/CreatorXperience/Artificium.git
 ```
 
@@ -41,7 +40,6 @@ make sure the following `env` variables are provided before starting the server:
 ### 3. Start DEV server
 
 ```sh
-
     npm start
 ```
 
@@ -60,7 +58,6 @@ The following steps assumes you have docker installed :
 1. pull `mongodb/mongodb-atlas-local` image so test ENV can test against a local database instead of cloud database
 
    ```sh
-
        docker pull mongodb/mongodb-atlas-local
    ```
 
