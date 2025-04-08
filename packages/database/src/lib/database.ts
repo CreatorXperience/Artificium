@@ -36,6 +36,7 @@ import isHex from '../../utils/isHex';
 import {
   artificiumMessagePayloadValidator,
   updateArtificiumMessagePayloadSchema,
+  deleteArtificiumMessageValidator,
 } from '../../schema/artificiumMessage.schema';
 import Redis from '../../redis/redis';
 const prisma = new PrismaClient();
@@ -77,4 +78,5 @@ export {
   artificiumMessagePayloadValidator,
   Redis,
   updateArtificiumMessagePayloadSchema,
+  deleteArtificiumMessageValidator,
 };

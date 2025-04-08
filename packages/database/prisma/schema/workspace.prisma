@@ -67,15 +67,17 @@ model Message {
 }
 
 model ArtificiumChat {
-    id         String   @id @default(auto()) @map("_id") @db.ObjectId
-    projectId  String
-    userId     String
-    reference  String   @default("")
-    text       String
-    user       String
-    timestamp  DateTime @default(now())
-    mediaType  String   @default("text")
-    mediaLinks String[] @default([])
+    id            String   @id @default(auto()) @map("_id") @db.ObjectId
+    projectId     String
+    userId        String
+    reference     String   @default("")
+    text          String
+    user          String
+    timestamp     DateTime @default(now())
+    mediaType     String   @default("text")
+    mediaLinks    String[] @default([])
+    deletedForMe  Boolean  @default(false)
+    deletedForAll Boolean  @default(false)
 }
 
 // model Comment {
