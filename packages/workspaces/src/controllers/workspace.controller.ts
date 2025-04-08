@@ -12,6 +12,7 @@ import {
   artificiumMessagePayloadValidator,
   Redis,
   updateArtificiumMessagePayloadSchema,
+  deleteArtificiumMessageValidator,
 } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Context } from 'hono';
@@ -19,6 +20,8 @@ import { ObjectId } from 'mongodb';
 import logger from '../../utils/logger';
 
 const redis = new Redis();
+
+const MAX_CACHE_SIZE = 2;
 
 redis
   .connect()
@@ -502,12 +505,14 @@ const chatWithArtificium = async (c: Context) => {
     return c.json({ message: error.errors[0].message }, 400);
   }
   const message_length = await redis.client.LLEN('new_message');
-  if (message_length >= 1) {
+  if (message_length >= MAX_CACHE_SIZE) {
     const messages = await redis.client.LRANGE('new_message', 0, 50);
-    const parsed_messages = messages.map((message) => ({
-      ...JSON.parse(message),
-      timestamp: new Date(JSON.parse(message).timestamp),
-    }));
+    const parsed_messages = messages
+      .map((message) => ({
+        ...JSON.parse(message),
+        timestamp: new Date(JSON.parse(message).timestamp),
+      }))
+      .reverse();
     await prisma.artificiumChat.createMany({
       data: [...parsed_messages],
     });
@@ -553,7 +558,8 @@ const getUserChatWithArtificium = async (c: Context) => {
     (await redis.client.LRANGE('new_message', 0, 50)) || [];
   const cacheMessages = redisCacheMessages
     .map((message) => JSON.parse(message))
-    .filter((message) => message.projectId === param['projectId']);
+    .filter((message) => message.projectId === param['projectId'])
+    .reverse();
   const dbMessages = await prisma.artificiumChat.findMany({
     where: { projectId: param['projectId'] },
   });
@@ -577,10 +583,14 @@ const updateUserChatWithArtificium = async (c: Context) => {
   }
 
   const messages = await redis.client.LRANGE('new_message', 0, 50);
+  let indexToUpdateAt: number;
   if (messages && messages.length > 0) {
-    const list_of_msg_to_update: Array<string> = messages.filter(
-      (msg) => JSON.parse(msg).id === data.messageId
-    );
+    const list_of_msg_to_update: Array<string> = messages.filter((msg, idx) => {
+      if (JSON.parse(msg).id === data.messageId) {
+        indexToUpdateAt = idx;
+        return true;
+      }
+    });
     if (list_of_msg_to_update.length < 1) {
       const updated_chat = await prisma.artificiumChat.update({
         where: { id: data.messageId },
@@ -595,9 +605,9 @@ const updateUserChatWithArtificium = async (c: Context) => {
     const msg_to_update = JSON.parse(list_of_msg_to_update[0]);
     const mTime = new Date(Date.now());
 
-    await redis.client.LREM('new_message', 0, list_of_msg_to_update[0]);
-    await redis.client.LPUSH(
+    await redis.client.LSET(
       'new_message',
+      indexToUpdateAt,
       JSON.stringify({ timestamp: mTime, ...msg_to_update, text: data.text })
     );
 
@@ -606,6 +616,67 @@ const updateUserChatWithArtificium = async (c: Context) => {
       data: { ...msg_to_update, text: data.text, timestamp: mTime },
     });
   }
+};
+
+const deleteChatWithArtificium = async (c: Context) => {
+  const payload = await c.req.json();
+  const { data, error } = deleteArtificiumMessageValidator(payload);
+  if (error) {
+    return c.json({ message: `Validation Error: ${error.errors[0].message}` });
+  }
+  let indexToUpdateAt: number;
+
+  const cacheMsgs = await redis.client.LRANGE('new_message', 0, 50);
+  const msg = cacheMsgs.filter((msg, idx) => {
+    if (JSON.parse(msg).id === data.messageId) {
+      indexToUpdateAt = idx;
+      return true;
+    }
+  })[0];
+
+  const mTime = new Date(Date.now());
+  if (!msg) {
+    const updated_data = data['deleteForAll']
+      ? await prisma.artificiumChat.update({
+          where: { id: data.messageId },
+          data: { deletedForAll: true, timestamp: mTime },
+        })
+      : await prisma.artificiumChat.update({
+          where: { id: data.messageId },
+          data: { deletedForMe: true, timestamp: mTime },
+        });
+    return c.json({
+      message: `message with the id ${updated_data.id} successfully deleted.`,
+    });
+  }
+
+  const parsed_messages = JSON.parse(msg);
+
+  const deleted = data['deleteForAll']
+    ? await redis.client.LSET(
+        'new_message',
+        indexToUpdateAt,
+        JSON.stringify({
+          ...parsed_messages,
+          timestamp: mTime,
+          deletedForAll: true,
+        })
+      )
+    : await redis.client.LSET(
+        'new_message',
+        indexToUpdateAt,
+        JSON.stringify({
+          ...parsed_messages,
+          timestamp: mTime,
+          deletedForMe: true,
+        })
+      );
+
+  return c.json({
+    message: `message with the id ${
+      parsed_messages.id || JSON.parse(deleted).id
+    } successfully deleted`,
+  });
 };
 
 export {
@@ -629,4 +700,5 @@ export {
   chatWithArtificium,
   getUserChatWithArtificium,
   updateUserChatWithArtificium,
+  deleteChatWithArtificium,
 };
