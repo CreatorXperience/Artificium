@@ -19,9 +19,13 @@ import {
   updateChannel,
   leaveworkspace,
   chatWithArtificium,
+  chatInGroups,
   getUserChatWithArtificium,
+  getUsersChat,
   updateUserChatWithArtificium,
+  updateUserChatInGroups,
   deleteChatWithArtificium,
+  deleteUserChatInGroup,
 } from '../controllers/workspace.controller';
 import winston from 'winston';
 
@@ -87,6 +91,14 @@ app.get('/chat/artificium', authMiddleWare, getUserChatWithArtificium);
 app.patch('/chat/artificium', authMiddleWare, updateUserChatWithArtificium);
 
 app.delete('/chat/artificium', authMiddleWare, deleteChatWithArtificium);
+
+app.post('/chat/group', authMiddleWare, chatInGroups);
+
+app.get('/chat/group', authMiddleWare, getUsersChat);
+
+app.patch('/chat/group', authMiddleWare, updateUserChatInGroups);
+
+app.delete('/chat/group', authMiddleWare, deleteUserChatInGroup);
 
 app.post('/new', (c) => {
   return c.json({ messages: 'workspace created  successfully', data: {} });

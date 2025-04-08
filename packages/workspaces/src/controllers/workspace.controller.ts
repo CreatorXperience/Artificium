@@ -504,9 +504,9 @@ const chatWithArtificium = async (c: Context) => {
   if (error) {
     return c.json({ message: error.errors[0].message }, 400);
   }
-  const message_length = await redis.client.LLEN('new_message');
+  const message_length = await redis.client.LLEN('art_message');
   if (message_length >= MAX_CACHE_SIZE) {
-    const messages = await redis.client.LRANGE('new_message', 0, 50);
+    const messages = await redis.client.LRANGE('art_message', 0, 50);
     const parsed_messages = messages
       .map((message) => ({
         ...JSON.parse(message),
@@ -517,10 +517,10 @@ const chatWithArtificium = async (c: Context) => {
       data: [...parsed_messages],
     });
 
-    await redis.client.LTRIM('new_message', 50, -1);
+    await redis.client.LTRIM('art_message', 50, -1);
   }
   await redis.client.LPUSH(
-    'new_message',
+    'art_message',
     JSON.stringify({
       id: new ObjectId().toHexString(),
       timestamp: Date.now(),
@@ -531,9 +531,41 @@ const chatWithArtificium = async (c: Context) => {
   return c.json({ message: 'message sent successfully' });
 };
 
+const chatInGroups = async (c: Context) => {
+  const payload = await c.req.json();
+  const { error, data } = artificiumMessagePayloadValidator(payload);
+  if (error) {
+    return c.json({ message: error.errors[0].message }, 400);
+  }
+  const message_length = await redis.client.LLEN('chat_messages');
+  if (message_length >= MAX_CACHE_SIZE) {
+    const messages = await redis.client.LRANGE('chat_messages', 0, 50);
+    const parsed_messages = messages
+      .map((message) => ({
+        ...JSON.parse(message),
+        timestamp: new Date(JSON.parse(message).timestamp),
+      }))
+      .reverse();
+    await prisma.message.createMany({
+      data: [...parsed_messages],
+    });
+
+    await redis.client.LTRIM('chat_messages', 50, -1);
+  }
+  await redis.client.LPUSH(
+    'chat_messages',
+    JSON.stringify({
+      id: new ObjectId().toHexString(),
+      timestamp: Date.now(),
+      ...data,
+    })
+  );
+
+  return c.json({ message: 'message sent successfully' });
+};
 const getUserChatWithArtificium = async (c: Context) => {
   const param = c.req.query();
-  if (!param['projectId']) {
+  if (!param['projectId'] && !param['userId']) {
     return c.json(
       {
         message: "parameter 'projectId' and 'userId' are required",
@@ -545,7 +577,7 @@ const getUserChatWithArtificium = async (c: Context) => {
   if (process.env.NODE_ENV === 'test') {
     const projectId = '85830204820';
     await redis.client.LPUSH(
-      'new_message',
+      'art_message',
       JSON.stringify({
         projectId,
         text: 'Hello from cache',
@@ -555,12 +587,57 @@ const getUserChatWithArtificium = async (c: Context) => {
     );
   }
   const redisCacheMessages =
-    (await redis.client.LRANGE('new_message', 0, 50)) || [];
+    (await redis.client.LRANGE('art_message', 0, 50)) || [];
+  const cacheMessages = redisCacheMessages
+    .map((message) => JSON.parse(message))
+    .filter(
+      (message) =>
+        message.projectId === param['projectId'] &&
+        message.userId === param['userId']
+    )
+    .reverse();
+  const dbMessages = await prisma.artificiumChat.findMany({
+    where: { projectId: param['projectId'], userId: param['userId'] },
+  });
+
+  const groupMessages = [...dbMessages, ...cacheMessages];
+
+  return c.json({
+    message: 'message retrieved successfully',
+    data: groupMessages,
+  });
+};
+
+const getUsersChat = async (c: Context) => {
+  const param = c.req.query();
+  if (!param['projectId']) {
+    return c.json(
+      {
+        message: "parameter 'projectId' are required",
+      },
+      400
+    );
+  }
+
+  if (process.env.NODE_ENV === 'test') {
+    const projectId = '85830204820';
+    await redis.client.LPUSH(
+      'chat_messages',
+      JSON.stringify({
+        projectId,
+        text: 'Hello from cache',
+        timestamp: Date.now(),
+        user: 'HUMAN',
+      })
+    );
+  }
+  const redisCacheMessages =
+    (await redis.client.LRANGE('chat_messages', 0, 50)) || [];
   const cacheMessages = redisCacheMessages
     .map((message) => JSON.parse(message))
     .filter((message) => message.projectId === param['projectId'])
     .reverse();
-  const dbMessages = await prisma.artificiumChat.findMany({
+  const dbMessages = await prisma.message.findMany({
     where: { projectId: param['projectId'] },
   });
 
@@ -607,6 +684,52 @@ const updateUserChatWithArtificium = async (c: Context) => {
 
     await redis.client.LSET(
       'new_message',
+      indexToUpdateAt,
+      JSON.stringify({ timestamp: mTime, ...msg_to_update, text: data.text })
+    );
+
+    return c.json({
+      message: 'message updated succcessfully',
+      data: { ...msg_to_update, text: data.text, timestamp: mTime },
+    });
+  }
+};
+
+const updateUserChatInGroups = async (c: Context) => {
+  const payload = await c.req.json();
+  const { error, data } = updateArtificiumMessagePayloadSchema(payload);
+  if (error) {
+    return c.json(
+      { message: `Validation Error: ${error.errors[0].message}` },
+      400
+    );
+  }
+
+  const messages = await redis.client.LRANGE('chat_messages', 0, 50);
+  let indexToUpdateAt: number;
+  if (messages && messages.length > 0) {
+    const list_of_msg_to_update: Array<string> = messages.filter((msg, idx) => {
+      if (JSON.parse(msg).id === data.messageId) {
+        indexToUpdateAt = idx;
+        return true;
+      }
+    });
+    if (list_of_msg_to_update.length < 1) {
+      const updated_chat = await prisma.message.update({
+        where: { id: data.messageId },
+        data: { text: data.text, timestamp: new Date(Date.now()) },
+      });
+
+      return c.json({
+        message: 'message updated successfully',
+        data: updated_chat,
+      });
+    }
+    const msg_to_update = JSON.parse(list_of_msg_to_update[0]);
+    const mTime = new Date(Date.now());
+
+    await redis.client.LSET(
+      'chat_messages',
       indexToUpdateAt,
       JSON.stringify({ timestamp: mTime, ...msg_to_update, text: data.text })
     );
@@ -679,6 +802,67 @@ const deleteChatWithArtificium = async (c: Context) => {
   });
 };
 
+const deleteUserChatInGroup = async (c: Context) => {
+  const payload = await c.req.json();
+  const { data, error } = deleteArtificiumMessageValidator(payload);
+  if (error) {
+    return c.json({ message: `Validation Error: ${error.errors[0].message}` });
+  }
+  let indexToUpdateAt: number;
+
+  const cacheMsgs = await redis.client.LRANGE('chat_messages', 0, 50);
+  const msg = cacheMsgs.filter((msg, idx) => {
+    if (JSON.parse(msg).id === data.messageId) {
+      indexToUpdateAt = idx;
+      return true;
+    }
+  })[0];
+
+  const mTime = new Date(Date.now());
+  if (!msg) {
+    const updated_data = data['deleteForAll']
+      ? await prisma.message.update({
+          where: { id: data.messageId },
+          data: { deletedForAll: true, timestamp: mTime },
+        })
+      : await prisma.message.update({
+          where: { id: data.messageId },
+          data: { deletedForMe: true, timestamp: mTime },
+        });
+    return c.json({
+      message: `message with the id ${updated_data.id} successfully deleted.`,
+    });
+  }
+
+  const parsed_messages = JSON.parse(msg);
+
+  const deleted = data['deleteForAll']
+    ? await redis.client.LSET(
+        'chat_messages',
+        indexToUpdateAt,
+        JSON.stringify({
+          ...parsed_messages,
+          timestamp: mTime,
+          deletedForAll: true,
+        })
+      )
+    : await redis.client.LSET(
+        'chat_messages',
+        indexToUpdateAt,
+        JSON.stringify({
+          ...parsed_messages,
+          timestamp: mTime,
+          deletedForMe: true,
+        })
+      );
+
+  return c.json({
+    message: `message with the id ${
+      parsed_messages.id || JSON.parse(deleted).id
+    } successfully deleted`,
+  });
+};
+
 export {
   getAllUserWorkspace,
   createWorkspace,
@@ -698,7 +882,11 @@ export {
   acceptOrRevokeChannelReq,
   leaveworkspace,
   chatWithArtificium,
+  chatInGroups,
   getUserChatWithArtificium,
+  getUsersChat,
   updateUserChatWithArtificium,
+  updateUserChatInGroups,
   deleteChatWithArtificium,
+  deleteUserChatInGroup,
 };

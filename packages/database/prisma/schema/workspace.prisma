@@ -55,15 +55,18 @@ model JoinChannelRequest {
 }
 
 model Message {
-    id         String   @id @default(auto()) @map("_id") @db.ObjectId
-    user       String
-    userId     String   @unique
-    text       String
-    mediaType  String
-    mediaLinks String[]
-    channelId  String   @unique @db.ObjectId
-    timestamp  DateTime
-    reference  String?  @default("")
+    id            String   @id @default(auto()) @map("_id") @db.ObjectId
+    user          String
+    userId        String
+    text          String
+    mediaType     String   @default("text")
+    projectId     String
+    mediaLinks    String[] @default([])
+    channelId     String   @unique @db.ObjectId
+    timestamp     DateTime @default(now())
+    reference     String   @default("")
+    deletedForMe  Boolean  @default(false)
+    deletedForAll Boolean  @default(false)
 }
 
 model ArtificiumChat {
