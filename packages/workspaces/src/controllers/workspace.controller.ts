@@ -155,7 +155,7 @@ const joinWorkspace = async (c: Context) => {
     c.status(400);
     return c.json({ message: 'empty or bad workspace Id' });
   }
-  const member = await prisma.workspaceMember.findUnique({
+  const member = await prisma.workspaceMember.findFirst({
     where: { userId: userID, workspaceId: workspaceId },
   });
   const workspace = await prisma.workspace.findUnique({
@@ -229,7 +229,7 @@ const leaveworkspace = async (c: Context) => {
     data: { members: filteredMembers },
   });
 
-  await prisma.workspaceMember.delete({
+  await prisma.workspaceMember.deleteMany({
     where: { userId: userID, workspaceId: workspace.id },
   });
 
@@ -385,7 +385,7 @@ const updateChannel = async (c: Context) => {
   });
   return c.json({ message: 'channel updated successfully', data: channel });
 };
-
+//CHECK JoinChannel Middleware
 const joinChannel = async (c: Context) => {
   const param = c.req.param();
 
@@ -411,9 +411,12 @@ const joinChannel = async (c: Context) => {
     return c.json({ message: 'channel not found' });
   }
 
+  const membership = await prisma.workspaceMember.findFirst({
+    where: { userId: user.id, workspaceId: data.workspaceId },
+  });
   const channel = await prisma.channel.update({
     where: { id: param['channelId'], visibility: false },
-    data: { members: [...data.members, param['userId']] },
+    data: { members: [...data.members, membership.id] },
   });
 
   c.json({ message: 'joined channel successfully', data: channel });
@@ -527,6 +530,8 @@ const chatWithArtificium = async (c: Context) => {
       ...data,
     })
   );
+
+  //send a request to the AI
 
   return c.json({ message: 'message sent successfully' });
 };
@@ -687,6 +692,8 @@ const updateUserChatWithArtificium = async (c: Context) => {
       indexToUpdateAt,
       JSON.stringify({ timestamp: mTime, ...msg_to_update, text: data.text })
     );
+
+    // const latest_msg = redis.client.LRANGE('new_message', 0, indexToUpdateAt);
 
     return c.json({
       message: 'message updated succcessfully',
