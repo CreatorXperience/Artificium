@@ -2,8 +2,8 @@ model Workspace {
     id             String   @id @default(auto()) @map("_id") @db.ObjectId
     url            String?  @unique @default("")
     visibility     Boolean  @default(false)
-    readAccess     Json?
-    writeAccess    Json?
+    readAccess     String[] @default([])
+    writeAccess    String[] @default([])
     totalMembers   Int
     name           String   @unique
     description    String?  @default("")
@@ -21,7 +21,7 @@ model WorkspaceMember {
     name        String
     email       String
     image       String
-    workspaceId String @unique @db.ObjectId
+    workspaceId String @db.ObjectId
 }
 
 model Project {
