@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { authMiddleWare, customFormat } from '@org/auth';
+import { auth, authMiddleWare, customFormat } from '@org/auth';
 import {
   createChannel,
   createNewWorkspaceProject,
@@ -27,6 +27,7 @@ import {
   deleteChatWithArtificium,
   deleteUserChatInGroup,
   createThread,
+  uploadWorkspaceImage,
 } from '../controllers/workspace.controller';
 import winston from 'winston';
 
@@ -62,6 +63,8 @@ app.post('/leave', authMiddleWare, leaveworkspace);
 app.get('/:id', authMiddleWare, getWorkspace);
 
 app.post('/', authMiddleWare, createWorkspace);
+
+app.post('/', authMiddleWare, uploadWorkspaceImage);
 
 app.patch('/:id', authMiddleWare, updateWorkspace);
 
