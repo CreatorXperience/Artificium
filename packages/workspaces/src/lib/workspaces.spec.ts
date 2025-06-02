@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import app from './workspaces';
 import { auth } from '@org/auth';
 import redis from 'redis';
+import { threadId } from 'worker_threads';
 
 const redisClient = redis.createClient();
 
@@ -689,8 +690,15 @@ describe('/workspace', () => {
   });
 
   describe('POST /workspace/chat/artificium', () => {
+    let threadres: any;
+    let thread: any;
     beforeEach(async () => {
       await prisma.artificiumChat.deleteMany();
+      threadres = await app.request(`/workspace/chat/thread`, {
+        method: 'POST',
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
+      thread = await threadres.json();
     });
     test('should return 200 when sending a valid message to artificium', async () => {
       const res = await app.request('/workspace/chat/artificium', {
@@ -700,6 +708,7 @@ describe('/workspace', () => {
           userId: '02893453928',
           text: "What's your name?",
           user: 'HUMAN',
+          threadId: thread.data.threadID,
         }),
         headers: {
           Cookie: user.headers.get('set-cookie'),
@@ -759,6 +768,15 @@ describe('/workspace', () => {
   });
 
   describe('GET /workspace/chat/artificium?projectId=&userId=', () => {
+    let threadres: any;
+    let thread: any;
+    beforeEach(async () => {
+      threadres = await app.request(`/workspace/chat/thread`, {
+        method: 'POST',
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
+      thread = await threadres.json();
+    });
     afterAll(async () => {
       await prisma.artificiumChat.deleteMany();
     });
@@ -784,6 +802,7 @@ describe('/workspace', () => {
           text: 'Hello from db',
           timestamp: new Date(),
           user: 'HUMAN',
+          threadId: thread.data.threadID,
         },
       });
 

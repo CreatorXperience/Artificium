@@ -5,6 +5,7 @@ const artificiumMessageSchema = z.object({
   userId: z.string({ message: 'property userId is required' }),
   text: z.string({ message: 'property text is required' }),
   user: z.string({ message: 'property user is required' }),
+  threadId: z.string({ message: 'property threadID is required' }),
 });
 
 const artificiumMessageUpdateSchema = z.object({

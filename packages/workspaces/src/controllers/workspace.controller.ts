@@ -13,11 +13,13 @@ import {
   Redis,
   updateArtificiumMessagePayloadSchema,
   deleteArtificiumMessageValidator,
+  validateImageUpdateSchema,
 } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Context } from 'hono';
 import { ObjectId } from 'mongodb';
 import logger from '../../utils/logger';
+import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 
 const redis = new Redis();
 
@@ -504,6 +506,7 @@ const acceptOrRevokeChannelReq = async (c: Context) => {
 const chatWithArtificium = async (c: Context) => {
   const payload = await c.req.json();
   const { error, data } = artificiumMessagePayloadValidator(payload);
+
   if (error) {
     return c.json({ message: error.errors[0].message }, 400);
   }
@@ -568,6 +571,7 @@ const chatInGroups = async (c: Context) => {
 
   return c.json({ message: 'message sent successfully' });
 };
+
 const getUserChatWithArtificium = async (c: Context) => {
   const param = c.req.query();
   if (!param['projectId'] && !param['userId']) {
@@ -870,6 +874,65 @@ const deleteUserChatInGroup = async (c: Context) => {
   });
 };
 
+const createThread = async (c: Context) => {
+  const threaded = await prisma.thread.create({
+    data: {},
+  });
+
+  return c.json(
+    {
+      data: {
+        threadID: threaded.id,
+        timestamp: threaded.timeStamp,
+        message: 'Thread created successfully',
+      },
+    },
+    200
+  );
+};
+
+const uploadWorkspaceImage = async (c: Context) => {
+  const req = await c.req.json();
+  const { error, data } = validateImageUpdateSchema(req);
+  if (error) {
+    return c.json({ message: `Validation Error: ${error.errors[0].message}` });
+  }
+  const user = c.var.getUser().id;
+  const body = await c.req.parseBody({ dot: true });
+  const file = body['image'] as File;
+
+  if (!file) {
+    return c.json('no file uploaded');
+  }
+
+  const imageBuffer = await file.arrayBuffer();
+  const base64 = Buffer.from(imageBuffer).toString('base64');
+  const dataUri = `data:${file.type};base64,${base64}`;
+
+  cloudinary.config({
+    cloud_name: 'dtah4aund',
+    api_key: '232487372395222',
+    api_secret: process.env.CLOUDINARY_SECRET,
+    secure: true,
+  });
+  const uploadResult = (await cloudinary.uploader
+    .upload(dataUri, {
+      public_id: 'profile',
+    })
+    .catch((error) => {
+      console.log(error);
+    })) as UploadApiResponse;
+  const existing_user = await prisma.user.findUnique({
+    where: { id: user.id },
+  });
+
+  await prisma.workspace.update({
+    where: { owner: existing_user.id, id: data.workspaceId },
+    data: { image: uploadResult.secure_url },
+  });
+
+  return c.json({ message: 'message uploaded successfully' });
+};
 export {
   getAllUserWorkspace,
   createWorkspace,
@@ -896,4 +959,5 @@ export {
   updateUserChatInGroups,
   deleteChatWithArtificium,
   deleteUserChatInGroup,
+  createThread,
 };

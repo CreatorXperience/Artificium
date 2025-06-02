@@ -1,14 +1,3 @@
-model User {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  email        String   @unique
-  password     String
-  firstname    String
-  lastname     String
-  isVerified   Boolean  @default(false)
-  image        String?  @default("https://i.pinimg.com/736x/4e/38/e7/4e38e73208c8a9c2410e4f1d9cb90ee5.jpg")
-  integrations String[] @default([])
-}
-
 model Forgot {
   id     String @id @default(auto()) @map("_id") @db.ObjectId
   hash   String
