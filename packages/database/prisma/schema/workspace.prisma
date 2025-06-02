@@ -17,7 +17,7 @@ model Workspace {
 
 model WorkspaceMember {
     id          String @id @default(auto()) @map("_id") @db.ObjectId
-    userId      String @db.ObjectId
+    userId      String @unique @db.ObjectId
     name        String
     email       String
     image       String
@@ -67,6 +67,7 @@ model Message {
     reference     String   @default("")
     deletedForMe  Boolean  @default(false)
     deletedForAll Boolean  @default(false)
+    threadId      String
 }
 
 model ArtificiumChat {
@@ -81,6 +82,12 @@ model ArtificiumChat {
     mediaLinks    String[] @default([])
     deletedForMe  Boolean  @default(false)
     deletedForAll Boolean  @default(false)
+    threadId      String
+}
+
+model Thread {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    timeStamp DateTime @default(now())
 }
 
 // model Comment {
