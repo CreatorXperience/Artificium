@@ -951,6 +951,7 @@ export {
   joinChannelRequest,
   acceptOrRevokeChannelReq,
   leaveworkspace,
+  uploadWorkspaceImage,
   chatWithArtificium,
   chatInGroups,
   getUserChatWithArtificium,
