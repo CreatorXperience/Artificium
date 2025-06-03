@@ -40,6 +40,7 @@ import {
 } from '../../schema/artificiumMessage.schema';
 import Redis from '../../redis/redis';
 import validateImageUpdateSchema from '../../schema/workspaceImageUpdate.schema';
+import * as integration from '../../schema/integration.schema';
 const prisma = new PrismaClient();
 export function database(): string {
   return 'database';
@@ -81,4 +82,5 @@ export {
   updateArtificiumMessagePayloadSchema,
   deleteArtificiumMessageValidator,
   validateImageUpdateSchema,
+  integration,
 };

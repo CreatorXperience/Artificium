@@ -25,6 +25,7 @@
     "cookie": "^1.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "googleapis": "^149.0.0",
     "hono": "^4.7.0",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",

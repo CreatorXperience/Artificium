@@ -14,12 +14,14 @@ import {
   updateArtificiumMessagePayloadSchema,
   deleteArtificiumMessageValidator,
   validateImageUpdateSchema,
+  integration,
 } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Context } from 'hono';
 import { ObjectId } from 'mongodb';
 import logger from '../../utils/logger';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
+import { google } from 'googleapis';
 
 const redis = new Redis();
 
@@ -895,7 +897,10 @@ const uploadWorkspaceImage = async (c: Context) => {
   const req = await c.req.json();
   const { error, data } = validateImageUpdateSchema(req);
   if (error) {
-    return c.json({ message: `Validation Error: ${error.errors[0].message}` });
+    return c.json(
+      { message: `Validation Error: ${error.errors[0].message}` },
+      400
+    );
   }
   const user = c.var.getUser().id;
   const body = await c.req.parseBody({ dot: true });
@@ -933,6 +938,55 @@ const uploadWorkspaceImage = async (c: Context) => {
 
   return c.json({ message: 'message uploaded successfully' });
 };
+
+const createGmailIntegration = async (c: Context) => {
+  const userId = c.var.getUser().id;
+  const body = await c.req.json();
+
+  const { error, data } = integration.validateGmailIntegrationPayload(body);
+  if (error) {
+    return c.json(
+      { message: `Validation Error: ${error.errors[0].message}` },
+      400
+    );
+  }
+
+  const found = await prisma.integration.findFirst({
+    where: { service: 'gmail', userId: userId },
+  });
+
+  if (found) {
+    return c.json({ message: 'Integration success' });
+  }
+  const REDIRECT_URI =
+    process.env.NODE_ENV === 'development' ? 'http://localhost:5174' : '';
+
+  const google_auth_client = new google.auth.OAuth2(
+    process.env.CLIENT_ID,
+    process.env.CLIENT_SECRET,
+    REDIRECT_URI
+  );
+
+  const {
+    tokens: { access_token, refresh_token },
+  } = await google_auth_client.getToken(data.code);
+
+  console.log(process.env.CLIENT_ID, process.env.CLIENT_SECRET);
+
+  await prisma.integration.create({
+    data: {
+      service: 'gmail',
+      userId: userId,
+      credentials: {
+        access_token,
+        refresh_token,
+      },
+    },
+  });
+
+  return c.json({ message: 'Integration success' });
+};
+
 export {
   getAllUserWorkspace,
   createWorkspace,
@@ -961,4 +1015,5 @@ export {
   deleteChatWithArtificium,
   deleteUserChatInGroup,
   createThread,
+  createGmailIntegration,
 };

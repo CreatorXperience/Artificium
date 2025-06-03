@@ -10,6 +10,7 @@ import { createAdapter } from '@socket.io/mongo-adapter';
 import dotenv from 'dotenv';
 import { Emitter } from '@socket.io/mongo-emitter';
 import winston from 'winston';
+import { cors } from 'hono/cors';
 dotenv.config();
 
 winston.createLogger({
@@ -79,6 +80,7 @@ client
     console.log('error occured while connecting to mongodb');
   });
 
+app.use('*', cors());
 app.get('/', (c) => {
   return c.text('Hello world');
 });
