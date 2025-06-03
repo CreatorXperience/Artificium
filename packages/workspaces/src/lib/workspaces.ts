@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { auth, authMiddleWare, customFormat } from '@org/auth';
+import { authMiddleWare, customFormat } from '@org/auth';
 import {
   createChannel,
   createNewWorkspaceProject,
@@ -28,6 +28,7 @@ import {
   deleteUserChatInGroup,
   createThread,
   uploadWorkspaceImage,
+  createGmailIntegration,
 } from '../controllers/workspace.controller';
 import winston from 'winston';
 
@@ -105,6 +106,8 @@ app.patch('/chat/group', authMiddleWare, updateUserChatInGroups);
 app.delete('/chat/group', authMiddleWare, deleteUserChatInGroup);
 
 app.post('/chat/thread', authMiddleWare, createThread);
+
+app.post('/integration/google-oauth', authMiddleWare, createGmailIntegration);
 
 app.get('/new', (c) => {
   return c.json({ messages: 'workspace created  successfully', data: {} });

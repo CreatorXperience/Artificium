@@ -11,8 +11,15 @@ app.post('/profile/upload', authMiddleWare, async (c) => {
   const body = await c.req.parseBody({ dot: true });
   const file = body['image'] as File;
 
+  console.log(file.size / 1024);
+  const max_size = 5 * 1024 * 1024;
+
   if (!file) {
-    return c.json('no file uploaded');
+    return c.json({ message: 'no file uploaded' });
+  }
+
+  if (file.size > max_size) {
+    return c.json({ message: 'file is larger than 5mb' });
   }
 
   const imageBuffer = await file.arrayBuffer();
