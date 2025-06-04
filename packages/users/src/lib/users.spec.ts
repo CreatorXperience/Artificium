@@ -1,4 +1,4 @@
-import { users } from './users';
+import {} from './users';
 
 describe('users', () => {
   it('should work', () => {
