@@ -18,6 +18,8 @@ import {
   projectValidator,
   TProject,
   projectUpdateValidator,
+  projectMemberValidator,
+  projectRoleValidator,
 } from '../../schema/project.schema';
 
 import {
@@ -38,6 +40,7 @@ import {
   updateArtificiumMessagePayloadSchema,
   deleteArtificiumMessageValidator,
 } from '../../schema/artificiumMessage.schema';
+import usernameUpdateValidator from '../../schema/user.schema';
 import Redis from '../../redis/redis';
 import validateImageUpdateSchema from '../../schema/workspaceImageUpdate.schema';
 import * as integration from '../../schema/integration.schema';
@@ -83,4 +86,7 @@ export {
   deleteArtificiumMessageValidator,
   validateImageUpdateSchema,
   integration,
+  usernameUpdateValidator,
+  projectMemberValidator,
+  projectRoleValidator,
 };

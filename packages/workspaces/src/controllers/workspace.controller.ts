@@ -15,6 +15,8 @@ import {
   deleteArtificiumMessageValidator,
   validateImageUpdateSchema,
   integration,
+  projectMemberValidator,
+  projectRoleValidator,
 } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Context } from 'hono';
@@ -233,7 +235,7 @@ const leaveworkspace = async (c: Context) => {
     data: { members: filteredMembers },
   });
 
-  await prisma.workspaceMember.deleteMany({
+  await prisma.workspaceMember.delete({
     where: { userId: userID, workspaceId: workspace.id },
   });
 
@@ -263,6 +265,7 @@ const getAllWorskpaceProjects = async (c: Context) => {
   });
 };
 
+//test this code below !
 const createNewWorkspaceProject = async (c: Context) => {
   const creator = c.var.getUser().id;
   const body: TProject = await c.req.json();
@@ -285,17 +288,122 @@ const createNewWorkspaceProject = async (c: Context) => {
     c.status(404);
     return c.json({ message: 'No workspace is attached to this object Id' });
   }
+  const projectObj = { ...data.data };
+  delete projectObj.members;
   const project = await prisma.project.create({
     data: {
-      ...data.data,
-      createdAt: new Date(),
-      members: [creator],
+      creator,
+      ...projectObj,
     },
   });
 
+  for await (const member of data.data.members) {
+    const { name, email, image, memberId, workspaceId } = member;
+    await prisma.projectMember.create({
+      data: {
+        image,
+        name,
+        projectId: project.id,
+        userId: memberId,
+        workspaceId,
+        email,
+      },
+    });
+  }
+
   return c.json({ message: 'project successfully created', data: project });
 };
+//test this code below !
+const joinProject = async (c: Context) => {
+  const userId = c.var.getUser().Id;
+  const { projectId, workspaceId } = c.req.query();
 
+  const project = await prisma.project.findUnique({ where: { id: projectId } });
+  if (!project) {
+    return c.json({ message: 'invalid project id' }, 400);
+  }
+
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+  });
+  if (!workspace) {
+    return c.json({ message: 'invalid workspace id' }, 400);
+  }
+  const member = await prisma.projectMember.findFirst({
+    where: { userId: userId, projectId: projectId },
+  });
+  if (member) {
+    return c.json({ message: 'Already a member of this project' });
+  }
+
+  const { email, image, firstname, lastname } = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  await prisma.projectMember.create({
+    data: {
+      email,
+      name: `${firstname} ${lastname}`,
+      projectId,
+      workspaceId,
+      image,
+      userId,
+    },
+  });
+};
+//test this code below !
+const leaveProject = async (c: Context) => {
+  const userId = c.var.getUser().id;
+  const body = await c.req.json();
+  const { data, error } = projectMemberValidator(body);
+  if (error) {
+    return c.json(`Validation Error:  ${error.errors[0].message}`);
+  }
+
+  const member = await prisma.projectMember.findFirst({
+    where: { userId: userId, projectId: data.projectId },
+  });
+  await prisma.projectMember.delete({
+    where: { id: member.id, projectId: data.projectId, userId: userId },
+  });
+
+  return c.json({
+    message: `${data.username} has been removed from this project`,
+  });
+};
+//test this code below !
+const removeProjectMember = async (c: Context) => {
+  const userId = c.var.getUser().id;
+  const body = await c.req.json();
+  const { data, error } = projectMemberValidator(body);
+  if (error) {
+    return c.json(`Validation Error:  ${error.errors[0].message}`);
+  }
+  const project = await prisma.project.findUnique({
+    where: { id: data.projectId },
+  });
+
+  if (project.creator !== userId) {
+    return c.json(
+      {
+        message: "sorry, you can't remove a member unless you're an admin",
+      },
+      401
+    );
+  }
+
+  const member = await prisma.projectMember.findFirst({
+    where: { userId: data.userId, projectId: data.projectId },
+  });
+  await prisma.projectMember.delete({
+    where: { id: member.id, projectId: data.projectId, userId: data.userId },
+  });
+
+  return c.json({
+    message: `${data.username} has been removed from this project`,
+  });
+};
+
+//test this code below !
 const updateProject = async (c: Context) => {
   const projectId = c.req.param('projectId');
   const body: Partial<TProject> = await c.req.json();
@@ -312,6 +420,44 @@ const updateProject = async (c: Context) => {
   });
 
   return c.json({ message: 'project updated successfully', data: project });
+};
+
+const manageProjectRole = async (c: Context) => {
+  const body = await c.req.json();
+  const { error, data } = projectRoleValidator(body);
+  if (error) {
+    return c.json({ message: `${error.errors[0].message}` }, 400);
+  }
+
+  if (data.workspaceMembers && data.workspaceMembers.length > 0) {
+    for await (const member of data.workspaceMembers) {
+      const { name, email, image, memberId, workspaceId } = member;
+      await prisma.projectMember.create({
+        data: {
+          image,
+          name,
+          projectId: data.projectId,
+          userId: memberId,
+          workspaceId,
+          email,
+          role: data.projectMemberRole,
+        },
+      });
+    }
+  } else if (data.projectMembers && data.projectMembers.length > 0) {
+    for (const member of data.projectMembers) {
+      await prisma.projectMember.update({
+        where: {
+          id: member.membershipId,
+        },
+        data: {
+          role: member.role,
+        },
+      });
+    }
+  }
+
+  return c.json({ message: 'Invite sent successfully' });
 };
 
 const getAllProjectChannel = async (c: Context) => {
@@ -1016,4 +1162,7 @@ export {
   deleteUserChatInGroup,
   createThread,
   createGmailIntegration,
+  removeProjectMember,
+  leaveProject,
+  manageProjectRole,
 };

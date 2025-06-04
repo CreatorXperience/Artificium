@@ -30,7 +30,18 @@ model Project {
     purpose     String?  @default("")
     workspaceId String   @unique @db.ObjectId
     createdAt   DateTime @default(now())
-    members     String[]
+    creator     String   @db.ObjectId
+}
+
+model ProjectMember {
+    id          String @id @default(auto()) @map("_id") @db.ObjectId
+    projectId   String @db.ObjectId
+    userId      String @db.ObjectId
+    email       String
+    image       String
+    name        String
+    workspaceId String
+    role        String @default("editor")
 }
 
 model Channel {
