@@ -11,6 +11,8 @@ import dotenv from 'dotenv';
 import { Emitter } from '@socket.io/mongo-emitter';
 import winston from 'winston';
 import { cors } from 'hono/cors';
+import { PrismaClient } from '@prisma/client';
+import { customEmitter } from 'packages/workspaces/src/controllers/workspace.controller';
 
 dotenv.config();
 
@@ -25,7 +27,7 @@ winston.createLogger({
     new winston.transports.Console({ level: 'error' }),
   ],
 });
-
+const prisma = new PrismaClient();
 const app = new Hono();
 const PORT = Number(process.env.port) || 3030;
 const server = serve({ fetch: app.fetch, port: PORT });
@@ -79,6 +81,23 @@ client
         next();
       });
       io.on('connection', (socket) => {
+        socket.on('subscribe', (userId) => {
+          socket.join(userId);
+          console.log('registration successfull');
+        });
+        socket.on('get_notification', async (userId) => {
+          const notification = await prisma.notification.findMany({
+            where: { userId: userId },
+          });
+          if (notification && notification.length > 0) {
+            return emitter.to(userId).emit(JSON.stringify(notification));
+          }
+          emitter.to(userId).emit('Empty notification');
+        });
+
+        // socket.on("new_notification", async (userId)=>{
+
+        // })
         socket.on('online', (payload: Omit<TOnline, 'socketId'>) => {
           onlineUsers = onlineUsers.filter(
             (item) => item.userId !== payload.userId
@@ -119,6 +138,21 @@ client
             .emit(`${payload.username} left the room`);
         });
       });
+
+      customEmitter.on(
+        'invite_workspace_members_to_project',
+        async (members_id: Array<string>) => {
+          for (const member_id of members_id) {
+            const notification = await prisma.notification.findMany({
+              where: { userId: member_id },
+            });
+
+            emitter
+              .to(member_id)
+              .emit('new_notification', JSON.stringify(notification));
+          }
+        }
+      );
     } catch (e) {
       console.log('❌ error creating database');
     }
