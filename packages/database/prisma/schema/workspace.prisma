@@ -17,7 +17,7 @@ model Workspace {
 
 model WorkspaceMember {
     id          String @id @default(auto()) @map("_id") @db.ObjectId
-    userId      String @unique @db.ObjectId
+    userId      String @db.ObjectId
     name        String
     email       String
     image       String
@@ -31,12 +31,13 @@ model Project {
     workspaceId String   @unique @db.ObjectId
     createdAt   DateTime @default(now())
     creator     String   @db.ObjectId
+    visibility  Boolean  @default(false)
 }
 
 model ProjectMember {
     id          String @id @default(auto()) @map("_id") @db.ObjectId
     projectId   String @db.ObjectId
-    userId      String @db.ObjectId
+    memberId    String @db.ObjectId
     email       String
     image       String
     name        String
@@ -63,6 +64,7 @@ model JoinChannelRequest {
     accept    Boolean  @default(false)
     revoke    Boolean  @default(false)
     timestamp DateTime @default(now())
+    read      Boolean  @default(false)
 }
 
 model Message {

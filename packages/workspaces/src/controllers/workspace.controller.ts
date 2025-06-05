@@ -24,6 +24,7 @@ import { ObjectId } from 'mongodb';
 import logger from '../../utils/logger';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 import { google } from 'googleapis';
+import EventEmitter from 'node:events';
 
 const redis = new Redis();
 
@@ -39,6 +40,10 @@ redis
   });
 
 const prisma = new PrismaClient();
+
+class CustomEmitter extends EventEmitter {}
+
+const customEmitter = new CustomEmitter();
 
 const getAllUserWorkspace = async (c: Context) => {
   const userId = c.var.getUser().id;
@@ -198,6 +203,7 @@ const joinWorkspace = async (c: Context) => {
   });
 };
 
+// test this code below !
 const leaveworkspace = async (c: Context) => {
   const workspaceId = c.req.query('workspaceId');
   const userID =
@@ -235,8 +241,12 @@ const leaveworkspace = async (c: Context) => {
     data: { members: filteredMembers },
   });
 
+  const member = await prisma.workspaceMember.findFirst({
+    where: { userId: user.id, workspaceId: workspace.id },
+  });
+
   await prisma.workspaceMember.delete({
-    where: { userId: userID, workspaceId: workspace.id },
+    where: { id: member.id, workspaceId: workspace.id, userId: userID },
   });
 
   return c.json({ message: 'successfully removed user from  workspace' });
@@ -297,19 +307,20 @@ const createNewWorkspaceProject = async (c: Context) => {
     },
   });
 
-  for await (const member of data.data.members) {
-    const { name, email, image, memberId, workspaceId } = member;
-    await prisma.projectMember.create({
-      data: {
-        image,
-        name,
-        projectId: project.id,
-        userId: memberId,
-        workspaceId,
-        email,
-      },
-    });
-  }
+  if (data.data.members)
+    for await (const member of data.data.members) {
+      const { name, email, image, memberId, workspaceId } = member;
+      await prisma.projectMember.create({
+        data: {
+          image,
+          name,
+          projectId: project.id,
+          memberId: memberId,
+          workspaceId,
+          email,
+        },
+      });
+    }
 
   return c.json({ message: 'project successfully created', data: project });
 };
@@ -329,8 +340,15 @@ const joinProject = async (c: Context) => {
   if (!workspace) {
     return c.json({ message: 'invalid workspace id' }, 400);
   }
+
+  const workspaceMember = await prisma.workspaceMember.findFirst({
+    where: { userId: userId, workspaceId: workspaceId },
+  });
+  if (!workspaceMember) {
+    return c.json('Invalid workspaceId');
+  }
   const member = await prisma.projectMember.findFirst({
-    where: { userId: userId, projectId: projectId },
+    where: { memberId: workspaceMember.id, projectId: projectId },
   });
   if (member) {
     return c.json({ message: 'Already a member of this project' });
@@ -346,9 +364,11 @@ const joinProject = async (c: Context) => {
       projectId,
       workspaceId,
       image,
-      userId,
+      memberId: workspaceMember.id,
     },
   });
+
+  return c.json({ message: `You are now a member of ${project.name} ` });
 };
 //test this code below !
 const leaveProject = async (c: Context) => {
@@ -359,11 +379,19 @@ const leaveProject = async (c: Context) => {
     return c.json(`Validation Error:  ${error.errors[0].message}`);
   }
 
+  const workspaceMember = await prisma.workspaceMember.findFirst({
+    where: { userId: userId },
+  });
+
   const member = await prisma.projectMember.findFirst({
-    where: { userId: userId, projectId: data.projectId },
+    where: { memberId: workspaceMember.id, projectId: data.projectId },
   });
   await prisma.projectMember.delete({
-    where: { id: member.id, projectId: data.projectId, userId: userId },
+    where: {
+      id: member.id,
+      projectId: data.projectId,
+      memberId: workspaceMember.id,
+    },
   });
 
   return c.json({
@@ -392,10 +420,14 @@ const removeProjectMember = async (c: Context) => {
   }
 
   const member = await prisma.projectMember.findFirst({
-    where: { userId: data.userId, projectId: data.projectId },
+    where: { memberId: data.memberId, projectId: data.projectId },
   });
   await prisma.projectMember.delete({
-    where: { id: member.id, projectId: data.projectId, userId: data.userId },
+    where: {
+      id: member.id,
+      projectId: data.projectId,
+      memberId: data.memberId,
+    },
   });
 
   return c.json({
@@ -422,6 +454,7 @@ const updateProject = async (c: Context) => {
   return c.json({ message: 'project updated successfully', data: project });
 };
 
+//test this code below !
 const manageProjectRole = async (c: Context) => {
   const body = await c.req.json();
   const { error, data } = projectRoleValidator(body);
@@ -429,21 +462,25 @@ const manageProjectRole = async (c: Context) => {
     return c.json({ message: `${error.errors[0].message}` }, 400);
   }
 
+  const project = await prisma.project.findUnique({
+    where: { id: data.projectId },
+  });
+
   if (data.workspaceMembers && data.workspaceMembers.length > 0) {
-    for await (const member of data.workspaceMembers) {
-      const { name, email, image, memberId, workspaceId } = member;
-      await prisma.projectMember.create({
+    const members_id: Array<string> = [];
+    for (const member of data.workspaceMembers) {
+      await prisma.notification.create({
         data: {
-          image,
-          name,
-          projectId: data.projectId,
-          userId: memberId,
-          workspaceId,
-          email,
-          role: data.projectMemberRole,
+          link: 'http://localhost/notification',
+          text: `You are invited to ${project.name} project`,
+          userId: member.memberId,
         },
       });
+
+      members_id.push(member.memberId);
     }
+
+    customEmitter.emit('invite_workspace_members_to_project', members_id);
   } else if (data.projectMembers && data.projectMembers.length > 0) {
     for (const member of data.projectMembers) {
       await prisma.projectMember.update({
@@ -648,7 +685,16 @@ const acceptOrRevokeChannelReq = async (c: Context) => {
     await prisma.joinChannelRequest.delete({
       where: { channelId: data.channelId },
     });
+
+    return c.json(
+      {
+        message: 'request to join channel has been accepted successfully ',
+      },
+      200
+    );
   }
+
+  return c.json({ message: 'invalid signal' }, 400);
 };
 
 const chatWithArtificium = async (c: Context) => {
@@ -1165,4 +1211,5 @@ export {
   removeProjectMember,
   leaveProject,
   manageProjectRole,
+  customEmitter,
 };

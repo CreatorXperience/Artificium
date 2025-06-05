@@ -217,7 +217,7 @@ describe('/workspace', () => {
         }
       );
 
-      const spaceMember = await prisma.workspaceMember.findUnique({
+      const spaceMember = await prisma.workspaceMember.findFirst({
         where: { userId: userData.id, workspaceId: newWorkspace.id },
       });
       expect(spaceMember.userId).toBe(userData.data.id);
@@ -388,6 +388,7 @@ describe('/workspace', () => {
           workspaceId: newWorkspace.id,
           name: 'Project one',
           purpose: 'For testing purpose',
+          visibility: false,
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
@@ -401,6 +402,7 @@ describe('/workspace', () => {
           workspaceId: newWorkspace.id,
           name: 'Project one',
           purpose: 'For testing purpose',
+          visibility: false,
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
@@ -436,6 +438,7 @@ describe('/workspace', () => {
           workspaceId: newWorkspace.id,
           name: 'Project one',
           purpose: 'For testing purpose',
+          visibility: false,
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
@@ -468,6 +471,7 @@ describe('/workspace', () => {
           purpose: '4 testing',
           createdAt: new Date(),
           workspaceId: newWorkspace.id,
+          creator: userData.data.id,
         },
       });
     });
@@ -550,6 +554,8 @@ describe('/workspace', () => {
           purpose: '4 testing',
           createdAt: new Date(),
           workspaceId: newWorkspace.id,
+          creator: userData.data.id,
+          visibility: false,
         },
       });
 
@@ -584,18 +590,18 @@ describe('/workspace', () => {
       });
       expect(res.status).toBe(404);
     });
-    // NOTE: False Failing test below ⤵️
-    // test('should return 200 if user successfully joins a public channel', async () => {
-    //   const res = await workspace.request(
-    //     `/workspace/channel/join/${newChannel.id}/${userData.data.id}`,
-    //     {
-    //       method: 'POST',
-    //       headers: { Cookie: user.headers.get('set-cookie') },
-    //     }
-    //   );
-    //   console.log(await res.json());
-    //   expect(res.status).toBe(200);
-    // });
+    //   // NOTE: False Failing test below ⤵️
+    //   // test('should return 200 if user successfully joins a public channel', async () => {
+    //   //   const res = await workspace.request(
+    //   //     `/workspace/channel/join/${newChannel.id}/${userData.data.id}`,
+    //   //     {
+    //   //       method: 'POST',
+    //   //       headers: { Cookie: user.headers.get('set-cookie') },
+    //   //     }
+    //   //   );
+    //   //   console.log(await res.json());
+    //   //   expect(res.status).toBe(200);
+    //   // });
 
     test('should return 404 if joining a non-existent channel', async () => {
       const res = await app.request(
@@ -641,32 +647,38 @@ describe('/workspace', () => {
       expect(res.status).toBe(400);
     });
 
-    // NOTE: False Failing test below ⤵️
-
-    // test('should return 200 when accepting a join request', async () => {
-    //   const cook = user.headers.get('set-cookie');
-    //   await workspace.request(`/workspace/channel/request`, {
-    //     method: 'POST',
-    //     body: JSON.stringify({
-    //       name: 'Kelvin Chukwu',
-    //       toAdmin: 'admin123',
-    //       channelId: newChannel.id,
-    //     }),
-    //     headers: { Cookie: cook },
-    //   });
-    //   const res = await workspace.request(`/workspace/channel/request/action`, {
-    //     method: 'POST',
-    //     body: JSON.stringify({
-    //       signal: 'accept',
-    //       userId: userData.data.id,
-    //       channelId: newChannel.id,
-    //     }),
-    //     headers: { Cookie: cook },
-    //   });
-    //   expect(res.status).toBe(200);
-    // });
+    test('should return 200 when accepting a join request', async () => {
+      await app.request(`/workspace/channel/request`, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: 'Kelvin Chukwu',
+          toAdmin: 'admin123',
+          channelId: newChannel.id,
+        }),
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
+      const res = await app.request(`/workspace/channel/request/action`, {
+        method: 'POST',
+        body: JSON.stringify({
+          signal: 'accept',
+          userId: userData.data.id,
+          channelId: newChannel.id,
+        }),
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
+      expect(res.status).toBe(200);
+    });
 
     test('should return 200 when revoking a join request', async () => {
+      await app.request(`/workspace/channel/request`, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: 'Kelvin Chukwu',
+          toAdmin: 'admin123',
+          channelId: newChannel.id,
+        }),
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
       const res = await app.request(`/workspace/channel/request/action`, {
         method: 'POST',
         body: JSON.stringify({
