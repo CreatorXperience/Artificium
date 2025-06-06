@@ -355,6 +355,7 @@ describe('/workspace', () => {
 
     afterEach(async () => {
       await prisma.workspaceMember.deleteMany();
+      await prisma.projectMember.deleteMany();
     });
     test('should return 400 if data is bad or incomplete', async () => {
       const res = await app.request(`/workspace/project`, {
@@ -363,6 +364,38 @@ describe('/workspace', () => {
         headers: { Cookie: user.headers.get('set-cookie') },
       });
       expect(res.status).toBe(400);
+    });
+
+    test('should return status 200 if members are included in the project payload', async () => {
+      const memberShipID = await prisma.workspaceMember.create({
+        data: {
+          email: userData.data.email,
+          image: userData.data.image,
+          name: userData.data.firstname + ' ' + userData.data.lastname,
+          userId: userData.data.id,
+          workspaceId: newWorkspace.id,
+        },
+      });
+      const res = await app.request(`/workspace/project`, {
+        method: 'POST',
+        body: JSON.stringify({
+          workspaceId: newWorkspace.id,
+          name: 'Project one',
+          purpose: 'For testing purpose',
+          members: [
+            {
+              name: 'peter',
+              email: 'peterparker@gmail.com',
+              image: 'http:///peter',
+              memberId: memberShipID.id,
+              workspaceId: newWorkspace.id,
+            },
+          ],
+        }),
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
+      console.log(await res.json());
+      expect(res.status).toBe(200);
     });
 
     test('should return 404 if no workspace is attached to the workspaceId', async () => {
@@ -834,4 +867,6 @@ describe('/workspace', () => {
       expect(json.data.length).toBeGreaterThan(0);
     });
   });
+
+  // describe("")
 });

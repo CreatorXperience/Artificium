@@ -25,6 +25,7 @@ import logger from '../../utils/logger';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 import { google } from 'googleapis';
 import EventEmitter from 'node:events';
+import { memoryStorage } from 'multer';
 
 const redis = new Redis();
 
@@ -155,6 +156,19 @@ const getWorkspaceMembers = async (c: Context) => {
   return c.json({ message: 'success', data: workspaceMembers });
 };
 
+// test this code below
+const getLoggedInUserWorkspaceMembership = async (c: Context) => {
+  const userID = c.var.getUser().id;
+  const workspaceID = c.req.param().workspaceId;
+  const member = await prisma.workspaceMember.findFirst({
+    where: { userId: userID, workspaceId: workspaceID },
+  });
+  if (!member) {
+    return c.json({ message: 'membership not found' }, 404);
+  }
+  return c.json({ message: 'membership retrieved successfully', data: member });
+};
+
 const joinWorkspace = async (c: Context) => {
   const workspaceId = c.req.query('workspaceId');
   const userID = c.var.getUser().id;
@@ -277,7 +291,7 @@ const getAllWorskpaceProjects = async (c: Context) => {
 
 //test this code below !
 const createNewWorkspaceProject = async (c: Context) => {
-  const creator = c.var.getUser().id;
+  const { id } = c.var.getUser();
   const body: TProject = await c.req.json();
   const data = projectValidator(body);
   if (data.error) {
@@ -298,47 +312,96 @@ const createNewWorkspaceProject = async (c: Context) => {
     c.status(404);
     return c.json({ message: 'No workspace is attached to this object Id' });
   }
-  const projectObj = { ...data.data };
-  delete projectObj.members;
-  const project = await prisma.project.create({
-    data: {
-      creator,
-      ...projectObj,
-    },
-  });
 
-  if (data.data.members)
+  const hexID = new ObjectId().toHexString();
+
+  const workspace_membership_id: Array<string> = [];
+  if (data.data.members) {
     for await (const member of data.data.members) {
-      const { name, email, image, memberId, workspaceId } = member;
+      const { name, email, image, memberId, workspaceId, userId } = member;
+      workspace_membership_id.push(memberId);
       await prisma.projectMember.create({
         data: {
           image,
           name,
-          projectId: project.id,
+          projectId: hexID,
           memberId: memberId,
           workspaceId,
           email,
+          userId,
         },
       });
     }
+  }
 
+  const projectObj = { ...data.data };
+  delete projectObj.members;
+  const projectObjWithoutMembers: Omit<TProject, 'members'> = projectObj;
+  const project = await prisma.project.create({
+    data: {
+      id: hexID,
+      members: workspace_membership_id,
+      creator: id,
+      ...projectObjWithoutMembers,
+    },
+  });
   return c.json({ message: 'project successfully created', data: project });
 };
+
+//test this code below !
+const getProjectMembership = async (c: Context) => {
+  const param = c.req.param();
+  const workspaceId = param.workspaceId;
+  const projectId = param.projectId;
+  const memberId = param.memberId;
+  const workspaceMembership = await prisma.workspaceMember.findUnique({
+    where: { id: memberId },
+  });
+  if (!workspaceMembership) {
+    return c.json({ message: 'membership not found' }, 404);
+  }
+  const projectMembership = await prisma.projectMember.findFirst({
+    where: {
+      workspaceId,
+      projectId,
+      memberId,
+    },
+  });
+  return c.json({
+    message: 'project membership retrieved successfully',
+    data: projectMembership,
+  });
+};
+
+// TODO: GET  USER controller
+
 //test this code below !
 const joinProject = async (c: Context) => {
   const userId = c.var.getUser().Id;
   const { projectId, workspaceId } = c.req.query();
 
+  if (!ObjectId.isValid(projectId)) {
+    return c.json({ message: 'invalid project id' }, 400);
+  } else if (!ObjectId.isValid(workspaceId)) {
+    return c.json({ message: 'invalid workspace id' }, 400);
+  }
+
   const project = await prisma.project.findUnique({ where: { id: projectId } });
   if (!project) {
-    return c.json({ message: 'invalid project id' }, 400);
+    return c.json({ message: 'no document for given project ID' }, 400);
   }
 
   const workspace = await prisma.workspace.findUnique({
     where: { id: workspaceId },
   });
+
   if (!workspace) {
-    return c.json({ message: 'invalid workspace id' }, 400);
+    return c.json({ message: 'no document for given workspace ID' }, 400);
+  }
+  if (!workspace.members.includes(userId)) {
+    return c.json({
+      message: "you don't not belong to the workspace this project exist on",
+    });
   }
 
   const workspaceMember = await prisma.workspaceMember.findFirst({
@@ -357,7 +420,7 @@ const joinProject = async (c: Context) => {
   const { email, image, firstname, lastname } = await prisma.user.findUnique({
     where: { id: userId },
   });
-  await prisma.projectMember.create({
+  const projectMemberShip = await prisma.projectMember.create({
     data: {
       email,
       name: `${firstname} ${lastname}`,
@@ -365,10 +428,19 @@ const joinProject = async (c: Context) => {
       workspaceId,
       image,
       memberId: workspaceMember.id,
+      userId,
     },
   });
 
-  return c.json({ message: `You are now a member of ${project.name} ` });
+  const updated_project = await prisma.project.update({
+    where: { id: project.id },
+    data: { members: [...project.members, workspaceMember.id] },
+  });
+  return c.json({
+    message: `You are now a member of ${project.name} `,
+    data: updated_project,
+    projectMemberShip,
+  });
 };
 //test this code below !
 const leaveProject = async (c: Context) => {
@@ -391,6 +463,7 @@ const leaveProject = async (c: Context) => {
       id: member.id,
       projectId: data.projectId,
       memberId: workspaceMember.id,
+      userId,
     },
   });
 
@@ -467,25 +540,31 @@ const manageProjectRole = async (c: Context) => {
   });
 
   if (data.workspaceMembers && data.workspaceMembers.length > 0) {
-    const members_id: Array<string> = [];
+    const members_id: Array<{ userId: string; notificationId: string }> = [];
     for (const member of data.workspaceMembers) {
-      await prisma.notification.create({
+      const notification = await prisma.notification.create({
         data: {
-          link: 'http://localhost/notification',
+          link: `http://localhost/project/invite?projectId=${data.projectId}&workspaceId=${data.workspaceId}`,
           text: `You are invited to ${project.name} project`,
-          userId: member.memberId,
+          userId: member.userId,
         },
       });
 
-      members_id.push(member.memberId);
+      members_id.push({
+        userId: member.userId,
+        notificationId: notification.id,
+      });
     }
 
-    customEmitter.emit('invite_workspace_members_to_project', members_id);
+    customEmitter.emit(
+      'invite_workspace_members_to_project',
+      JSON.stringify(members_id)
+    );
   } else if (data.projectMembers && data.projectMembers.length > 0) {
     for (const member of data.projectMembers) {
       await prisma.projectMember.update({
         where: {
-          id: member.membershipId,
+          id: member.projectMembershipId,
         },
         data: {
           role: member.role,

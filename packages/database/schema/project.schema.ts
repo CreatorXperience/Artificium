@@ -5,7 +5,7 @@ const project = z.object({
     .min(6, 'too short for a project name'),
   purpose: z.string({ message: 'purpose is required' }),
   workspaceId: z.string({ message: 'workspaceId is required' }),
-  visibility: z.boolean({ message: 'property visibility is required' }),
+  visibility: z.boolean({ message: 'property visibility must be a boolean' }),
   members: z.array(
     z.object({
       memberId: z.string({ message: 'memberId is required' }),
@@ -13,8 +13,9 @@ const project = z.object({
       email: z.string({ message: 'email is required' }),
       image: z.string({ message: 'image is required' }),
       workspaceId: z.string({ message: 'workspaceId is required' }),
+      userId: z.string({ message: 'workspaceId is required' }),
     }),
-    { message: 'members is required' }
+    { message: 'property members must be a list' }
   ),
 });
 type TProject = Required<z.infer<typeof project>>;
@@ -22,12 +23,19 @@ type TProject = Required<z.infer<typeof project>>;
 const projectValidator = (payload: TProject) => {
   return project
     .required()
-    .partial({ members: true })
+    .partial({ visibility: true })
     .safeParse(payload) as SafeParseReturnType<TProject, TProject>;
 };
 
-const projectUpdateValidator = (payload: Partial<TProject>) => {
-  return project.partial().safeParse(payload);
+const projectUpdateValidator = (
+  payload: Omit<Partial<TProject>, 'members'>
+) => {
+  return project
+    .partial({ members: true })
+    .safeParse(payload) as z.SafeParseReturnType<
+    Omit<TProject, 'members'>,
+    Omit<TProject, 'members'>
+  >;
 };
 
 const projectMember = z.object({
@@ -44,24 +52,26 @@ const projectMemberValidator = (
 
 const projectRole = z.object({
   projectId: z.string({ message: 'property projectId is required' }),
-  projectMemberRole: z.string({
-    message: 'property projectMemberRole is required ',
-  }),
+  workspaceId: z.string({ message: 'property workspaceId is required' }),
   projectMembers: z.array(
     z.object({
       role: z.enum(['editor', 'viewer'], {
         message: 'property role must be one of the following: editor , viewer',
       }),
-      membershipId: z.string({ message: 'property membershipId is required' }),
+      projectMembershipId: z.string({
+        message: 'property membershipId is required',
+      }),
     })
   ),
   workspaceMembers: z.array(
     z.object({
-      memberId: z.string({ message: 'memberId is required' }),
-      name: z.string({ message: 'name is required' }),
-      email: z.string({ message: 'email is required' }),
-      image: z.string({ message: 'image is required' }),
-      workspaceId: z.string({ message: 'workspaceId is required' }),
+      memberId: z.string({ message: 'property memberId is required' }),
+      userId: z.string({ message: 'property userId is required' }),
+      // name: z.string({ message: 'name is required' }),
+      // email: z.string({ message: 'email is required' }),
+      // image: z.string({ message: 'image is required' }),
+      // workspaceId: z.string({ message: 'workspaceId is required' }),
+      // role: z.string({ message: 'role is required' }),
     }),
     { message: 'members is required' }
   ),
@@ -70,7 +80,10 @@ const projectRole = z.object({
 type TProjectRole = z.infer<typeof projectRole>;
 
 const projectRoleValidator = (payload: TProjectRole) => {
-  return projectRole.partial({ projectMembers: true }).safeParse(payload);
+  return projectRole
+    .required()
+    .partial({ projectMembers: true })
+    .safeParse(payload);
 };
 
 export {
