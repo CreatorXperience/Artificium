@@ -32,11 +32,13 @@ model Project {
     createdAt   DateTime @default(now())
     creator     String   @db.ObjectId
     visibility  Boolean  @default(false)
+    members     String[]
 }
 
 model ProjectMember {
     id          String @id @default(auto()) @map("_id") @db.ObjectId
     projectId   String @db.ObjectId
+    userId      String @db.ObjectId
     memberId    String @db.ObjectId
     email       String
     image       String
