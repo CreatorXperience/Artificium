@@ -1,4 +1,8 @@
-import { artificiumMessagePayloadValidator, Redis } from '@org/database';
+import {
+  artificiumMessagePayloadValidator,
+  artificiumValidator,
+  Redis,
+} from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Emitter } from '@socket.io/mongo-emitter';
 import { ObjectId } from 'mongodb';
@@ -46,7 +50,7 @@ const chatWithArtificium = async (
   const { error, data } = artificiumMessagePayloadValidator(payload);
   if (error) {
     return socket.emit(
-      'socket Validation error',
+      'socket-validation-error',
       JSON.stringify({
         message: error.errors[0].message,
         status: 400,
@@ -68,18 +72,33 @@ const chatWithArtificium = async (
 
     await redis.client.LTRIM('art_message', 50, -1);
   }
+  let artificiumId = data.artificiumId;
+  if (!artificiumId) {
+    const artificium = await prisma.artificium.create({
+      data: {
+        projectId: data.projectId,
+        userId: data.userId,
+        workspaceId: data.workspaceId,
+      },
+    });
+    artificiumId = artificium.id;
+  }
+
   await redis.client.LPUSH(
     'art_message',
     JSON.stringify({
       id: new ObjectId().toHexString(),
       timestamp: Date.now(),
       ...data,
+      artificiumId,
     })
   );
 
   //send a request to the AI then emit the response
 
-  socket.emit('success', { message: '📤 message sent successfully' });
+  socket.emit('art_message_success', {
+    message: '📤 message sent successfully',
+  });
 };
 
 const chatInGroups = async (
@@ -88,7 +107,7 @@ const chatInGroups = async (
 ) => {
   const { error, data } = artificiumMessagePayloadValidator(payload);
   if (error) {
-    return socket.emit('socket Validation error', {
+    return socket.emit('socket-validation-error', {
       message: error.errors[0].message,
       status: 400,
     });

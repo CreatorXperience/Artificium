@@ -17,6 +17,7 @@ import {
   integration,
   projectMemberValidator,
   projectRoleValidator,
+  artificiumValidator,
 } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Context } from 'hono';
@@ -776,74 +777,115 @@ const acceptOrRevokeChannelReq = async (c: Context) => {
   return c.json({ message: 'invalid signal' }, 400);
 };
 
-const chatWithArtificium = async (c: Context) => {
-  const payload = await c.req.json();
-  const { error, data } = artificiumMessagePayloadValidator(payload);
-
+//test this code below !
+const getArtificium = async (c: Context) => {
+  const body = await c.req.json();
+  const {
+    error,
+    data: { projectId, userId, workspaceId },
+  } = artificiumValidator(body);
   if (error) {
-    return c.json({ message: error.errors[0].message }, 400);
+    return c.json(
+      { message: `Validation Error: ${error.errors[0].message} ` },
+      400
+    );
   }
-  const message_length = await redis.client.LLEN('art_message');
-  if (message_length >= MAX_CACHE_SIZE) {
-    const messages = await redis.client.LRANGE('art_message', 0, 50);
-    const parsed_messages = messages
-      .map((message) => ({
-        ...JSON.parse(message),
-        timestamp: new Date(JSON.parse(message).timestamp),
-      }))
-      .reverse();
-    await prisma.artificiumChat.createMany({
-      data: [...parsed_messages],
+
+  let artificium = await prisma.artificium.findFirst({
+    where: { projectId, userId, workspaceId },
+  });
+  if (!artificium) {
+    artificium = await prisma.artificium.create({
+      data: { projectId, userId, workspaceId },
     });
-
-    await redis.client.LTRIM('art_message', 50, -1);
   }
-  await redis.client.LPUSH(
-    'art_message',
-    JSON.stringify({
-      id: new ObjectId().toHexString(),
-      timestamp: Date.now(),
-      ...data,
-    })
-  );
-
-  //send a request to the AI
-
-  return c.json({ message: 'message sent successfully' });
+  return c.json({
+    message: 'artificium retrieved successfully',
+    data: artificium,
+  });
 };
 
-const chatInGroups = async (c: Context) => {
-  const payload = await c.req.json();
-  const { error, data } = artificiumMessagePayloadValidator(payload);
-  if (error) {
-    return c.json({ message: error.errors[0].message }, 400);
-  }
-  const message_length = await redis.client.LLEN('chat_messages');
-  if (message_length >= MAX_CACHE_SIZE) {
-    const messages = await redis.client.LRANGE('chat_messages', 0, 50);
-    const parsed_messages = messages
-      .map((message) => ({
-        ...JSON.parse(message),
-        timestamp: new Date(JSON.parse(message).timestamp),
-      }))
-      .reverse();
-    await prisma.message.createMany({
-      data: [...parsed_messages],
-    });
+// const chatWithArtificium = async (c: Context) => {
+//   const payload = await c.req.json();
+//   const { error, data } = artificiumMessagePayloadValidator(payload);
 
-    await redis.client.LTRIM('chat_messages', 50, -1);
-  }
-  await redis.client.LPUSH(
-    'chat_messages',
-    JSON.stringify({
-      id: new ObjectId().toHexString(),
-      timestamp: Date.now(),
-      ...data,
-    })
-  );
+//   if (error) {
+//     return c.json({ message: error.errors[0].message }, 400);
+//   }
+//   const message_length = await redis.client.LLEN('art_message');
+//   if (message_length >= MAX_CACHE_SIZE) {
+//     const messages = await redis.client.LRANGE('art_message', 0, 50);
+//     const parsed_messages = messages
+//       .map((message) => ({
+//         ...JSON.parse(message),
+//         timestamp: new Date(JSON.parse(message).timestamp),
+//       }))
+//       .reverse();
+//     await prisma.artificiumChat.createMany({
+//       data: [...parsed_messages],
+//     });
 
-  return c.json({ message: 'message sent successfully' });
-};
+//     await redis.client.LTRIM('art_message', 50, -1);
+//   }
+//   let artificiumId = data.artificiumId;
+//   if (!artificiumId) {
+//     const artificium = await prisma.artificium.create({
+//       data: {
+//         projectId: data.projectId,
+//         userId: data.userId,
+//         workspaceId: data.workspaceId,
+//       },
+//     });
+//     artificiumId = artificium.id;
+//   }
+
+//   await redis.client.LPUSH(
+//     'art_message',
+//     JSON.stringify({
+//       id: new ObjectId().toHexString(),
+//       timestamp: Date.now(),
+//       ...data,
+//       artificiumId,
+//     })
+//   );
+
+//   //send a request to the AI
+
+//   return c.json({ message: 'message sent successfully' });
+// };
+
+// const chatInGroups = async (c: Context) => {
+//   const payload = await c.req.json();
+//   const { error, data } = artificiumMessagePayloadValidator(payload);
+//   if (error) {
+//     return c.json({ message: error.errors[0].message }, 400);
+//   }
+//   const message_length = await redis.client.LLEN('chat_messages');
+//   if (message_length >= MAX_CACHE_SIZE) {
+//     const messages = await redis.client.LRANGE('chat_messages', 0, 50);
+//     const parsed_messages = messages
+//       .map((message) => ({
+//         ...JSON.parse(message),
+//         timestamp: new Date(JSON.parse(message).timestamp),
+//       }))
+//       .reverse();
+//     await prisma.message.createMany({
+//       data: [...parsed_messages],
+//     });
+
+//     await redis.client.LTRIM('chat_messages', 50, -1);
+//   }
+//   await redis.client.LPUSH(
+//     'chat_messages',
+//     JSON.stringify({
+//       id: new ObjectId().toHexString(),
+//       timestamp: Date.now(),
+//       ...data,
+//     })
+//   );
+
+//   return c.json({ message: 'message sent successfully' });
+// };
 
 const getUserChatWithArtificium = async (c: Context) => {
   const param = c.req.query();
@@ -892,10 +934,10 @@ const getUserChatWithArtificium = async (c: Context) => {
 
 const getUsersChat = async (c: Context) => {
   const param = c.req.query();
-  if (!param['projectId']) {
+  if (!param['channelId']) {
     return c.json(
       {
-        message: "parameter 'projectId' are required",
+        message: 'parameter channelId is required',
       },
       400
     );
@@ -917,10 +959,10 @@ const getUsersChat = async (c: Context) => {
     (await redis.client.LRANGE('chat_messages', 0, 50)) || [];
   const cacheMessages = redisCacheMessages
     .map((message) => JSON.parse(message))
-    .filter((message) => message.projectId === param['projectId'])
+    .filter((message) => message.channelId === param['channelId'])
     .reverse();
   const dbMessages = await prisma.message.findMany({
-    where: { projectId: param['projectId'] },
+    where: { channelId: param['channelId'] },
   });
 
   const groupMessages = [...dbMessages, ...cacheMessages];
@@ -1277,8 +1319,6 @@ export {
   acceptOrRevokeChannelReq,
   leaveworkspace,
   uploadWorkspaceImage,
-  chatWithArtificium,
-  chatInGroups,
   getUserChatWithArtificium,
   getUsersChat,
   updateUserChatWithArtificium,
