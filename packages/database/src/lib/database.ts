@@ -39,6 +39,7 @@ import {
   artificiumMessagePayloadValidator,
   updateArtificiumMessagePayloadSchema,
   deleteArtificiumMessageValidator,
+  artificiumValidator,
 } from '../../schema/artificiumMessage.schema';
 import usernameUpdateValidator from '../../schema/user.schema';
 import Redis from '../../redis/redis';
@@ -89,4 +90,5 @@ export {
   usernameUpdateValidator,
   projectMemberValidator,
   projectRoleValidator,
+  artificiumValidator,
 };

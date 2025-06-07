@@ -18,8 +18,6 @@ import {
   leaveChannel,
   updateChannel,
   leaveworkspace,
-  chatWithArtificium,
-  chatInGroups,
   getUserChatWithArtificium,
   getUsersChat,
   updateUserChatWithArtificium,
@@ -89,7 +87,7 @@ app.post('/channel/request', authMiddleWare, joinChannelRequest);
 
 app.post('/channel/request/action', authMiddleWare, acceptOrRevokeChannelReq);
 
-app.post('/chat/artificium', authMiddleWare, chatWithArtificium);
+// app.post('/chat/artificium', authMiddleWare, chatWithArtificium);
 
 app.get('/chat/artificium', authMiddleWare, getUserChatWithArtificium);
 
@@ -97,7 +95,7 @@ app.patch('/chat/artificium', authMiddleWare, updateUserChatWithArtificium);
 
 app.delete('/chat/artificium', authMiddleWare, deleteChatWithArtificium);
 
-app.post('/chat/group', authMiddleWare, chatInGroups);
+// app.post('/chat/group', authMiddleWare, chatInGroups);
 
 app.get('/chat/group', authMiddleWare, getUsersChat);
 
