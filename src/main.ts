@@ -139,27 +139,24 @@ client
         });
       });
 
-      customEmitter.on(
-        'invite_workspace_members_to_project',
-        async (members_id: string) => {
-          const parsed_member_id = JSON.parse(members_id) as Array<{
-            userId: string;
-            notificationId: string;
-          }>;
-          for (const memberNotification of parsed_member_id) {
-            const notification = await prisma.notification.findUnique({
-              where: {
-                id: memberNotification.notificationId,
-                userId: memberNotification.userId,
-              },
-            });
+      customEmitter.on('inapp-notification', async (members_id: string) => {
+        const parsed_member_id = JSON.parse(members_id) as Array<{
+          userId: string;
+          notificationId: string;
+        }>;
+        for (const memberNotification of parsed_member_id) {
+          const notification = await prisma.notification.findUnique({
+            where: {
+              id: memberNotification.notificationId,
+              userId: memberNotification.userId,
+            },
+          });
 
-            emitter
-              .to(memberNotification.userId)
-              .emit('new_notification', JSON.stringify(notification));
-          }
+          emitter
+            .to(memberNotification.userId)
+            .emit('new_notification', JSON.stringify(notification));
         }
-      );
+      });
     } catch (e) {
       console.log('❌ error creating database');
     }

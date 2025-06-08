@@ -638,6 +638,7 @@ describe('/workspace', () => {
           name: 'new project',
           projectId: newProject.id,
           workspaceId: newWorkspace.id,
+          admin: userData.data.id,
         },
       });
     });

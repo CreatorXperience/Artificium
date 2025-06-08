@@ -36,7 +36,10 @@ const projectValidator = (payload: TProject) => {
 const projectUpdateValidator = (
   payload: Omit<Partial<TProject>, 'members'>
 ) => {
-  return project.partial().safeParse(payload) as z.SafeParseReturnType<
+  return project
+    .partial()
+    .omit({ members: true })
+    .safeParse(payload) as z.SafeParseReturnType<
     Omit<TProject, 'members'>,
     Omit<TProject, 'members'>
   >;
@@ -103,7 +106,7 @@ type TProjectRole = z.infer<typeof projectRole>;
 const projectRoleValidator = (payload: TProjectRole) => {
   return projectRole
     .required()
-    .partial({ projectMembers: true })
+    .partial({ projectMembers: true, workspaceMembers: true })
     .safeParse(payload);
 };
 

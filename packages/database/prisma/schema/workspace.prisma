@@ -55,18 +55,35 @@ model Channel {
     name        String
     stars       Int      @default(0)
     members     String[]
+    admin       String   @db.ObjectId
+}
+
+model ChannelMember {
+    id          String @id @default(auto()) @map("_id") @db.ObjectId
+    channelId   String @db.ObjectId
+    projectId   String @db.ObjectId
+    userId      String @db.ObjectId
+    memberId    String @db.ObjectId
+    email       String
+    image       String
+    name        String
+    workspaceId String
+    role        String @default("editor")
 }
 
 model JoinChannelRequest {
-    id        String   @id @default(auto()) @map("_id") @db.ObjectId
-    name      String
-    userId    String   @unique
-    channelId String   @unique
-    toAdmin   String   @unique
-    accept    Boolean  @default(false)
-    revoke    Boolean  @default(false)
-    timestamp DateTime @default(now())
-    read      Boolean  @default(false)
+    id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+    name                String
+    userId              String   @unique
+    channelId           String   @unique
+    toAdmin             String   @unique
+    accept              Boolean  @default(false)
+    revoke              Boolean  @default(false)
+    timestamp           DateTime @default(now())
+    read                Boolean  @default(false)
+    projectId           String
+    workspaceId         String
+    projectMembershipId String
 }
 
 model Message {

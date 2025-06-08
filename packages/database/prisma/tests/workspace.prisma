@@ -57,6 +57,19 @@ model Channel {
     members     String[]
 }
 
+model ChannelMember {
+    id          String @id @default(auto()) @map("_id") @db.ObjectId
+    channelId   String @db.ObjectId
+    projectId   String @db.ObjectId
+    userId      String @db.ObjectId
+    memberId    String @db.ObjectId
+    email       String
+    image       String
+    name        String
+    workspaceId String
+    role        String @default("editor")
+}
+
 model JoinChannelRequest {
     id        String   @id @default(auto()) @map("_id") @db.ObjectId
     name      String
