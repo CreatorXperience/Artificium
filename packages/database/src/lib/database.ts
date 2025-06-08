@@ -41,6 +41,8 @@ import {
   deleteArtificiumMessageValidator,
   artificiumValidator,
 } from '../../schema/artificiumMessage.schema';
+
+import { TInvite, validateInvitePayload } from '../../schema/invite.schema';
 import usernameUpdateValidator from '../../schema/user.schema';
 import Redis from '../../redis/redis';
 import validateImageUpdateSchema from '../../schema/workspaceImageUpdate.schema';
@@ -91,4 +93,6 @@ export {
   projectMemberValidator,
   projectRoleValidator,
   artificiumValidator,
+  TInvite,
+  validateInvitePayload,
 };
