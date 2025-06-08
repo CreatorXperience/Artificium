@@ -38,6 +38,7 @@ model Project {
 model ProjectMember {
     id          String @id @default(auto()) @map("_id") @db.ObjectId
     projectId   String @db.ObjectId
+    userId      String @db.ObjectId
     memberId    String @db.ObjectId
     email       String
     image       String
@@ -76,12 +77,19 @@ model Message {
     mediaType     String   @default("text")
     projectId     String
     mediaLinks    String[] @default([])
-    channelId     String   @unique @db.ObjectId
+    channelId     String   @db.ObjectId
     timestamp     DateTime @default(now())
     reference     String   @default("")
     deletedForMe  Boolean  @default(false)
     deletedForAll Boolean  @default(false)
     threadId      String
+}
+
+model Artificium {
+    id          String @id @default(auto()) @map("_id") @db.ObjectId
+    userId      String
+    projectId   String
+    workspaceId String
 }
 
 model ArtificiumChat {
@@ -97,6 +105,8 @@ model ArtificiumChat {
     deletedForMe  Boolean  @default(false)
     deletedForAll Boolean  @default(false)
     threadId      String
+    workspaceId   String
+    artificiumId  String
 }
 
 model Thread {

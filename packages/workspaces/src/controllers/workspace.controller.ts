@@ -9,7 +9,6 @@ import {
   channelUpdateValidator,
   channelReqValidator,
   acceptOrRejectReqValidator,
-  artificiumMessagePayloadValidator,
   Redis,
   updateArtificiumMessagePayloadSchema,
   deleteArtificiumMessageValidator,
@@ -998,6 +997,10 @@ const updateUserChatWithArtificium = async (c: Context) => {
         data: { text: data.text, timestamp: new Date(Date.now()) },
       });
 
+      await prisma.artificiumChat.delete({
+        where: { id: data.lastArtificiumResponseId },
+      });
+
       return c.json({
         message: 'message updated successfully',
         data: updated_chat,
@@ -1012,7 +1015,9 @@ const updateUserChatWithArtificium = async (c: Context) => {
       JSON.stringify({ timestamp: mTime, ...msg_to_update, text: data.text })
     );
 
-    // const latest_msg = redis.client.LRANGE('new_message', 0, indexToUpdateAt);
+    await redis.client.LSET('new_message', -1, '__TO_DELETE__');
+
+    await redis.client.LREM('new_message', 1, '__TO_DELETE__');
 
     return c.json({
       message: 'message updated succcessfully',

@@ -14,6 +14,9 @@ const artificiumMessageSchema = z.object({
 const artificiumMessageUpdateSchema = z.object({
   text: z.string({ message: 'property text is required' }),
   messageId: z.string({ message: 'property text is required' }),
+  lastArtificiumResponseId: z.string({
+    message: 'property lastArtificiumResponseId is required',
+  }),
 });
 
 const artificiumMessageDeleteSchema = z.object({
@@ -37,10 +40,7 @@ const artificiumValidator = (payload: TArtificium) => {
 
 type TArtficiumMessage = Required<z.infer<typeof artificiumMessageSchema>>;
 const artificiumMessagePayloadValidator = (payload: TArtficiumMessage) => {
-  return artificiumMessageSchema
-    .required()
-    .partial({ artificiumId: true })
-    .safeParse(payload);
+  return artificiumMessageSchema.required().safeParse(payload);
 };
 
 const updateArtificiumMessagePayloadSchema = (payload: TArtficiumMessage) => {
