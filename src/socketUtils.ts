@@ -72,17 +72,6 @@ const chatWithArtificium = async (
 
     await redis.client.LTRIM('art_message', 50, -1);
   }
-  let artificiumId = data.artificiumId;
-  if (!artificiumId) {
-    const artificium = await prisma.artificium.create({
-      data: {
-        projectId: data.projectId,
-        userId: data.userId,
-        workspaceId: data.workspaceId,
-      },
-    });
-    artificiumId = artificium.id;
-  }
 
   await redis.client.LPUSH(
     'art_message',
@@ -90,7 +79,6 @@ const chatWithArtificium = async (
       id: new ObjectId().toHexString(),
       timestamp: Date.now(),
       ...data,
-      artificiumId,
     })
   );
 

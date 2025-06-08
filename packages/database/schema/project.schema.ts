@@ -4,16 +4,22 @@ const project = z.object({
     .string({ message: 'name is required' })
     .min(6, 'too short for a project name'),
   purpose: z.string({ message: 'purpose is required' }),
-  workspaceId: z.string({ message: 'workspaceId is required' }),
+  workspaceId: z.string({ message: 'workspaceId is required' }).length(24, {
+    message: 'property workspaceId must be exactly 24 in length',
+  }),
   visibility: z.boolean({ message: 'property visibility must be a boolean' }),
   members: z.array(
     z.object({
-      memberId: z.string({ message: 'memberId is required' }),
+      memberId: z.string({ message: 'memberId is required' }).length(24, {
+        message: 'property memberId must be exactly 24 in length',
+      }),
       name: z.string({ message: 'name is required' }),
       email: z.string({ message: 'email is required' }),
       image: z.string({ message: 'image is required' }),
       workspaceId: z.string({ message: 'workspaceId is required' }),
-      userId: z.string({ message: 'workspaceId is required' }),
+      userId: z.string({ message: 'userId is required' }).length(24, {
+        message: 'property userId must be exactly 24 in length',
+      }),
     }),
     { message: 'property members must be a list' }
   ),
@@ -30,18 +36,20 @@ const projectValidator = (payload: TProject) => {
 const projectUpdateValidator = (
   payload: Omit<Partial<TProject>, 'members'>
 ) => {
-  return project
-    .partial({ members: true })
-    .safeParse(payload) as z.SafeParseReturnType<
+  return project.partial().safeParse(payload) as z.SafeParseReturnType<
     Omit<TProject, 'members'>,
     Omit<TProject, 'members'>
   >;
 };
 
 const projectMember = z.object({
-  projectId: z.string({ message: 'projectId is required' }),
+  projectId: z.string({ message: 'projectId is required' }).length(24, {
+    message: 'property projectId must be exactly 24 in length',
+  }),
   username: z.string({ message: 'property username is required' }),
-  memberId: z.string({ message: 'property userId is required' }),
+  memberId: z.string({ message: 'property userId is required' }).length(24, {
+    message: 'property memberId must be exactly 24 in length',
+  }),
 });
 
 const projectMemberValidator = (
@@ -51,27 +59,40 @@ const projectMemberValidator = (
 };
 
 const projectRole = z.object({
-  projectId: z.string({ message: 'property projectId is required' }),
-  workspaceId: z.string({ message: 'property workspaceId is required' }),
+  projectId: z
+    .string({ message: 'property projectId is required' })
+    .length(24, {
+      message: 'property projectId must be exactly 12 in length',
+    }),
+  workspaceId: z
+    .string({ message: 'property workspaceId is required' })
+    .length(12, {
+      message: 'property workspaceId must be exactly 12 in length',
+    }),
   projectMembers: z.array(
     z.object({
       role: z.enum(['editor', 'viewer'], {
         message: 'property role must be one of the following: editor , viewer',
       }),
-      projectMembershipId: z.string({
-        message: 'property membershipId is required',
-      }),
+      projectMembershipId: z
+        .string({
+          message: 'property membershipId is required',
+        })
+        .length(12, {
+          message: 'property projectMembershipId must be exactly 12 in length',
+        }),
     })
   ),
   workspaceMembers: z.array(
     z.object({
-      memberId: z.string({ message: 'property memberId is required' }),
-      userId: z.string({ message: 'property userId is required' }),
-      // name: z.string({ message: 'name is required' }),
-      // email: z.string({ message: 'email is required' }),
-      // image: z.string({ message: 'image is required' }),
-      // workspaceId: z.string({ message: 'workspaceId is required' }),
-      // role: z.string({ message: 'role is required' }),
+      memberId: z
+        .string({ message: 'property memberId is required' })
+        .length(12, {
+          message: 'property memberId must be exactly 12 in length',
+        }),
+      userId: z.string({ message: 'property userId is required' }).length(12, {
+        message: 'property userId must be exactly 12 in length',
+      }),
     }),
     { message: 'members is required' }
   ),
