@@ -612,7 +612,8 @@ describe('/workspace', () => {
     let newWorkspace;
     let newProject;
     let newChannel;
-    beforeAll(async () => {
+    let projectMember;
+    beforeEach(async () => {
       newWorkspace = await prisma.workspace.create({
         data: {
           name: 'test workspace',
@@ -632,22 +633,52 @@ describe('/workspace', () => {
           visibility: false,
         },
       });
+      const { email, image, fullname, lastname, id } = userData.data;
 
-      newChannel = await prisma.channel.create({
+      const workspaceMember = await prisma.workspaceMember.create({
         data: {
-          name: 'new project',
-          projectId: newProject.id,
+          email,
+          image,
+          name: `${fullname} ${lastname}`,
+          userId: id,
           workspaceId: newWorkspace.id,
-          admin: userData.data.id,
         },
+      });
+      await prisma.$transaction(async (tx) => {
+        projectMember = await tx.projectMember.create({
+          data: {
+            email,
+            image,
+            memberId: workspaceMember.id,
+            name: `${fullname} ${lastname}`,
+            projectId: newProject.id,
+            userId: id,
+            workspaceId: newWorkspace.id,
+          },
+        });
+
+        newChannel = await tx.channel.create({
+          data: {
+            name: 'new project',
+            projectId: newProject.id,
+            workspaceId: newWorkspace.id,
+            admin: userData.data.id,
+          },
+        });
       });
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
       await prisma.workspace.deleteMany();
       await prisma.project.deleteMany();
       await prisma.$disconnect();
     });
+
+    // afterAll(async () => {
+    //   await prisma.workspace.deleteMany();
+    //   await prisma.project.deleteMany();
+    //   await prisma.$disconnect();
+    // });
     test('should return 400 if updateChannel data is invalid', async () => {
       const res = await app.request(`/workspace/channel/${newChannel.id}`, {
         method: 'PATCH',
@@ -707,9 +738,14 @@ describe('/workspace', () => {
           name: 'Kelvin Chukwu',
           toAdmin: 'admin123',
           channelId: newChannel.id,
+          workspaceId: newWorkspace.id,
+          channelName: newChannel.name,
+          projectId: newProject.id,
+          projectMembershipId: projectMember.id,
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
+
       expect(res.status).toBe(200);
     });
 
@@ -723,46 +759,64 @@ describe('/workspace', () => {
     });
 
     test('should return 200 when accepting a join request', async () => {
-      await app.request(`/workspace/channel/request`, {
+      const req = await app.request(`/workspace/channel/request`, {
         method: 'POST',
         body: JSON.stringify({
           name: 'Kelvin Chukwu',
           toAdmin: 'admin123',
           channelId: newChannel.id,
+          workspaceId: newWorkspace.id,
+          channelName: newChannel.name,
+          projectId: newProject.id,
+          projectMembershipId: projectMember.id,
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
-      const res = await app.request(`/workspace/channel/request/action`, {
-        method: 'POST',
-        body: JSON.stringify({
-          signal: 'accept',
-          userId: userData.data.id,
-          channelId: newChannel.id,
-        }),
-        headers: { Cookie: user.headers.get('set-cookie') },
-      });
+
+      expect(req.status).toBe(200);
+      const res = await app.request(
+        `/workspace/channel/request/action?userId=${userData.data.id}&channelId=${newChannel.id}&signal=accept&workspaceId=${newWorkspace.id}&projectId=${newProject.id}&projectMembershipId=${projectMember.id}`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            signal: 'revoke',
+            userId: userData.data.id,
+            channelId: newChannel.id,
+          }),
+          headers: { Cookie: user.headers.get('set-cookie') },
+        }
+      );
       expect(res.status).toBe(200);
     });
 
     test('should return 200 when revoking a join request', async () => {
-      await app.request(`/workspace/channel/request`, {
+      const req = await app.request(`/workspace/channel/request`, {
         method: 'POST',
         body: JSON.stringify({
           name: 'Kelvin Chukwu',
           toAdmin: 'admin123',
           channelId: newChannel.id,
+          workspaceId: newWorkspace.id,
+          channelName: newChannel.name,
+          projectId: newProject.id,
+          projectMembershipId: projectMember.id,
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
-      const res = await app.request(`/workspace/channel/request/action`, {
-        method: 'POST',
-        body: JSON.stringify({
-          signal: 'revoke',
-          userId: userData.data.id,
-          channelId: newChannel.id,
-        }),
-        headers: { Cookie: user.headers.get('set-cookie') },
-      });
+      console.log('why', await req.json());
+      expect(req.status).toBe(200);
+      const res = await app.request(
+        `/workspace/channel/request/action?userId=${userData.data.id}&channelId=${newChannel.id}&signal=reject&workspaceId=${newWorkspace.id}&projectId=${newProject.id}&projectMembershipId=${projectMember.id}`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            signal: 'revoke',
+            userId: userData.data.id,
+            channelId: newChannel.id,
+          }),
+          headers: { Cookie: user.headers.get('set-cookie') },
+        }
+      );
       expect(res.status).toBe(200);
     });
 

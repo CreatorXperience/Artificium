@@ -14,7 +14,7 @@ import {
   updateProject,
   updateWorkspace,
   joinChannelRequest,
-  acceptOrRevokeChannelReq,
+  acceptOrRevokeJoinChannelReq,
   leaveChannel,
   updateChannel,
   leaveworkspace,
@@ -85,7 +85,11 @@ app.post('/channel/leave/:channelId/:userId', authMiddleWare, leaveChannel);
 
 app.post('/channel/request', authMiddleWare, joinChannelRequest);
 
-app.post('/channel/request/action', authMiddleWare, acceptOrRevokeChannelReq);
+app.post(
+  '/channel/request/action',
+  authMiddleWare,
+  acceptOrRevokeJoinChannelReq
+);
 
 // app.post('/chat/artificium', authMiddleWare, chatWithArtificium);
 
