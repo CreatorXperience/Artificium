@@ -44,6 +44,7 @@ const channelValidator = (payload: TChannel) => {
 
 const channelUpdateValidator = (payload: TChannel) => {
   return channel
+    .partial()
     .omit({ members: true })
     .safeParse(payload) as z.SafeParseReturnType<
     Omit<TChannel, 'members'>,

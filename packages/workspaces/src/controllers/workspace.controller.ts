@@ -1015,7 +1015,7 @@ const joinChannelRequest = async (c: Context) => {
       const [channelReq, notification] = await Promise.all([
         tx.joinChannelRequest.create({
           data: {
-            name: user.name,
+            name: `${user.firstname} ${user.lastname}`,
             toAdmin: data.toAdmin,
             userId: userId,
             channelId: data.channelId,
@@ -1056,7 +1056,7 @@ const joinChannelRequest = async (c: Context) => {
   });
 };
 
-const acceptOrRevokeChannelReq = async (c: Context) => {
+const acceptOrRevokeJoinChannelReq = async (c: Context) => {
   const adminId = c.var.getUser().id;
   const query = c.req.query();
   const {
@@ -1692,7 +1692,7 @@ export {
   joinChannel,
   leaveChannel,
   joinChannelRequest,
-  acceptOrRevokeChannelReq,
+  acceptOrRevokeJoinChannelReq,
   leaveworkspace,
   uploadWorkspaceImage,
   getUserChatWithArtificium,

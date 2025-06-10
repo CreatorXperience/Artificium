@@ -55,6 +55,7 @@ model Channel {
     name        String
     stars       Int      @default(0)
     members     String[]
+    admin       String   @db.ObjectId
 }
 
 model ChannelMember {
@@ -71,15 +72,18 @@ model ChannelMember {
 }
 
 model JoinChannelRequest {
-    id        String   @id @default(auto()) @map("_id") @db.ObjectId
-    name      String
-    userId    String   @unique
-    channelId String   @unique
-    toAdmin   String   @unique
-    accept    Boolean  @default(false)
-    revoke    Boolean  @default(false)
-    timestamp DateTime @default(now())
-    read      Boolean  @default(false)
+    id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+    name                String
+    userId              String   @unique
+    channelId           String   @unique
+    toAdmin             String   @unique
+    accept              Boolean  @default(false)
+    revoke              Boolean  @default(false)
+    timestamp           DateTime @default(now())
+    read                Boolean  @default(false)
+    projectId           String
+    workspaceId         String
+    projectMembershipId String
 }
 
 model Message {
