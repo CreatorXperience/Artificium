@@ -17,6 +17,7 @@
       "@org/auth": ["packages/auth/src/index.ts"],
       "@org/authentication": ["src/lib/authentication/src/index.ts"],
       "@org/database": ["packages/database/src/index.ts"],
+      "@org/integrations": ["packages/integrations/src/index.ts"],
       "@org/users": ["packages/users/src/index.ts"],
       "@org/workspaces": ["packages/workspaces/src/index.ts"]
     },
