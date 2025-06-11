@@ -14,13 +14,19 @@ import {
   updateProject,
   updateWorkspace,
   joinChannelRequest,
-  acceptOrRevokeChannelReq,
+  acceptOrRevokeJoinChannelReq,
   leaveChannel,
   updateChannel,
   leaveworkspace,
-  chatWithArtificium,
   getUserChatWithArtificium,
+  getUsersChat,
   updateUserChatWithArtificium,
+  updateUserChatInGroups,
+  deleteChatWithArtificium,
+  deleteUserChatInGroup,
+  createThread,
+  uploadWorkspaceImage,
+  createGmailIntegration,
 } from '../controllers/workspace.controller';
 import winston from 'winston';
 
@@ -57,6 +63,8 @@ app.get('/:id', authMiddleWare, getWorkspace);
 
 app.post('/', authMiddleWare, createWorkspace);
 
+app.post('/', authMiddleWare, uploadWorkspaceImage);
+
 app.patch('/:id', authMiddleWare, updateWorkspace);
 
 app.get('/project/:workspaceId', authMiddleWare, getAllWorskpaceProjects);
@@ -77,15 +85,33 @@ app.post('/channel/leave/:channelId/:userId', authMiddleWare, leaveChannel);
 
 app.post('/channel/request', authMiddleWare, joinChannelRequest);
 
-app.post('/channel/request/action', authMiddleWare, acceptOrRevokeChannelReq);
+app.post(
+  '/channel/request/action',
+  authMiddleWare,
+  acceptOrRevokeJoinChannelReq
+);
 
-app.post('/chat/artificium', authMiddleWare, chatWithArtificium);
+// app.post('/chat/artificium', authMiddleWare, chatWithArtificium);
 
 app.get('/chat/artificium', authMiddleWare, getUserChatWithArtificium);
 
 app.patch('/chat/artificium', authMiddleWare, updateUserChatWithArtificium);
 
-app.post('/new', (c) => {
+app.delete('/chat/artificium', authMiddleWare, deleteChatWithArtificium);
+
+// app.post('/chat/group', authMiddleWare, chatInGroups);
+
+app.get('/chat/group', authMiddleWare, getUsersChat);
+
+app.patch('/chat/group', authMiddleWare, updateUserChatInGroups);
+
+app.delete('/chat/group', authMiddleWare, deleteUserChatInGroup);
+
+app.post('/chat/thread', authMiddleWare, createThread);
+
+app.post('/integration/google-oauth', authMiddleWare, createGmailIntegration);
+
+app.get('/new', (c) => {
   return c.json({ messages: 'workspace created  successfully', data: {} });
 });
 

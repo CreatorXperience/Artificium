@@ -5,11 +5,16 @@ import z from 'zod';
 // toAdmin String  @unique
 // accept  Boolean
 const channelReq = z.object({
-  name: z.string(),
-  channelId: z.string(),
-  toAdmin: z.string(),
+  channelId: z.string({ message: 'property channelId is required' }),
+  channelName: z.string({ message: 'property channelName is required' }),
+  toAdmin: z.string({ message: 'property toAdmin is required' }),
   accept: z.boolean(),
   revoke: z.boolean(),
+  projectId: z.string({ message: 'property projectId is required' }),
+  workspaceId: z.string({ message: 'property workspaceId is required' }),
+  projectMembershipId: z.string({
+    message: 'property projectMembershipId is required',
+  }),
 });
 
 type TChannelReq = z.infer<typeof channelReq>;

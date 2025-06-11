@@ -18,6 +18,8 @@ import {
   projectValidator,
   TProject,
   projectUpdateValidator,
+  projectMemberValidator,
+  projectRoleValidator,
 } from '../../schema/project.schema';
 
 import {
@@ -36,8 +38,15 @@ import isHex from '../../utils/isHex';
 import {
   artificiumMessagePayloadValidator,
   updateArtificiumMessagePayloadSchema,
+  deleteArtificiumMessageValidator,
+  artificiumValidator,
 } from '../../schema/artificiumMessage.schema';
+
+import { TInvite, validateInvitePayload } from '../../schema/invite.schema';
+import usernameUpdateValidator from '../../schema/user.schema';
 import Redis from '../../redis/redis';
+import validateImageUpdateSchema from '../../schema/workspaceImageUpdate.schema';
+import * as integration from '../../schema/integration.schema';
 const prisma = new PrismaClient();
 export function database(): string {
   return 'database';
@@ -77,4 +86,13 @@ export {
   artificiumMessagePayloadValidator,
   Redis,
   updateArtificiumMessagePayloadSchema,
+  deleteArtificiumMessageValidator,
+  validateImageUpdateSchema,
+  integration,
+  usernameUpdateValidator,
+  projectMemberValidator,
+  projectRoleValidator,
+  artificiumValidator,
+  TInvite,
+  validateInvitePayload,
 };

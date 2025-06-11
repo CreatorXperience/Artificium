@@ -2,8 +2,8 @@ model Workspace {
     id             String   @id @default(auto()) @map("_id") @db.ObjectId
     url            String?  @unique @default("")
     visibility     Boolean  @default(false)
-    readAccess     Json?
-    writeAccess    Json?
+    readAccess     String[] @default([])
+    writeAccess    String[] @default([])
     totalMembers   Int
     name           String   @unique
     description    String?  @default("")
@@ -21,7 +21,7 @@ model WorkspaceMember {
     name        String
     email       String
     image       String
-    workspaceId String @unique @db.ObjectId
+    workspaceId String @db.ObjectId
 }
 
 model Project {
@@ -30,7 +30,21 @@ model Project {
     purpose     String?  @default("")
     workspaceId String   @unique @db.ObjectId
     createdAt   DateTime @default(now())
+    creator     String   @db.ObjectId
+    visibility  Boolean  @default(false)
     members     String[]
+}
+
+model ProjectMember {
+    id          String @id @default(auto()) @map("_id") @db.ObjectId
+    projectId   String @db.ObjectId
+    userId      String @db.ObjectId
+    memberId    String @db.ObjectId
+    email       String
+    image       String
+    name        String
+    workspaceId String
+    role        String @default("editor")
 }
 
 model Channel {
@@ -41,41 +55,80 @@ model Channel {
     name        String
     stars       Int      @default(0)
     members     String[]
+    admin       String   @db.ObjectId
+}
+
+model ChannelMember {
+    id          String @id @default(auto()) @map("_id") @db.ObjectId
+    channelId   String @db.ObjectId
+    projectId   String @db.ObjectId
+    userId      String @db.ObjectId
+    memberId    String @db.ObjectId
+    email       String
+    image       String
+    name        String
+    workspaceId String
+    role        String @default("editor")
 }
 
 model JoinChannelRequest {
-    id        String   @id @default(auto()) @map("_id") @db.ObjectId
-    name      String
-    userId    String   @unique
-    channelId String   @unique
-    toAdmin   String   @unique
-    accept    Boolean  @default(false)
-    revoke    Boolean  @default(false)
-    timestamp DateTime @default(now())
+    id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+    name                String
+    userId              String   @unique
+    channelId           String   @unique
+    toAdmin             String   @unique
+    accept              Boolean  @default(false)
+    revoke              Boolean  @default(false)
+    timestamp           DateTime @default(now())
+    read                Boolean  @default(false)
+    projectId           String
+    workspaceId         String
+    projectMembershipId String
 }
 
 model Message {
-    id         String   @id @default(auto()) @map("_id") @db.ObjectId
-    user       String
-    userId     String   @unique
-    text       String
-    mediaType  String
-    mediaLinks String[]
-    channelId  String   @unique @db.ObjectId
-    timestamp  DateTime
-    reference  String?  @default("")
+    id            String   @id @default(auto()) @map("_id") @db.ObjectId
+    user          String
+    userId        String
+    text          String
+    mediaType     String   @default("text")
+    projectId     String
+    mediaLinks    String[] @default([])
+    channelId     String   @db.ObjectId
+    timestamp     DateTime @default(now())
+    reference     String   @default("")
+    deletedForMe  Boolean  @default(false)
+    deletedForAll Boolean  @default(false)
+    threadId      String
+}
+
+model Artificium {
+    id          String @id @default(auto()) @map("_id") @db.ObjectId
+    userId      String
+    projectId   String
+    workspaceId String
 }
 
 model ArtificiumChat {
-    id         String   @id @default(auto()) @map("_id") @db.ObjectId
-    projectId  String
-    userId     String
-    reference  String   @default("")
-    text       String
-    user       String
-    timestamp  DateTime @default(now())
-    mediaType  String   @default("text")
-    mediaLinks String[] @default([])
+    id            String   @id @default(auto()) @map("_id") @db.ObjectId
+    projectId     String
+    userId        String
+    reference     String   @default("")
+    text          String
+    user          String
+    timestamp     DateTime @default(now())
+    mediaType     String   @default("text")
+    mediaLinks    String[] @default([])
+    deletedForMe  Boolean  @default(false)
+    deletedForAll Boolean  @default(false)
+    threadId      String
+    workspaceId   String
+    artificiumId  String
+}
+
+model Thread {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    timeStamp DateTime @default(now())
 }
 
 // model Comment {

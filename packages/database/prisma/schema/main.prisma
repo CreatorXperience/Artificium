@@ -1,9 +1,8 @@
-datasource db {
-    provider = "mongodb"
-    url      = env("DATABASE_URL")
-}
+// datasource db {
+//     provider = "mongodb"
+//     url      = env("DATABASE_URL")
+// }
 
-generator db {
-    provider        = "prisma-client-js"
-    previewFeatures = ["prismaSchemaFolder"]
-}
+// generator db {
+//     provider = "prisma-client-js"
+// }

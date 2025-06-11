@@ -1,0 +1,570 @@
+
+==> Audit <==
+|---------|---------------------|----------|---------|---------|---------------------|---------------------|
+| Command |        Args         | Profile  |  User   | Version |     Start Time      |      End Time       |
+|---------|---------------------|----------|---------|---------|---------------------|---------------------|
+| start   | --driver=hyperkit   | minikube | macbook | v1.35.0 | 19 May 25 14:00 WAT |                     |
+| start   | --driver=hyperkit   | minikube | macbook | v1.35.0 | 19 May 25 14:10 WAT |                     |
+| delete  |                     | minikube | macbook | v1.35.0 | 19 May 25 14:18 WAT | 19 May 25 14:18 WAT |
+| start   | --driver=hyperkit   | minikube | macbook | v1.35.0 | 19 May 25 14:18 WAT |                     |
+| start   | --driver=docker     | minikube | macbook | v1.35.0 | 19 May 25 14:22 WAT |                     |
+| delete  |                     | minikube | macbook | v1.35.0 | 19 May 25 14:22 WAT | 19 May 25 14:22 WAT |
+| start   | --driver=docker     | minikube | macbook | v1.35.0 | 19 May 25 14:23 WAT |                     |
+| start   | --driver=virtualbox | minikube | macbook | v1.35.0 | 19 May 25 14:23 WAT |                     |
+| delete  |                     | minikube | macbook | v1.35.0 | 19 May 25 14:23 WAT | 19 May 25 14:23 WAT |
+| start   | --driver=virtualbox | minikube | macbook | v1.35.0 | 19 May 25 14:23 WAT |                     |
+| delete  |                     | minikube | macbook | v1.35.0 | 19 May 25 14:30 WAT | 19 May 25 14:30 WAT |
+| start   | --driver=virtualbox | minikube | macbook | v1.35.0 | 19 May 25 14:30 WAT |                     |
+| start   |                     | minikube | macbook | v1.35.0 | 19 May 25 14:32 WAT |                     |
+| start   | --driver=virtualbox | minikube | macbook | v1.35.0 | 19 May 25 14:50 WAT |                     |
+| delete  |                     | minikube | macbook | v1.35.0 | 19 May 25 14:50 WAT | 19 May 25 14:50 WAT |
+| start   | --driver=virtualbox | minikube | macbook | v1.35.0 | 19 May 25 14:50 WAT |                     |
+| delete  |                     | minikube | macbook | v1.35.0 | 19 May 25 15:00 WAT | 19 May 25 15:00 WAT |
+| start   |                     | minikube | macbook | v1.35.0 | 19 May 25 15:00 WAT | 19 May 25 15:01 WAT |
+| kubectl | config get-contexts | minikube | macbook | v1.35.0 | 19 May 25 15:51 WAT |                     |
+| start   |                     | minikube | macbook | v1.35.0 | 21 May 25 13:12 WAT | 21 May 25 13:12 WAT |
+| start   |                     | minikube | macbook | v1.35.0 | 30 May 25 09:02 WAT |                     |
+| start   |                     | minikube | macbook | v1.35.0 | 30 May 25 09:17 WAT |                     |
+| start   |                     | minikube | root    | v1.35.0 | 30 May 25 09:58 WAT |                     |
+| start   |                     | minikube | macbook | v1.35.0 | 30 May 25 09:59 WAT |                     |
+| start   |                     | minikube | macbook | v1.35.0 | 30 May 25 10:00 WAT |                     |
+| start   |                     | minikube | macbook | v1.36.0 | 30 May 25 10:15 WAT |                     |
+| start   | --driver=virtualbox | minikube | macbook | v1.36.0 | 30 May 25 10:35 WAT |                     |
+| start   |                     | minikube | macbook | v1.36.0 | 30 May 25 13:08 WAT |                     |
+| start   | --driver=virtualbox | minikube | macbook | v1.36.0 | 30 May 25 13:09 WAT |                     |
+| delete  | hyperkit            | minikube | macbook | v1.36.0 | 30 May 25 13:09 WAT |                     |
+| delete  |                     | minikube | macbook | v1.36.0 | 30 May 25 13:09 WAT | 30 May 25 13:09 WAT |
+| start   | --driver=virtualbox | minikube | macbook | v1.36.0 | 30 May 25 13:10 WAT |                     |
+| start   |                     | minikube | macbook | v1.36.0 | 30 May 25 13:10 WAT |                     |
+| start   |                     | minikube | macbook | v1.36.0 | 30 May 25 13:15 WAT |                     |
+| start   | --driver=hyperkit   | minikube | macbook | v1.36.0 | 30 May 25 13:15 WAT |                     |
+| delete  |                     | minikube | macbook | v1.36.0 | 30 May 25 13:16 WAT | 30 May 25 13:16 WAT |
+| start   | --driver=hyperkit   | minikube | macbook | v1.36.0 | 30 May 25 13:16 WAT |                     |
+| start   |                     | minikube | macbook | v1.36.0 | 30 May 25 13:17 WAT |                     |
+| start   |                     | minikube | macbook | v1.36.0 | 30 May 25 13:54 WAT |                     |
+| start   |                     | minikube | macbook | v1.36.0 | 30 May 25 14:05 WAT |                     |
+| delete  |                     | minikube | macbook | v1.36.0 | 30 May 25 14:07 WAT | 30 May 25 14:07 WAT |
+| start   | --driver=hyperkit   | minikube | macbook | v1.36.0 | 30 May 25 14:07 WAT |                     |
+|---------|---------------------|----------|---------|---------|---------------------|---------------------|
+
+
+==> Last Start <==
+Log file created at: 2025/05/30 14:07:32
+Running on machine: MACBOOKs-MacBook-Air
+Binary: Built with gc go1.24.0 for darwin/amd64
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+I0530 14:07:32.567587   39423 out.go:345] Setting OutFile to fd 1 ...
+I0530 14:07:32.568012   39423 out.go:397] isatty.IsTerminal(1) = true
+I0530 14:07:32.568017   39423 out.go:358] Setting ErrFile to fd 2...
+I0530 14:07:32.568026   39423 out.go:397] isatty.IsTerminal(2) = true
+I0530 14:07:32.568283   39423 root.go:338] Updating PATH: /Users/macbook/.minikube/bin
+I0530 14:07:32.572213   39423 out.go:352] Setting JSON to false
+I0530 14:07:32.602018   39423 start.go:130] hostinfo: {"hostname":"MACBOOKs-MacBook-Air.local","uptime":838040,"bootTime":1747772412,"procs":529,"os":"darwin","platform":"darwin","platformFamily":"Standalone Workstation","platformVersion":"12.7.6","kernelVersion":"21.6.0","kernelArch":"x86_64","virtualizationSystem":"","virtualizationRole":"","hostId":"3a9b5147-d901-5baf-886b-fcaf44a013dc"}
+W0530 14:07:32.602202   39423 start.go:138] gopshost.Virtualization returned error: not implemented yet
+I0530 14:07:32.619053   39423 out.go:177] 😄  minikube v1.36.0 on Darwin 12.7.6
+I0530 14:07:32.633133   39423 notify.go:220] Checking for updates...
+I0530 14:07:32.633547   39423 driver.go:404] Setting default libvirt URI to qemu:///system
+I0530 14:07:32.659304   39423 out.go:177] ✨  Using the hyperkit driver based on user configuration
+I0530 14:07:32.688493   39423 start.go:304] selected driver: hyperkit
+I0530 14:07:32.688507   39423 start.go:908] validating driver "hyperkit" against <nil>
+I0530 14:07:32.688517   39423 start.go:919] status for hyperkit: {Installed:true Healthy:true Running:true NeedsImprovement:false Error:<nil> Reason: Fix: Doc: Version:}
+I0530 14:07:32.688717   39423 install.go:52] acquiring lock: {Name:mk4023283b30b374c3f04c8805d539e68824c0b8 Clock:{} Delay:500ms Timeout:10m0s Cancel:<nil>}
+I0530 14:07:32.688862   39423 install.go:117] Validating docker-machine-driver-hyperkit, PATH=/Users/macbook/.minikube/bin:/Users/macbook/.nvm/versions/node/v22.11.0/bin:/Library/Frameworks/Python.framework/Versions/3.13/bin:/Library/Frameworks/Python.framework/Versions/3.12/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:./nvim-macos-x86_64/bin
+I0530 14:07:32.699761   39423 install.go:137] /Users/macbook/.minikube/bin/docker-machine-driver-hyperkit version is 1.35.0
+I0530 14:07:32.704901   39423 install.go:79] stdout: /Users/macbook/.minikube/bin/docker-machine-driver-hyperkit
+I0530 14:07:32.704915   39423 install.go:81] /Users/macbook/.minikube/bin/docker-machine-driver-hyperkit looks good
+I0530 14:07:32.704948   39423 start_flags.go:311] no existing cluster config was found, will generate one from the flags 
+I0530 14:07:32.707790   39423 start_flags.go:394] Using suggested 4000MB memory alloc based on sys=16384MB, container=0MB
+I0530 14:07:32.708014   39423 start_flags.go:958] Wait components to verify : map[apiserver:true system_pods:true]
+I0530 14:07:32.708046   39423 cni.go:84] Creating CNI manager for ""
+I0530 14:07:32.708109   39423 cni.go:158] "hyperkit" driver + "docker" container runtime found on kubernetes v1.24+, recommending bridge
+I0530 14:07:32.708117   39423 start_flags.go:320] Found "bridge CNI" CNI - setting NetworkPlugin=cni
+I0530 14:07:32.708227   39423 start.go:347] cluster config:
+{Name:minikube KeepContext:false EmbedCerts:false MinikubeISO: KicBaseImage:gcr.io/k8s-minikube/kicbase:v0.0.47@sha256:6ed579c9292b4370177b7ef3c42cc4b4a6dcd0735a1814916cbc22c8bf38412b Memory:4000 CPUs:2 DiskSize:20000 Driver:hyperkit HyperkitVpnKitSock: HyperkitVSockPorts:[] DockerEnv:[] ContainerVolumeMounts:[] InsecureRegistry:[] RegistryMirror:[] HostOnlyCIDR:192.168.59.1/24 HypervVirtualSwitch: HypervUseExternalSwitch:false HypervExternalAdapter: KVMNetwork:default KVMQemuURI:qemu:///system KVMGPU:false KVMHidden:false KVMNUMACount:1 APIServerPort:8443 DockerOpt:[] DisableDriverMounts:false NFSShare:[] NFSSharesRoot:/nfsshares UUID: NoVTXCheck:false DNSProxy:false HostDNSResolver:true HostOnlyNicType:virtio NatNicType:virtio SSHIPAddress: SSHUser:root SSHKey: SSHPort:22 KubernetesConfig:{KubernetesVersion:v1.33.1 ClusterName:minikube Namespace:default APIServerHAVIP: APIServerName:minikubeCA APIServerNames:[] APIServerIPs:[] DNSDomain:cluster.local ContainerRuntime:docker CRISocket: NetworkPlugin:cni FeatureGates: ServiceCIDR:10.96.0.0/12 ImageRepository: LoadBalancerStartIP: LoadBalancerEndIP: CustomIngressCert: RegistryAliases: ExtraOptions:[] ShouldLoadCachedImages:true EnableDefaultCNI:false CNI:} Nodes:[{Name: IP: Port:8443 KubernetesVersion:v1.33.1 ContainerRuntime:docker ControlPlane:true Worker:true}] Addons:map[] CustomAddonImages:map[] CustomAddonRegistries:map[] VerifyComponents:map[apiserver:true system_pods:true] StartHostTimeout:6m0s ScheduledStop:<nil> ExposedPorts:[] ListenAddress: Network: Subnet: MultiNodeRequested:false ExtraDisks:0 CertExpiration:26280h0m0s Mount:false MountString:/Users:/minikube-host Mount9PVersion:9p2000.L MountGID:docker MountIP: MountMSize:262144 MountOptions:[] MountPort:0 MountType:9p MountUID:docker BinaryMirror: DisableOptimizations:false DisableMetrics:false CustomQemuFirmwarePath: SocketVMnetClientPath: SocketVMnetPath: StaticIP: SSHAuthSock: SSHAgentPID:0 GPUs: AutoPauseInterval:1m0s}
+I0530 14:07:32.708369   39423 iso.go:125] acquiring lock: {Name:mka5864c97334404cf1ce55d83d752328c82a9fb Clock:{} Delay:500ms Timeout:10m0s Cancel:<nil>}
+I0530 14:07:32.772812   39423 out.go:177] 👍  Starting "minikube" primary control-plane node in "minikube" cluster
+I0530 14:07:32.783479   39423 preload.go:131] Checking if preload exists for k8s version v1.33.1 and runtime docker
+I0530 14:07:32.783533   39423 preload.go:146] Found local preload: /Users/macbook/.minikube/cache/preloaded-tarball/preloaded-images-k8s-v18-v1.33.1-docker-overlay2-amd64.tar.lz4
+I0530 14:07:32.783567   39423 cache.go:56] Caching tarball of preloaded images
+I0530 14:07:32.783730   39423 preload.go:172] Found /Users/macbook/.minikube/cache/preloaded-tarball/preloaded-images-k8s-v18-v1.33.1-docker-overlay2-amd64.tar.lz4 in cache, skipping download
+I0530 14:07:32.783754   39423 cache.go:59] Finished verifying existence of preloaded tar for v1.33.1 on docker
+I0530 14:07:32.784224   39423 profile.go:143] Saving config to /Users/macbook/.minikube/profiles/minikube/config.json ...
+I0530 14:07:32.784251   39423 lock.go:35] WriteFile acquiring /Users/macbook/.minikube/profiles/minikube/config.json: {Name:mkaadf31baac5a9c67f080d13ca738669c75e49a Clock:{} Delay:500ms Timeout:1m0s Cancel:<nil>}
+I0530 14:07:32.784741   39423 start.go:360] acquireMachinesLock for minikube: {Name:mk6ce91989a94dd2a31a6fb91199c65021eb1113 Clock:{} Delay:500ms Timeout:13m0s Cancel:<nil>}
+I0530 14:07:32.784808   39423 start.go:364] duration metric: took 54.616µs to acquireMachinesLock for "minikube"
+I0530 14:07:32.784854   39423 start.go:93] Provisioning new machine with config: &{Name:minikube KeepContext:false EmbedCerts:false MinikubeISO:https://storage.googleapis.com/minikube/iso/minikube-v1.36.0-amd64.iso KicBaseImage:gcr.io/k8s-minikube/kicbase:v0.0.47@sha256:6ed579c9292b4370177b7ef3c42cc4b4a6dcd0735a1814916cbc22c8bf38412b Memory:4000 CPUs:2 DiskSize:20000 Driver:hyperkit HyperkitVpnKitSock: HyperkitVSockPorts:[] DockerEnv:[] ContainerVolumeMounts:[] InsecureRegistry:[] RegistryMirror:[] HostOnlyCIDR:192.168.59.1/24 HypervVirtualSwitch: HypervUseExternalSwitch:false HypervExternalAdapter: KVMNetwork:default KVMQemuURI:qemu:///system KVMGPU:false KVMHidden:false KVMNUMACount:1 APIServerPort:8443 DockerOpt:[] DisableDriverMounts:false NFSShare:[] NFSSharesRoot:/nfsshares UUID: NoVTXCheck:false DNSProxy:false HostDNSResolver:true HostOnlyNicType:virtio NatNicType:virtio SSHIPAddress: SSHUser:root SSHKey: SSHPort:22 KubernetesConfig:{KubernetesVersion:v1.33.1 ClusterName:minikube Namespace:default APIServerHAVIP: APIServerName:minikubeCA APIServerNames:[] APIServerIPs:[] DNSDomain:cluster.local ContainerRuntime:docker CRISocket: NetworkPlugin:cni FeatureGates: ServiceCIDR:10.96.0.0/12 ImageRepository: LoadBalancerStartIP: LoadBalancerEndIP: CustomIngressCert: RegistryAliases: ExtraOptions:[] ShouldLoadCachedImages:true EnableDefaultCNI:false CNI:} Nodes:[{Name: IP: Port:8443 KubernetesVersion:v1.33.1 ContainerRuntime:docker ControlPlane:true Worker:true}] Addons:map[] CustomAddonImages:map[] CustomAddonRegistries:map[] VerifyComponents:map[apiserver:true system_pods:true] StartHostTimeout:6m0s ScheduledStop:<nil> ExposedPorts:[] ListenAddress: Network: Subnet: MultiNodeRequested:false ExtraDisks:0 CertExpiration:26280h0m0s Mount:false MountString:/Users:/minikube-host Mount9PVersion:9p2000.L MountGID:docker MountIP: MountMSize:262144 MountOptions:[] MountPort:0 MountType:9p MountUID:docker BinaryMirror: DisableOptimizations:false DisableMetrics:false CustomQemuFirmwarePath: SocketVMnetClientPath: SocketVMnetPath: StaticIP: SSHAuthSock: SSHAgentPID:0 GPUs: AutoPauseInterval:1m0s} &{Name: IP: Port:8443 KubernetesVersion:v1.33.1 ContainerRuntime:docker ControlPlane:true Worker:true}
+I0530 14:07:32.784935   39423 start.go:125] createHost starting for "" (driver="hyperkit")
+I0530 14:07:32.813960   39423 out.go:235] 🔥  Creating hyperkit VM (CPUs=2, Memory=4000MB, Disk=20000MB) ...
+I0530 14:07:32.814257   39423 main.go:141] libmachine: Found binary path at /Users/macbook/.minikube/bin/docker-machine-driver-hyperkit
+I0530 14:07:32.814332   39423 main.go:141] libmachine: Launching plugin server for driver hyperkit
+I0530 14:07:32.826417   39423 main.go:141] libmachine: Plugin server listening at address 127.0.0.1:50683
+I0530 14:07:32.827100   39423 main.go:141] libmachine: () Calling .GetVersion
+I0530 14:07:32.827632   39423 main.go:141] libmachine: Using API Version  1
+I0530 14:07:32.827640   39423 main.go:141] libmachine: () Calling .SetConfigRaw
+I0530 14:07:32.827998   39423 main.go:141] libmachine: () Calling .GetMachineName
+I0530 14:07:32.828167   39423 main.go:141] libmachine: (minikube) Calling .GetMachineName
+I0530 14:07:32.828275   39423 main.go:141] libmachine: (minikube) Calling .DriverName
+I0530 14:07:32.828437   39423 start.go:159] libmachine.API.Create for "minikube" (driver="hyperkit")
+I0530 14:07:32.828473   39423 client.go:168] LocalClient.Create starting
+I0530 14:07:32.828518   39423 main.go:141] libmachine: Reading certificate data from /Users/macbook/.minikube/certs/ca.pem
+I0530 14:07:32.829489   39423 main.go:141] libmachine: Decoding PEM data...
+I0530 14:07:32.829512   39423 main.go:141] libmachine: Parsing certificate...
+I0530 14:07:32.829604   39423 main.go:141] libmachine: Reading certificate data from /Users/macbook/.minikube/certs/cert.pem
+I0530 14:07:32.829789   39423 main.go:141] libmachine: Decoding PEM data...
+I0530 14:07:32.829814   39423 main.go:141] libmachine: Parsing certificate...
+I0530 14:07:32.829832   39423 main.go:141] libmachine: Running pre-create checks...
+I0530 14:07:32.829841   39423 main.go:141] libmachine: (minikube) Calling .PreCreateCheck
+I0530 14:07:32.829993   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:32.830248   39423 main.go:141] libmachine: (minikube) Calling .GetConfigRaw
+I0530 14:07:32.830814   39423 main.go:141] libmachine: Creating machine...
+I0530 14:07:32.830820   39423 main.go:141] libmachine: (minikube) Calling .Create
+I0530 14:07:32.830991   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:32.831128   39423 main.go:141] libmachine: (minikube) DBG | I0530 14:07:32.830944   39434 common.go:144] Making disk image using store path: /Users/macbook/.minikube
+I0530 14:07:32.831215   39423 main.go:141] libmachine: (minikube) Downloading /Users/macbook/.minikube/cache/boot2docker.iso from file:///Users/macbook/.minikube/cache/iso/amd64/minikube-v1.36.0-amd64.iso...
+I0530 14:07:33.638627   39423 main.go:141] libmachine: (minikube) DBG | I0530 14:07:33.638460   39434 common.go:151] Creating ssh key: /Users/macbook/.minikube/machines/minikube/id_rsa...
+I0530 14:07:33.771653   39423 main.go:141] libmachine: (minikube) DBG | I0530 14:07:33.771547   39434 common.go:157] Creating raw disk image: /Users/macbook/.minikube/machines/minikube/minikube.rawdisk...
+I0530 14:07:33.771668   39423 main.go:141] libmachine: (minikube) DBG | Writing magic tar header
+I0530 14:07:33.771680   39423 main.go:141] libmachine: (minikube) DBG | Writing SSH key tar header
+I0530 14:07:33.772870   39423 main.go:141] libmachine: (minikube) DBG | I0530 14:07:33.772790   39434 common.go:171] Fixing permissions on /Users/macbook/.minikube/machines/minikube ...
+I0530 14:07:34.813977   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:34.814011   39423 main.go:141] libmachine: (minikube) DBG | clean start, hyperkit pid file doesn't exist: /Users/macbook/.minikube/machines/minikube/hyperkit.pid
+I0530 14:07:34.814039   39423 main.go:141] libmachine: (minikube) DBG | Using UUID 414a1b40-a162-4361-923b-5ac07a021813
+I0530 14:07:35.004679   39423 main.go:141] libmachine: (minikube) DBG | Generated MAC 26:7d:83:df:5b:ed
+I0530 14:07:35.004748   39423 main.go:141] libmachine: (minikube) DBG | Starting with cmdline: loglevel=3 console=ttyS0 console=tty0 noembed nomodeset norestore waitusb=10 systemd.legacy_systemd_cgroup_controller=yes random.trust_cpu=on hw_rng_model=virtio base host=minikube
+I0530 14:07:35.004809   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:35 DEBUG: hyperkit: Start &hyperkit.HyperKit{HyperKit:"/usr/local/bin/hyperkit", Argv0:"", StateDir:"/Users/macbook/.minikube/machines/minikube", VPNKitSock:"", VPNKitUUID:"", VPNKitPreferredIPv4:"", UUID:"414a1b40-a162-4361-923b-5ac07a021813", Disks:[]hyperkit.Disk{(*hyperkit.RawDisk)(0xc000186120)}, ISOImages:[]string{"/Users/macbook/.minikube/machines/minikube/boot2docker.iso"}, VSock:false, VSockDir:"", VSockPorts:[]int(nil), VSockGuestCID:3, VMNet:true, Sockets9P:[]hyperkit.Socket9P(nil), Kernel:"/Users/macbook/.minikube/machines/minikube/bzimage", Initrd:"/Users/macbook/.minikube/machines/minikube/initrd", Bootrom:"", CPUs:2, Memory:4000, Console:1, Serials:[]hyperkit.Serial(nil), Pid:0, Arguments:[]string(nil), CmdLine:"", process:(*os.Process)(nil)}
+I0530 14:07:35.004878   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:35 DEBUG: hyperkit: check &hyperkit.HyperKit{HyperKit:"/usr/local/bin/hyperkit", Argv0:"", StateDir:"/Users/macbook/.minikube/machines/minikube", VPNKitSock:"", VPNKitUUID:"", VPNKitPreferredIPv4:"", UUID:"414a1b40-a162-4361-923b-5ac07a021813", Disks:[]hyperkit.Disk{(*hyperkit.RawDisk)(0xc000186120)}, ISOImages:[]string{"/Users/macbook/.minikube/machines/minikube/boot2docker.iso"}, VSock:false, VSockDir:"", VSockPorts:[]int(nil), VSockGuestCID:3, VMNet:true, Sockets9P:[]hyperkit.Socket9P(nil), Kernel:"/Users/macbook/.minikube/machines/minikube/bzimage", Initrd:"/Users/macbook/.minikube/machines/minikube/initrd", Bootrom:"", CPUs:2, Memory:4000, Console:1, Serials:[]hyperkit.Serial(nil), Pid:0, Arguments:[]string(nil), CmdLine:"", process:(*os.Process)(nil)}
+I0530 14:07:35.004957   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:35 DEBUG: hyperkit: Arguments: []string{"-A", "-u", "-F", "/Users/macbook/.minikube/machines/minikube/hyperkit.pid", "-c", "2", "-m", "4000M", "-s", "0:0,hostbridge", "-s", "31,lpc", "-s", "1:0,virtio-net", "-U", "414a1b40-a162-4361-923b-5ac07a021813", "-s", "2:0,virtio-blk,/Users/macbook/.minikube/machines/minikube/minikube.rawdisk", "-s", "3,ahci-cd,/Users/macbook/.minikube/machines/minikube/boot2docker.iso", "-s", "4,virtio-rnd", "-l", "com1,autopty=/Users/macbook/.minikube/machines/minikube/tty,log=/Users/macbook/.minikube/machines/minikube/console-ring", "-f", "kexec,/Users/macbook/.minikube/machines/minikube/bzimage,/Users/macbook/.minikube/machines/minikube/initrd,earlyprintk=serial loglevel=3 console=ttyS0 console=tty0 noembed nomodeset norestore waitusb=10 systemd.legacy_systemd_cgroup_controller=yes random.trust_cpu=on hw_rng_model=virtio base host=minikube"}
+I0530 14:07:35.005049   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:35 DEBUG: hyperkit: CmdLine: "/usr/local/bin/hyperkit -A -u -F /Users/macbook/.minikube/machines/minikube/hyperkit.pid -c 2 -m 4000M -s 0:0,hostbridge -s 31,lpc -s 1:0,virtio-net -U 414a1b40-a162-4361-923b-5ac07a021813 -s 2:0,virtio-blk,/Users/macbook/.minikube/machines/minikube/minikube.rawdisk -s 3,ahci-cd,/Users/macbook/.minikube/machines/minikube/boot2docker.iso -s 4,virtio-rnd -l com1,autopty=/Users/macbook/.minikube/machines/minikube/tty,log=/Users/macbook/.minikube/machines/minikube/console-ring -f kexec,/Users/macbook/.minikube/machines/minikube/bzimage,/Users/macbook/.minikube/machines/minikube/initrd,earlyprintk=serial loglevel=3 console=ttyS0 console=tty0 noembed nomodeset norestore waitusb=10 systemd.legacy_systemd_cgroup_controller=yes random.trust_cpu=on hw_rng_model=virtio base host=minikube"
+I0530 14:07:35.005109   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:35 DEBUG: hyperkit: Redirecting stdout/stderr to logger
+I0530 14:07:35.009676   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:35 DEBUG: hyperkit: Pid is 39445
+I0530 14:07:35.013441   39423 main.go:141] libmachine: (minikube) DBG | Attempt 0
+I0530 14:07:35.013460   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:35.014390   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:07:35.017083   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:07:35.017097   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:07:35.020217   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:35 INFO : hyperkit: stderr: Using fd 5 for I/O notifications
+I0530 14:07:35.102556   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:35 INFO : hyperkit: stderr: /Users/macbook/.minikube/machines/minikube/boot2docker.iso: fcntl(F_PUNCHHOLE) Operation not permitted: block device will not support TRIM/DISCARD
+I0530 14:07:35.103400   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:35 INFO : hyperkit: stderr: vmx_set_ctlreg: cap_field: 4 bit: 12 unspecified don't care: bit is 0
+I0530 14:07:35.103412   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:35 INFO : hyperkit: stderr: vmx_set_ctlreg: cap_field: 4 bit: 20 unspecified don't care: bit is 0
+I0530 14:07:35.103428   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:35 INFO : hyperkit: stderr: vmx_set_ctlreg: cap_field: 3 bit: 13 unspecified don't care: bit is 0
+I0530 14:07:35.968094   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:35 INFO : hyperkit: stderr: rdmsr to register 0x3a on vcpu 0
+I0530 14:07:35.968113   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:35 INFO : hyperkit: stderr: rdmsr to register 0x140 on vcpu 0
+I0530 14:07:36.088451   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:36 INFO : hyperkit: stderr: vmx_set_ctlreg: cap_field: 4 bit: 12 unspecified don't care: bit is 0
+I0530 14:07:36.088468   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:36 INFO : hyperkit: stderr: vmx_set_ctlreg: cap_field: 4 bit: 20 unspecified don't care: bit is 0
+I0530 14:07:36.088480   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:36 INFO : hyperkit: stderr: vmx_set_ctlreg: cap_field: 3 bit: 13 unspecified don't care: bit is 0
+I0530 14:07:36.093735   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:36 INFO : hyperkit: stderr: rdmsr to register 0x3a on vcpu 1
+I0530 14:07:36.093753   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:36 INFO : hyperkit: stderr: rdmsr to register 0x140 on vcpu 1
+I0530 14:07:37.018000   39423 main.go:141] libmachine: (minikube) DBG | Attempt 1
+I0530 14:07:37.018012   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:37.018111   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:07:37.019476   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:07:37.019489   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:07:39.021849   39423 main.go:141] libmachine: (minikube) DBG | Attempt 2
+I0530 14:07:39.021880   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:39.021997   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:07:39.023470   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:07:39.023512   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:07:41.024260   39423 main.go:141] libmachine: (minikube) DBG | Attempt 3
+I0530 14:07:41.024324   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:41.024450   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:07:41.027147   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:07:41.027158   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:07:43.027574   39423 main.go:141] libmachine: (minikube) DBG | Attempt 4
+I0530 14:07:43.027600   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:43.027821   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:07:43.030572   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:07:43.030626   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:07:43.664837   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:43 INFO : hyperkit: stderr: rdmsr to register 0x34 on vcpu 1
+I0530 14:07:43.703699   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:07:43 INFO : hyperkit: stderr: rdmsr to register 0xc0011029 on vcpu 1
+I0530 14:07:45.030857   39423 main.go:141] libmachine: (minikube) DBG | Attempt 5
+I0530 14:07:45.030878   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:45.030974   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:07:45.032624   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:07:45.032656   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:07:47.033506   39423 main.go:141] libmachine: (minikube) DBG | Attempt 6
+I0530 14:07:47.033531   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:47.033669   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:07:47.035206   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:07:47.035226   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:07:49.036138   39423 main.go:141] libmachine: (minikube) DBG | Attempt 7
+I0530 14:07:49.036154   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:49.036261   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:07:49.038052   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:07:49.038067   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:07:51.038719   39423 main.go:141] libmachine: (minikube) DBG | Attempt 8
+I0530 14:07:51.038768   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:51.038865   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:07:51.040484   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:07:51.040497   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:07:53.041524   39423 main.go:141] libmachine: (minikube) DBG | Attempt 9
+I0530 14:07:53.041547   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:53.041735   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:07:53.043530   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:07:53.043571   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:07:55.043831   39423 main.go:141] libmachine: (minikube) DBG | Attempt 10
+I0530 14:07:55.043880   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:55.043982   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:07:55.045635   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:07:55.045650   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:07:57.046574   39423 main.go:141] libmachine: (minikube) DBG | Attempt 11
+I0530 14:07:57.046589   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:57.046677   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:07:57.048329   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:07:57.048343   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:07:59.049305   39423 main.go:141] libmachine: (minikube) DBG | Attempt 12
+I0530 14:07:59.049351   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:07:59.049538   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:07:59.051249   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:07:59.051295   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:01.052401   39423 main.go:141] libmachine: (minikube) DBG | Attempt 13
+I0530 14:08:01.052418   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:01.052433   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:01.053686   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:01.053725   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:03.054700   39423 main.go:141] libmachine: (minikube) DBG | Attempt 14
+I0530 14:08:03.054724   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:03.054841   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:03.056561   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:03.056604   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:05.056816   39423 main.go:141] libmachine: (minikube) DBG | Attempt 15
+I0530 14:08:05.056827   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:05.056893   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:05.058104   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:05.058144   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:07.058540   39423 main.go:141] libmachine: (minikube) DBG | Attempt 16
+I0530 14:08:07.058553   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:07.058661   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:07.060275   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:07.060314   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:09.061074   39423 main.go:141] libmachine: (minikube) DBG | Attempt 17
+I0530 14:08:09.061090   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:09.061191   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:09.062938   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:09.062984   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:11.063337   39423 main.go:141] libmachine: (minikube) DBG | Attempt 18
+I0530 14:08:11.063351   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:11.063467   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:11.065268   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:11.065289   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:13.066022   39423 main.go:141] libmachine: (minikube) DBG | Attempt 19
+I0530 14:08:13.066036   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:13.066205   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:13.067860   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:13.067895   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:15.068543   39423 main.go:141] libmachine: (minikube) DBG | Attempt 20
+I0530 14:08:15.068555   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:15.068720   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:15.070367   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:15.070418   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:17.071625   39423 main.go:141] libmachine: (minikube) DBG | Attempt 21
+I0530 14:08:17.071664   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:17.071790   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:17.075372   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:17.075389   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:19.075720   39423 main.go:141] libmachine: (minikube) DBG | Attempt 22
+I0530 14:08:19.075730   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:19.075794   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:19.077108   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:19.077146   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:21.077683   39423 main.go:141] libmachine: (minikube) DBG | Attempt 23
+I0530 14:08:21.077701   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:21.077799   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:21.079298   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:21.079312   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:23.080100   39423 main.go:141] libmachine: (minikube) DBG | Attempt 24
+I0530 14:08:23.080118   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:23.080230   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:23.081912   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:23.081931   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:25.082557   39423 main.go:141] libmachine: (minikube) DBG | Attempt 25
+I0530 14:08:25.082594   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:25.082690   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:25.084392   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:25.084407   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:27.084537   39423 main.go:141] libmachine: (minikube) DBG | Attempt 26
+I0530 14:08:27.084555   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:27.084722   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:27.086655   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:27.086671   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:29.087003   39423 main.go:141] libmachine: (minikube) DBG | Attempt 27
+I0530 14:08:29.087039   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:29.087168   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:29.089093   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:29.089211   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:31.092784   39423 main.go:141] libmachine: (minikube) DBG | Attempt 28
+I0530 14:08:31.092804   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:31.092820   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:31.093880   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:31.093890   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:33.094018   39423 main.go:141] libmachine: (minikube) DBG | Attempt 29
+I0530 14:08:33.094035   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:33.094162   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:33.095903   39423 main.go:141] libmachine: (minikube) DBG | Searching for 26:7d:83:df:5b:ed in /var/db/dhcpd_leases ...
+I0530 14:08:33.095941   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:35.096216   39423 client.go:171] duration metric: took 1m2.269585685s to LocalClient.Create
+I0530 14:08:37.097140   39423 start.go:128] duration metric: took 1m4.314111029s to createHost
+I0530 14:08:37.097153   39423 start.go:83] releasing machines lock for "minikube", held for 1m4.31426407s
+W0530 14:08:37.097177   39423 start.go:714] error starting host: creating host: create: Error creating machine: Error in driver during machine creation: IP address never found in dhcp leases file Temporary error: could not find an IP address for 26:7d:83:df:5b:ed
+I0530 14:08:37.098217   39423 main.go:141] libmachine: Found binary path at /Users/macbook/.minikube/bin/docker-machine-driver-hyperkit
+I0530 14:08:37.098306   39423 main.go:141] libmachine: Launching plugin server for driver hyperkit
+I0530 14:08:37.111869   39423 main.go:141] libmachine: Plugin server listening at address 127.0.0.1:50688
+I0530 14:08:37.112425   39423 main.go:141] libmachine: () Calling .GetVersion
+I0530 14:08:37.112947   39423 main.go:141] libmachine: Using API Version  1
+I0530 14:08:37.112965   39423 main.go:141] libmachine: () Calling .SetConfigRaw
+I0530 14:08:37.113227   39423 main.go:141] libmachine: () Calling .GetMachineName
+I0530 14:08:37.113821   39423 main.go:141] libmachine: Found binary path at /Users/macbook/.minikube/bin/docker-machine-driver-hyperkit
+I0530 14:08:37.113886   39423 main.go:141] libmachine: Launching plugin server for driver hyperkit
+I0530 14:08:37.123447   39423 main.go:141] libmachine: Plugin server listening at address 127.0.0.1:50690
+I0530 14:08:37.124012   39423 main.go:141] libmachine: () Calling .GetVersion
+I0530 14:08:37.124537   39423 main.go:141] libmachine: Using API Version  1
+I0530 14:08:37.124547   39423 main.go:141] libmachine: () Calling .SetConfigRaw
+I0530 14:08:37.124865   39423 main.go:141] libmachine: () Calling .GetMachineName
+I0530 14:08:37.125051   39423 main.go:141] libmachine: (minikube) Calling .GetState
+I0530 14:08:37.125213   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:37.125325   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:37.126950   39423 main.go:141] libmachine: (minikube) Calling .DriverName
+I0530 14:08:37.149266   39423 out.go:177] 🔥  Deleting "minikube" in hyperkit ...
+I0530 14:08:37.189452   39423 main.go:141] libmachine: (minikube) Calling .Remove
+I0530 14:08:37.190369   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:37.190401   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:37.190777   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:37.194870   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:37.195010   39423 main.go:141] libmachine: (minikube) DBG | waiting for graceful shutdown
+I0530 14:08:37.402754   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:37 INFO : hyperkit: stdout: linkname /Users/macbook/.minikube/machines/minikube/tty
+I0530 14:08:37.402808   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:37 INFO : hyperkit: stdout: COM1 connected to /dev/ttys011
+I0530 14:08:37.423702   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:37 WARN : hyperkit: failed to read stderr: EOF
+I0530 14:08:37.423716   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:37 WARN : hyperkit: failed to read stdout: EOF
+I0530 14:08:38.195627   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:38.195823   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39445
+I0530 14:08:38.197659   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid 39445 missing from process table
+W0530 14:08:38.284323   39423 out.go:270] 🤦  StartHost failed, but will try again: creating host: create: Error creating machine: Error in driver during machine creation: IP address never found in dhcp leases file Temporary error: could not find an IP address for 26:7d:83:df:5b:ed
+I0530 14:08:38.284348   39423 start.go:729] Will try again in 5 seconds ...
+I0530 14:08:43.284689   39423 start.go:360] acquireMachinesLock for minikube: {Name:mk6ce91989a94dd2a31a6fb91199c65021eb1113 Clock:{} Delay:500ms Timeout:13m0s Cancel:<nil>}
+I0530 14:08:43.284901   39423 start.go:364] duration metric: took 182.346µs to acquireMachinesLock for "minikube"
+I0530 14:08:43.284927   39423 start.go:93] Provisioning new machine with config: &{Name:minikube KeepContext:false EmbedCerts:false MinikubeISO:https://storage.googleapis.com/minikube/iso/minikube-v1.36.0-amd64.iso KicBaseImage:gcr.io/k8s-minikube/kicbase:v0.0.47@sha256:6ed579c9292b4370177b7ef3c42cc4b4a6dcd0735a1814916cbc22c8bf38412b Memory:4000 CPUs:2 DiskSize:20000 Driver:hyperkit HyperkitVpnKitSock: HyperkitVSockPorts:[] DockerEnv:[] ContainerVolumeMounts:[] InsecureRegistry:[] RegistryMirror:[] HostOnlyCIDR:192.168.59.1/24 HypervVirtualSwitch: HypervUseExternalSwitch:false HypervExternalAdapter: KVMNetwork:default KVMQemuURI:qemu:///system KVMGPU:false KVMHidden:false KVMNUMACount:1 APIServerPort:8443 DockerOpt:[] DisableDriverMounts:false NFSShare:[] NFSSharesRoot:/nfsshares UUID: NoVTXCheck:false DNSProxy:false HostDNSResolver:true HostOnlyNicType:virtio NatNicType:virtio SSHIPAddress: SSHUser:root SSHKey: SSHPort:22 KubernetesConfig:{KubernetesVersion:v1.33.1 ClusterName:minikube Namespace:default APIServerHAVIP: APIServerName:minikubeCA APIServerNames:[] APIServerIPs:[] DNSDomain:cluster.local ContainerRuntime:docker CRISocket: NetworkPlugin:cni FeatureGates: ServiceCIDR:10.96.0.0/12 ImageRepository: LoadBalancerStartIP: LoadBalancerEndIP: CustomIngressCert: RegistryAliases: ExtraOptions:[] ShouldLoadCachedImages:true EnableDefaultCNI:false CNI:} Nodes:[{Name: IP: Port:8443 KubernetesVersion:v1.33.1 ContainerRuntime:docker ControlPlane:true Worker:true}] Addons:map[] CustomAddonImages:map[] CustomAddonRegistries:map[] VerifyComponents:map[apiserver:true system_pods:true] StartHostTimeout:6m0s ScheduledStop:<nil> ExposedPorts:[] ListenAddress: Network: Subnet: MultiNodeRequested:false ExtraDisks:0 CertExpiration:26280h0m0s Mount:false MountString:/Users:/minikube-host Mount9PVersion:9p2000.L MountGID:docker MountIP: MountMSize:262144 MountOptions:[] MountPort:0 MountType:9p MountUID:docker BinaryMirror: DisableOptimizations:false DisableMetrics:false CustomQemuFirmwarePath: SocketVMnetClientPath: SocketVMnetPath: StaticIP: SSHAuthSock: SSHAgentPID:0 GPUs: AutoPauseInterval:1m0s} &{Name: IP: Port:8443 KubernetesVersion:v1.33.1 ContainerRuntime:docker ControlPlane:true Worker:true}
+I0530 14:08:43.285034   39423 start.go:125] createHost starting for "" (driver="hyperkit")
+I0530 14:08:43.296627   39423 out.go:235] 🔥  Creating hyperkit VM (CPUs=2, Memory=4000MB, Disk=20000MB) ...
+I0530 14:08:43.296819   39423 main.go:141] libmachine: Found binary path at /Users/macbook/.minikube/bin/docker-machine-driver-hyperkit
+I0530 14:08:43.296860   39423 main.go:141] libmachine: Launching plugin server for driver hyperkit
+I0530 14:08:43.307913   39423 main.go:141] libmachine: Plugin server listening at address 127.0.0.1:50694
+I0530 14:08:43.308413   39423 main.go:141] libmachine: () Calling .GetVersion
+I0530 14:08:43.308913   39423 main.go:141] libmachine: Using API Version  1
+I0530 14:08:43.308928   39423 main.go:141] libmachine: () Calling .SetConfigRaw
+I0530 14:08:43.309219   39423 main.go:141] libmachine: () Calling .GetMachineName
+I0530 14:08:43.309343   39423 main.go:141] libmachine: (minikube) Calling .GetMachineName
+I0530 14:08:43.309454   39423 main.go:141] libmachine: (minikube) Calling .DriverName
+I0530 14:08:43.309574   39423 start.go:159] libmachine.API.Create for "minikube" (driver="hyperkit")
+I0530 14:08:43.309593   39423 client.go:168] LocalClient.Create starting
+I0530 14:08:43.309620   39423 main.go:141] libmachine: Reading certificate data from /Users/macbook/.minikube/certs/ca.pem
+I0530 14:08:43.310558   39423 main.go:141] libmachine: Decoding PEM data...
+I0530 14:08:43.310598   39423 main.go:141] libmachine: Parsing certificate...
+I0530 14:08:43.310661   39423 main.go:141] libmachine: Reading certificate data from /Users/macbook/.minikube/certs/cert.pem
+I0530 14:08:43.310861   39423 main.go:141] libmachine: Decoding PEM data...
+I0530 14:08:43.310885   39423 main.go:141] libmachine: Parsing certificate...
+I0530 14:08:43.310903   39423 main.go:141] libmachine: Running pre-create checks...
+I0530 14:08:43.310907   39423 main.go:141] libmachine: (minikube) Calling .PreCreateCheck
+I0530 14:08:43.311040   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:43.311075   39423 main.go:141] libmachine: (minikube) Calling .GetConfigRaw
+I0530 14:08:43.311740   39423 main.go:141] libmachine: Creating machine...
+I0530 14:08:43.311745   39423 main.go:141] libmachine: (minikube) Calling .Create
+I0530 14:08:43.311887   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:43.312021   39423 main.go:141] libmachine: (minikube) DBG | I0530 14:08:43.311875   39762 common.go:144] Making disk image using store path: /Users/macbook/.minikube
+I0530 14:08:43.312083   39423 main.go:141] libmachine: (minikube) Downloading /Users/macbook/.minikube/cache/boot2docker.iso from file:///Users/macbook/.minikube/cache/iso/amd64/minikube-v1.36.0-amd64.iso...
+I0530 14:08:44.213037   39423 main.go:141] libmachine: (minikube) DBG | I0530 14:08:44.212937   39762 common.go:151] Creating ssh key: /Users/macbook/.minikube/machines/minikube/id_rsa...
+I0530 14:08:44.359294   39423 main.go:141] libmachine: (minikube) DBG | I0530 14:08:44.359205   39762 common.go:157] Creating raw disk image: /Users/macbook/.minikube/machines/minikube/minikube.rawdisk...
+I0530 14:08:44.359310   39423 main.go:141] libmachine: (minikube) DBG | Writing magic tar header
+I0530 14:08:44.359334   39423 main.go:141] libmachine: (minikube) DBG | Writing SSH key tar header
+I0530 14:08:44.360659   39423 main.go:141] libmachine: (minikube) DBG | I0530 14:08:44.360599   39762 common.go:171] Fixing permissions on /Users/macbook/.minikube/machines/minikube ...
+I0530 14:08:45.279008   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:45.279034   39423 main.go:141] libmachine: (minikube) DBG | clean start, hyperkit pid file doesn't exist: /Users/macbook/.minikube/machines/minikube/hyperkit.pid
+I0530 14:08:45.279109   39423 main.go:141] libmachine: (minikube) DBG | Using UUID c02284bb-2da2-4981-8c8c-47f86d759187
+I0530 14:08:45.461892   39423 main.go:141] libmachine: (minikube) DBG | Generated MAC f6:de:b2:9b:54:13
+I0530 14:08:45.461951   39423 main.go:141] libmachine: (minikube) DBG | Starting with cmdline: loglevel=3 console=ttyS0 console=tty0 noembed nomodeset norestore waitusb=10 systemd.legacy_systemd_cgroup_controller=yes random.trust_cpu=on hw_rng_model=virtio base host=minikube
+I0530 14:08:45.462019   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:45 DEBUG: hyperkit: Start &hyperkit.HyperKit{HyperKit:"/usr/local/bin/hyperkit", Argv0:"", StateDir:"/Users/macbook/.minikube/machines/minikube", VPNKitSock:"", VPNKitUUID:"", VPNKitPreferredIPv4:"", UUID:"c02284bb-2da2-4981-8c8c-47f86d759187", Disks:[]hyperkit.Disk{(*hyperkit.RawDisk)(0xc000208570)}, ISOImages:[]string{"/Users/macbook/.minikube/machines/minikube/boot2docker.iso"}, VSock:false, VSockDir:"", VSockPorts:[]int(nil), VSockGuestCID:3, VMNet:true, Sockets9P:[]hyperkit.Socket9P(nil), Kernel:"/Users/macbook/.minikube/machines/minikube/bzimage", Initrd:"/Users/macbook/.minikube/machines/minikube/initrd", Bootrom:"", CPUs:2, Memory:4000, Console:1, Serials:[]hyperkit.Serial(nil), Pid:0, Arguments:[]string(nil), CmdLine:"", process:(*os.Process)(nil)}
+I0530 14:08:45.462061   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:45 DEBUG: hyperkit: check &hyperkit.HyperKit{HyperKit:"/usr/local/bin/hyperkit", Argv0:"", StateDir:"/Users/macbook/.minikube/machines/minikube", VPNKitSock:"", VPNKitUUID:"", VPNKitPreferredIPv4:"", UUID:"c02284bb-2da2-4981-8c8c-47f86d759187", Disks:[]hyperkit.Disk{(*hyperkit.RawDisk)(0xc000208570)}, ISOImages:[]string{"/Users/macbook/.minikube/machines/minikube/boot2docker.iso"}, VSock:false, VSockDir:"", VSockPorts:[]int(nil), VSockGuestCID:3, VMNet:true, Sockets9P:[]hyperkit.Socket9P(nil), Kernel:"/Users/macbook/.minikube/machines/minikube/bzimage", Initrd:"/Users/macbook/.minikube/machines/minikube/initrd", Bootrom:"", CPUs:2, Memory:4000, Console:1, Serials:[]hyperkit.Serial(nil), Pid:0, Arguments:[]string(nil), CmdLine:"", process:(*os.Process)(nil)}
+I0530 14:08:45.462137   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:45 DEBUG: hyperkit: Arguments: []string{"-A", "-u", "-F", "/Users/macbook/.minikube/machines/minikube/hyperkit.pid", "-c", "2", "-m", "4000M", "-s", "0:0,hostbridge", "-s", "31,lpc", "-s", "1:0,virtio-net", "-U", "c02284bb-2da2-4981-8c8c-47f86d759187", "-s", "2:0,virtio-blk,/Users/macbook/.minikube/machines/minikube/minikube.rawdisk", "-s", "3,ahci-cd,/Users/macbook/.minikube/machines/minikube/boot2docker.iso", "-s", "4,virtio-rnd", "-l", "com1,autopty=/Users/macbook/.minikube/machines/minikube/tty,log=/Users/macbook/.minikube/machines/minikube/console-ring", "-f", "kexec,/Users/macbook/.minikube/machines/minikube/bzimage,/Users/macbook/.minikube/machines/minikube/initrd,earlyprintk=serial loglevel=3 console=ttyS0 console=tty0 noembed nomodeset norestore waitusb=10 systemd.legacy_systemd_cgroup_controller=yes random.trust_cpu=on hw_rng_model=virtio base host=minikube"}
+I0530 14:08:45.462201   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:45 DEBUG: hyperkit: CmdLine: "/usr/local/bin/hyperkit -A -u -F /Users/macbook/.minikube/machines/minikube/hyperkit.pid -c 2 -m 4000M -s 0:0,hostbridge -s 31,lpc -s 1:0,virtio-net -U c02284bb-2da2-4981-8c8c-47f86d759187 -s 2:0,virtio-blk,/Users/macbook/.minikube/machines/minikube/minikube.rawdisk -s 3,ahci-cd,/Users/macbook/.minikube/machines/minikube/boot2docker.iso -s 4,virtio-rnd -l com1,autopty=/Users/macbook/.minikube/machines/minikube/tty,log=/Users/macbook/.minikube/machines/minikube/console-ring -f kexec,/Users/macbook/.minikube/machines/minikube/bzimage,/Users/macbook/.minikube/machines/minikube/initrd,earlyprintk=serial loglevel=3 console=ttyS0 console=tty0 noembed nomodeset norestore waitusb=10 systemd.legacy_systemd_cgroup_controller=yes random.trust_cpu=on hw_rng_model=virtio base host=minikube"
+I0530 14:08:45.462243   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:45 DEBUG: hyperkit: Redirecting stdout/stderr to logger
+I0530 14:08:45.467683   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:45 DEBUG: hyperkit: Pid is 39775
+I0530 14:08:45.468452   39423 main.go:141] libmachine: (minikube) DBG | Attempt 0
+I0530 14:08:45.468469   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:45.469372   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:08:45.471129   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:08:45.471166   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:45.475514   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:45 INFO : hyperkit: stderr: Using fd 5 for I/O notifications
+I0530 14:08:45.551373   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:45 INFO : hyperkit: stderr: /Users/macbook/.minikube/machines/minikube/boot2docker.iso: fcntl(F_PUNCHHOLE) Operation not permitted: block device will not support TRIM/DISCARD
+I0530 14:08:45.552197   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:45 INFO : hyperkit: stderr: vmx_set_ctlreg: cap_field: 4 bit: 12 unspecified don't care: bit is 0
+I0530 14:08:45.552207   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:45 INFO : hyperkit: stderr: vmx_set_ctlreg: cap_field: 4 bit: 20 unspecified don't care: bit is 0
+I0530 14:08:45.552221   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:45 INFO : hyperkit: stderr: vmx_set_ctlreg: cap_field: 3 bit: 13 unspecified don't care: bit is 0
+I0530 14:08:46.336387   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:46 INFO : hyperkit: stderr: rdmsr to register 0x3a on vcpu 0
+I0530 14:08:46.336400   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:46 INFO : hyperkit: stderr: rdmsr to register 0x140 on vcpu 0
+I0530 14:08:46.457211   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:46 INFO : hyperkit: stderr: vmx_set_ctlreg: cap_field: 4 bit: 12 unspecified don't care: bit is 0
+I0530 14:08:46.457233   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:46 INFO : hyperkit: stderr: vmx_set_ctlreg: cap_field: 4 bit: 20 unspecified don't care: bit is 0
+I0530 14:08:46.457280   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:46 INFO : hyperkit: stderr: vmx_set_ctlreg: cap_field: 3 bit: 13 unspecified don't care: bit is 0
+I0530 14:08:46.478239   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:46 INFO : hyperkit: stderr: rdmsr to register 0x3a on vcpu 1
+I0530 14:08:46.478258   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:46 INFO : hyperkit: stderr: rdmsr to register 0x140 on vcpu 1
+I0530 14:08:47.471618   39423 main.go:141] libmachine: (minikube) DBG | Attempt 1
+I0530 14:08:47.471642   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:47.471796   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:08:47.474448   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:08:47.474459   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:49.475211   39423 main.go:141] libmachine: (minikube) DBG | Attempt 2
+I0530 14:08:49.475223   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:49.475352   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:08:49.476601   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:08:49.476635   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:51.478001   39423 main.go:141] libmachine: (minikube) DBG | Attempt 3
+I0530 14:08:51.478302   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:51.478774   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:08:51.481759   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:08:51.481812   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:53.482288   39423 main.go:141] libmachine: (minikube) DBG | Attempt 4
+I0530 14:08:53.482336   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:53.482575   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:08:53.484126   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:08:53.484157   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:54.324105   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:54 INFO : hyperkit: stderr: rdmsr to register 0x34 on vcpu 1
+I0530 14:08:54.356793   39423 main.go:141] libmachine: (minikube) DBG | 2025/05/30 14:08:54 INFO : hyperkit: stderr: rdmsr to register 0xc0011029 on vcpu 1
+I0530 14:08:55.484181   39423 main.go:141] libmachine: (minikube) DBG | Attempt 5
+I0530 14:08:55.484211   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:55.484369   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:08:55.485934   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:08:55.485984   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:57.486906   39423 main.go:141] libmachine: (minikube) DBG | Attempt 6
+I0530 14:08:57.486926   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:57.487004   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:08:57.489227   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:08:57.489309   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:08:59.490276   39423 main.go:141] libmachine: (minikube) DBG | Attempt 7
+I0530 14:08:59.490291   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:08:59.490363   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:08:59.491687   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:08:59.491767   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:01.492192   39423 main.go:141] libmachine: (minikube) DBG | Attempt 8
+I0530 14:09:01.492214   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:01.492336   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:01.494406   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:01.494512   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:03.495611   39423 main.go:141] libmachine: (minikube) DBG | Attempt 9
+I0530 14:09:03.495635   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:03.495735   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:03.497506   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:03.497521   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:05.498333   39423 main.go:141] libmachine: (minikube) DBG | Attempt 10
+I0530 14:09:05.498347   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:05.498379   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:05.499823   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:05.499853   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:07.501444   39423 main.go:141] libmachine: (minikube) DBG | Attempt 11
+I0530 14:09:07.501512   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:07.501542   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:07.504417   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:07.504491   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:09.505294   39423 main.go:141] libmachine: (minikube) DBG | Attempt 12
+I0530 14:09:09.505313   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:09.505423   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:09.507132   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:09.507166   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:11.507794   39423 main.go:141] libmachine: (minikube) DBG | Attempt 13
+I0530 14:09:11.507831   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:11.508125   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:11.510077   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:11.510115   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:13.510700   39423 main.go:141] libmachine: (minikube) DBG | Attempt 14
+I0530 14:09:13.510718   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:13.510871   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:13.513359   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:13.513459   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:15.514130   39423 main.go:141] libmachine: (minikube) DBG | Attempt 15
+I0530 14:09:15.514151   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:15.514248   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:15.515947   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:15.515980   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:17.516907   39423 main.go:141] libmachine: (minikube) DBG | Attempt 16
+I0530 14:09:17.516932   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:17.517076   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:17.519783   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:17.519831   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:19.520432   39423 main.go:141] libmachine: (minikube) DBG | Attempt 17
+I0530 14:09:19.520453   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:19.520640   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:19.523134   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:19.523156   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:21.523552   39423 main.go:141] libmachine: (minikube) DBG | Attempt 18
+I0530 14:09:21.523574   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:21.523768   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:21.525617   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:21.525634   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:23.526669   39423 main.go:141] libmachine: (minikube) DBG | Attempt 19
+I0530 14:09:23.526683   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:23.526776   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:23.528049   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:23.528085   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:25.528643   39423 main.go:141] libmachine: (minikube) DBG | Attempt 20
+I0530 14:09:25.528683   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:25.528787   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:25.530639   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:25.530682   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:27.531295   39423 main.go:141] libmachine: (minikube) DBG | Attempt 21
+I0530 14:09:27.531310   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:27.531413   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:27.534364   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:27.534387   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:29.535158   39423 main.go:141] libmachine: (minikube) DBG | Attempt 22
+I0530 14:09:29.535172   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:29.535293   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:29.536685   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:29.536708   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:31.537815   39423 main.go:141] libmachine: (minikube) DBG | Attempt 23
+I0530 14:09:31.537828   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:31.537903   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:31.539780   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:31.539839   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:33.540960   39423 main.go:141] libmachine: (minikube) DBG | Attempt 24
+I0530 14:09:33.541000   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:33.541111   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:33.542962   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:33.543014   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:35.543782   39423 main.go:141] libmachine: (minikube) DBG | Attempt 25
+I0530 14:09:35.543805   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:35.543846   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:35.545560   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:35.545605   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:37.546435   39423 main.go:141] libmachine: (minikube) DBG | Attempt 26
+I0530 14:09:37.546449   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:37.546553   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:37.548471   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:37.548510   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:39.549637   39423 main.go:141] libmachine: (minikube) DBG | Attempt 27
+I0530 14:09:39.549657   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:39.549756   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:39.551213   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:39.551246   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:41.552329   39423 main.go:141] libmachine: (minikube) DBG | Attempt 28
+I0530 14:09:41.552451   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:41.552719   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:41.555246   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:41.555299   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:43.556383   39423 main.go:141] libmachine: (minikube) DBG | Attempt 29
+I0530 14:09:43.556399   39423 main.go:141] libmachine: (minikube) DBG | exe=/Users/macbook/.minikube/bin/docker-machine-driver-hyperkit uid=0
+I0530 14:09:43.556559   39423 main.go:141] libmachine: (minikube) DBG | hyperkit pid from json: 39775
+I0530 14:09:43.558275   39423 main.go:141] libmachine: (minikube) DBG | Searching for f6:de:b2:9b:54:13 in /var/db/dhcpd_leases ...
+I0530 14:09:43.558385   39423 main.go:141] libmachine: (minikube) DBG | Found 0 entries in /var/db/dhcpd_leases!
+I0530 14:09:45.558626   39423 client.go:171] duration metric: took 1m2.250883173s to LocalClient.Create
+I0530 14:09:47.559095   39423 start.go:128] duration metric: took 1m4.275972196s to createHost
+I0530 14:09:47.559108   39423 start.go:83] releasing machines lock for "minikube", held for 1m4.276121902s
+W0530 14:09:47.559265   39423 out.go:270] 😿  Failed to start hyperkit VM. Running "minikube delete" may fix it: creating host: create: Error creating machine: Error in driver during machine creation: IP address never found in dhcp leases file Temporary error: could not find an IP address for f6:de:b2:9b:54:13
+I0530 14:09:47.573626   39423 out.go:201] 
+W0530 14:09:47.598170   39423 out.go:270] ❌  Exiting due to GUEST_PROVISION: error provisioning guest: Failed to start host: creating host: create: Error creating machine: Error in driver during machine creation: IP address never found in dhcp leases file Temporary error: could not find an IP address for f6:de:b2:9b:54:13
+W0530 14:09:47.598207   39423 out.go:270] 
+W0530 14:09:47.601024   39423 out.go:293] [31m╭───────────────────────────────────────────────────────────────────────────────────────────╮[0m
+[31m│[0m                                                                                           [31m│[0m
+[31m│[0m    😿  If the above advice does not help, please let us know:                             [31m│[0m
+[31m│[0m    👉  https://github.com/kubernetes/minikube/issues/new/choose                           [31m│[0m
+[31m│[0m                                                                                           [31m│[0m
+[31m│[0m    Please run `minikube logs --file=logs.txt` and attach logs.txt to the GitHub issue.    [31m│[0m
+[31m│[0m                                                                                           [31m│[0m
+[31m╰───────────────────────────────────────────────────────────────────────────────────────────╯[0m
+I0530 14:09:47.630362   39423 out.go:201] 
+
+

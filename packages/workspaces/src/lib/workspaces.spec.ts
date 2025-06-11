@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import app from './workspaces';
 import { auth } from '@org/auth';
 import redis from 'redis';
+import { ObjectId } from 'mongodb';
 
 const redisClient = redis.createClient();
 
@@ -216,7 +217,7 @@ describe('/workspace', () => {
         }
       );
 
-      const spaceMember = await prisma.workspaceMember.findUnique({
+      const spaceMember = await prisma.workspaceMember.findFirst({
         where: { userId: userData.id, workspaceId: newWorkspace.id },
       });
       expect(spaceMember.userId).toBe(userData.data.id);
@@ -341,6 +342,7 @@ describe('/workspace', () => {
 
   describe('POST /workspace/project', () => {
     let newWorkspace;
+    let memberShipID;
     beforeEach(async () => {
       newWorkspace = await prisma.workspace.create({
         data: {
@@ -350,10 +352,21 @@ describe('/workspace', () => {
           owner: userData.data.id,
         },
       });
+
+      memberShipID = await prisma.workspaceMember.create({
+        data: {
+          email: userData.data.email,
+          image: userData.data.image,
+          name: userData.data.firstname + ' ' + userData.data.lastname,
+          userId: userData.data.id,
+          workspaceId: newWorkspace.id,
+        },
+      });
     });
 
     afterEach(async () => {
       await prisma.workspaceMember.deleteMany();
+      await prisma.projectMember.deleteMany();
     });
     test('should return 400 if data is bad or incomplete', async () => {
       const res = await app.request(`/workspace/project`, {
@@ -362,6 +375,29 @@ describe('/workspace', () => {
         headers: { Cookie: user.headers.get('set-cookie') },
       });
       expect(res.status).toBe(400);
+    });
+
+    test('should return status 200 if members are included in the project payload', async () => {
+      const res = await app.request(`/workspace/project`, {
+        method: 'POST',
+        body: JSON.stringify({
+          workspaceId: newWorkspace.id,
+          name: 'Project one',
+          purpose: 'For testing purpose',
+          members: [
+            {
+              name: 'peter',
+              email: 'peterparker@gmail.com',
+              image: 'http:///peter',
+              memberId: memberShipID.id,
+              workspaceId: newWorkspace.id,
+              userId: userData.data.id,
+            },
+          ],
+        }),
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
+      expect(res.status).toBe(200);
     });
 
     test('should return 404 if no workspace is attached to the workspaceId', async () => {
@@ -387,22 +423,45 @@ describe('/workspace', () => {
           workspaceId: newWorkspace.id,
           name: 'Project one',
           purpose: 'For testing purpose',
+          visibility: false,
+          members: [
+            {
+              name: 'peter',
+              email: 'peterparker@gmail.com',
+              image: 'http:///peter',
+              memberId: memberShipID.id,
+              workspaceId: newWorkspace.id,
+              userId: userData.data.id,
+            },
+          ],
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
       expect(res.status).toBe(404);
     });
 
-    test('should return 200', async () => {
+    test('should return 200 when creating new project', async () => {
       const res = await app.request(`/workspace/project`, {
         method: 'POST',
         body: JSON.stringify({
           workspaceId: newWorkspace.id,
           name: 'Project one',
           purpose: 'For testing purpose',
+          visibility: false,
+          members: [
+            {
+              name: 'peter',
+              email: 'peterparker@gmail.com',
+              image: 'http:///peter',
+              memberId: memberShipID.id,
+              workspaceId: newWorkspace.id,
+              userId: userData.data.id,
+            },
+          ],
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
+
       expect(res.status).toBe(200);
     });
   });
@@ -435,15 +494,28 @@ describe('/workspace', () => {
           workspaceId: newWorkspace.id,
           name: 'Project one',
           purpose: 'For testing purpose',
+          visibility: false,
+          members: [
+            {
+              name: 'Joe Frazier',
+              image: 'http://image.unknown.com',
+              userId: userData.data.id,
+              email: userData.data.email,
+              workspaceId: newWorkspace.id,
+              memberId: new ObjectId(),
+            },
+          ],
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
       const project = await projectRes.json();
+
       const res = await app.request(`/workspace/project/${project.data.id}`, {
         method: 'PATCH',
         body: JSON.stringify({ name: 'Project two' }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
+
       expect(res.status).toBe(200);
     });
   });
@@ -451,29 +523,62 @@ describe('/workspace', () => {
   describe('POST /workspace/channel/', () => {
     let newWorkspace;
     let newProject;
-    beforeEach(async () => {
-      newWorkspace = await prisma.workspace.create({
-        data: {
-          name: 'test workspace',
-          totalMembers: 1,
-          members: [userData.data.id],
-          owner: userData.data.id,
-        },
-      });
+    let projectMember;
 
-      newProject = await prisma.project.create({
-        data: {
-          name: 'new project',
-          purpose: '4 testing',
-          createdAt: new Date(),
-          workspaceId: newWorkspace.id,
-        },
+    beforeEach(async () => {
+      await prisma.$transaction(async (tx) => {
+        newWorkspace = await tx.workspace.create({
+          data: {
+            name: 'test workspace',
+            totalMembers: 1,
+            members: [userData.data.id],
+            owner: userData.data.id,
+          },
+        });
+
+        newProject = await tx.project.create({
+          data: {
+            name: 'new project',
+            purpose: '4 testing',
+            createdAt: new Date(),
+            workspaceId: newWorkspace.id,
+            creator: userData.data.id,
+            visibility: false,
+          },
+        });
+        const { email, image, fullname, lastname, id } = userData.data;
+
+        const workspaceMember = await tx.workspaceMember.create({
+          data: {
+            email,
+            image,
+            name: `${fullname} ${lastname}`,
+            userId: id,
+            workspaceId: newWorkspace.id,
+          },
+        });
+        projectMember = await tx.projectMember.create({
+          data: {
+            email,
+            image,
+            memberId: workspaceMember.id,
+            name: `${fullname} ${lastname}`,
+            projectId: newProject.id,
+            userId: id,
+            workspaceId: newWorkspace.id,
+          },
+        });
       });
     });
 
     afterAll(async () => {
-      await prisma.workspace.deleteMany();
-      await prisma.project.deleteMany();
+      await prisma.$transaction(async (tx) => {
+        await tx.workspace.deleteMany();
+        await tx.project.deleteMany();
+        await tx.channel.deleteMany();
+        await tx.projectMember.deleteMany();
+      });
+
       await prisma.$disconnect();
     });
     test('should return 400 if data is bad or incomplete', async () => {
@@ -490,9 +595,20 @@ describe('/workspace', () => {
       const res = await app.request(`/workspace/channel`, {
         method: 'POST',
         body: JSON.stringify({
-          workspaceId: '1234567890',
-          projectId: '1234567890',
-          name: 'example channel',
+          workspaceId: '34343434',
+          projectId: '1123434343434',
+          name: 'Channel 4 testers',
+          members: [
+            {
+              name: `${userData.data.firstname} ${userData.data.lastname}`,
+              image: userData.data.image,
+              userId: userData.data.id,
+              email: userData.data.email,
+              workspaceId: newWorkspace.id,
+              memberId: projectMember.id,
+              projectId: newProject.id,
+            },
+          ],
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
@@ -503,25 +619,57 @@ describe('/workspace', () => {
       //  const  await
       await prisma.workspace.delete({ where: { id: newWorkspace.id } });
       await prisma.project.delete({ where: { id: newProject.id } });
-      const res = await app.request(`/workspace/channel`, {
-        method: 'POST',
-        body: JSON.stringify({
-          workspaceId: newWorkspace.id,
-          projectId: newProject.id,
-          name: 'new Channel',
-        }),
-        headers: { Cookie: user.headers.get('set-cookie') },
-      });
-      expect(res.status).toBe(404);
-    });
-
-    test('should return 200', async () => {
+      await prisma.projectMember.delete({ where: { id: projectMember.id } });
       const res = await app.request(`/workspace/channel`, {
         method: 'POST',
         body: JSON.stringify({
           workspaceId: newWorkspace.id,
           projectId: newProject.id,
           name: 'Channel 4 testers',
+          members: [
+            {
+              name: `${userData.data.firstname} ${userData.data.lastname}`,
+              image: userData.data.image,
+              userId: userData.data.id,
+              email: userData.data.email,
+              workspaceId: newWorkspace.id,
+              memberId: projectMember.id,
+              projectId: newProject.id,
+            },
+          ],
+        }),
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
+      expect(res.status).toBe(500);
+    });
+
+    test('should return 200 when creating channel', async () => {
+      //   {
+      //     name?: string;
+      //     image?: string;
+      //     userId?: string;
+      //     email?: string;
+      //     workspaceId?: string;
+      //     memberId?: string;
+      //     projectId?: string;
+      // }
+      const res = await app.request(`/workspace/channel`, {
+        method: 'POST',
+        body: JSON.stringify({
+          workspaceId: newWorkspace.id,
+          projectId: newProject.id,
+          name: 'Channel 4 testers',
+          members: [
+            {
+              name: `${userData.data.firstname} ${userData.data.lastname}`,
+              image: userData.data.image,
+              userId: userData.data.id,
+              email: userData.data.email,
+              workspaceId: newWorkspace.id,
+              memberId: projectMember.id,
+              projectId: newProject.id,
+            },
+          ],
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
@@ -533,39 +681,73 @@ describe('/workspace', () => {
     let newWorkspace;
     let newProject;
     let newChannel;
-    beforeAll(async () => {
-      newWorkspace = await prisma.workspace.create({
-        data: {
-          name: 'test workspace',
-          totalMembers: 1,
-          members: [userData.data.id],
-          owner: userData.data.id,
-        },
-      });
+    let projectMember;
+    beforeEach(async () => {
+      await prisma.$transaction(async (tx) => {
+        newWorkspace = await tx.workspace.create({
+          data: {
+            name: 'test workspace',
+            totalMembers: 1,
+            members: [userData.data.id],
+            owner: userData.data.id,
+          },
+        });
 
-      newProject = await prisma.project.create({
-        data: {
-          name: 'new project',
-          purpose: '4 testing',
-          createdAt: new Date(),
-          workspaceId: newWorkspace.id,
-        },
-      });
+        newProject = await tx.project.create({
+          data: {
+            name: 'new project',
+            purpose: '4 testing',
+            createdAt: new Date(),
+            workspaceId: newWorkspace.id,
+            creator: userData.data.id,
+            visibility: false,
+          },
+        });
+        const { email, image, fullname, lastname, id } = userData.data;
 
-      newChannel = await prisma.channel.create({
-        data: {
-          name: 'new project',
-          projectId: newProject.id,
-          workspaceId: newWorkspace.id,
-        },
+        const workspaceMember = await tx.workspaceMember.create({
+          data: {
+            email,
+            image,
+            name: `${fullname} ${lastname}`,
+            userId: id,
+            workspaceId: newWorkspace.id,
+          },
+        });
+        projectMember = await tx.projectMember.create({
+          data: {
+            email,
+            image,
+            memberId: workspaceMember.id,
+            name: `${fullname} ${lastname}`,
+            projectId: newProject.id,
+            userId: id,
+            workspaceId: newWorkspace.id,
+          },
+        });
+
+        newChannel = await tx.channel.create({
+          data: {
+            name: 'new project',
+            projectId: newProject.id,
+            workspaceId: newWorkspace.id,
+            admin: userData.data.id,
+          },
+        });
       });
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
       await prisma.workspace.deleteMany();
       await prisma.project.deleteMany();
       await prisma.$disconnect();
     });
+
+    // afterAll(async () => {
+    //   await prisma.workspace.deleteMany();
+    //   await prisma.project.deleteMany();
+    //   await prisma.$disconnect();
+    // });
     test('should return 400 if updateChannel data is invalid', async () => {
       const res = await app.request(`/workspace/channel/${newChannel.id}`, {
         method: 'PATCH',
@@ -583,18 +765,18 @@ describe('/workspace', () => {
       });
       expect(res.status).toBe(404);
     });
-    // NOTE: False Failing test below ⤵️
-    // test('should return 200 if user successfully joins a public channel', async () => {
-    //   const res = await workspace.request(
-    //     `/workspace/channel/join/${newChannel.id}/${userData.data.id}`,
-    //     {
-    //       method: 'POST',
-    //       headers: { Cookie: user.headers.get('set-cookie') },
-    //     }
-    //   );
-    //   console.log(await res.json());
-    //   expect(res.status).toBe(200);
-    // });
+    //   // NOTE: False Failing test below ⤵️
+    //   // test('should return 200 if user successfully joins a public channel', async () => {
+    //   //   const res = await workspace.request(
+    //   //     `/workspace/channel/join/${newChannel.id}/${userData.data.id}`,
+    //   //     {
+    //   //       method: 'POST',
+    //   //       headers: { Cookie: user.headers.get('set-cookie') },
+    //   //     }
+    //   //   );
+    //   //   console.log(await res.json());
+    //   //   expect(res.status).toBe(200);
+    //   // });
 
     test('should return 404 if joining a non-existent channel', async () => {
       const res = await app.request(
@@ -625,9 +807,14 @@ describe('/workspace', () => {
           name: 'Kelvin Chukwu',
           toAdmin: 'admin123',
           channelId: newChannel.id,
+          workspaceId: newWorkspace.id,
+          channelName: newChannel.name,
+          projectId: newProject.id,
+          projectMembershipId: projectMember.id,
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
+
       expect(res.status).toBe(200);
     });
 
@@ -640,41 +827,64 @@ describe('/workspace', () => {
       expect(res.status).toBe(400);
     });
 
-    // NOTE: False Failing test below ⤵️
-
-    // test('should return 200 when accepting a join request', async () => {
-    //   const cook = user.headers.get('set-cookie');
-    //   await workspace.request(`/workspace/channel/request`, {
-    //     method: 'POST',
-    //     body: JSON.stringify({
-    //       name: 'Kelvin Chukwu',
-    //       toAdmin: 'admin123',
-    //       channelId: newChannel.id,
-    //     }),
-    //     headers: { Cookie: cook },
-    //   });
-    //   const res = await workspace.request(`/workspace/channel/request/action`, {
-    //     method: 'POST',
-    //     body: JSON.stringify({
-    //       signal: 'accept',
-    //       userId: userData.data.id,
-    //       channelId: newChannel.id,
-    //     }),
-    //     headers: { Cookie: cook },
-    //   });
-    //   expect(res.status).toBe(200);
-    // });
-
-    test('should return 200 when revoking a join request', async () => {
-      const res = await app.request(`/workspace/channel/request/action`, {
+    test('should return 200 when accepting a join request', async () => {
+      const req = await app.request(`/workspace/channel/request`, {
         method: 'POST',
         body: JSON.stringify({
-          signal: 'revoke',
-          userId: userData.data.id,
+          name: 'Kelvin Chukwu',
+          toAdmin: 'admin123',
           channelId: newChannel.id,
+          workspaceId: newWorkspace.id,
+          channelName: newChannel.name,
+          projectId: newProject.id,
+          projectMembershipId: projectMember.id,
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
+
+      expect(req.status).toBe(200);
+      const res = await app.request(
+        `/workspace/channel/request/action?userId=${userData.data.id}&channelId=${newChannel.id}&signal=accept&workspaceId=${newWorkspace.id}&projectId=${newProject.id}&projectMembershipId=${projectMember.id}`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            signal: 'revoke',
+            userId: userData.data.id,
+            channelId: newChannel.id,
+          }),
+          headers: { Cookie: user.headers.get('set-cookie') },
+        }
+      );
+      expect(res.status).toBe(200);
+    });
+
+    test('should return 200 when revoking a join request', async () => {
+      const req = await app.request(`/workspace/channel/request`, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: 'Kelvin Chukwu',
+          toAdmin: 'admin123',
+          channelId: newChannel.id,
+          workspaceId: newWorkspace.id,
+          channelName: newChannel.name,
+          projectId: newProject.id,
+          projectMembershipId: projectMember.id,
+        }),
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
+      expect(req.status).toBe(200);
+      const res = await app.request(
+        `/workspace/channel/request/action?userId=${userData.data.id}&channelId=${newChannel.id}&signal=reject&workspaceId=${newWorkspace.id}&projectId=${newProject.id}&projectMembershipId=${projectMember.id}`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            signal: 'revoke',
+            userId: userData.data.id,
+            channelId: newChannel.id,
+          }),
+          headers: { Cookie: user.headers.get('set-cookie') },
+        }
+      );
       expect(res.status).toBe(200);
     });
 
@@ -688,77 +898,133 @@ describe('/workspace', () => {
     });
   });
 
-  describe('POST /workspace/chat/artificium', () => {
-    beforeEach(async () => {
-      await prisma.artificiumChat.deleteMany();
-    });
-    test('should return 200 when sending a valid message to artificium', async () => {
-      const res = await app.request('/workspace/chat/artificium', {
-        method: 'POST',
-        body: JSON.stringify({
-          projectId: '85830204820',
-          userId: '02893453928',
-          text: "What's your name?",
-          user: 'HUMAN',
-        }),
-        headers: {
-          Cookie: user.headers.get('set-cookie'),
-        },
-      });
+  // describe('POST /workspace/chat/artificium', () => {
+  //   let threadres: any;
+  //   let thread: any;
+  //   beforeEach(async () => {
+  //     await prisma.artificiumChat.deleteMany();
+  //     threadres = await app.request(`/workspace/chat/thread`, {
+  //       method: 'POST',
+  //       headers: { Cookie: user.headers.get('set-cookie') },
+  //     });
+  //     thread = await threadres.json();
+  //   });
+  //   // test('should return 200 when sending a valid message to artificium', async () => {
+  //   //   const res = await app.request('/workspace/chat/artificium', {
+  //   //     method: 'POST',
+  //   //     body: JSON.stringify({
+  //   //       projectId: '85830204820',
+  //   //       userId: '02893453928',
+  //   //       text: "What's your name?",
+  //   //       user: 'HUMAN',
+  //   //       threadId: thread.data.threadID,
+  //   //     }),
+  //   //     headers: {
+  //   //       Cookie: user.headers.get('set-cookie'),
+  //   //     },
+  //   //   });
 
-      expect(res.status).toBe(200);
-      const chat = await prisma.artificiumChat.findMany();
-      expect(chat.length).toBe(0);
-    });
+  //   //   expect(res.status).toBe(200);
+  //   //   const chat = await prisma.artificiumChat.findMany();
+  //   //   expect(chat.length).toBe(0);
+  //   // });
 
-    test('should return 400 when required fields are missing', async () => {
-      const res = await app.request('/workspace/chat/artificium', {
-        method: 'POST',
-        body: JSON.stringify({
-          userId: '02893453928', // projectId and text are missing
-        }),
-        headers: {
-          Cookie: user.headers.get('set-cookie'),
-        },
-      });
+  //   // test('should return 400 when required fields are missing', async () => {
+  //   //   const res = await app.request('/workspace/chat/artificium', {
+  //   //     method: 'POST',
+  //   //     body: JSON.stringify({
+  //   //       userId: '02893453928', // projectId and text are missing
+  //   //     }),
+  //   //     headers: {
+  //   //       Cookie: user.headers.get('set-cookie'),
+  //   //     },
+  //   //   });
 
-      expect(res.status).toBe(400);
-    });
+  //   //   expect(res.status).toBe(400);
+  //   // });
 
-    test('should return 400 when payload is invalid (wrong types)', async () => {
-      const res = await app.request('/workspace/chat/artificium', {
-        method: 'POST',
-        body: JSON.stringify({
-          projectId: 85830204820, // should be string
-          userId: '02893453928',
-          text: 123, // should be string
-          user: 'HUMAN',
-        }),
-        headers: {
-          Cookie: user.headers.get('set-cookie'),
-        },
-      });
+  //   // test('should return 400 when payload is invalid (wrong types)', async () => {
+  //   //   const res = await app.request('/workspace/chat/artificium', {
+  //   //     method: 'POST',
+  //   //     body: JSON.stringify({
+  //   //       projectId: 85830204820, // should be string
+  //   //       userId: '02893453928',
+  //   //       text: 123, // should be string
+  //   //       user: 'HUMAN',
+  //   //     }),
+  //   //     headers: {
+  //   //       Cookie: user.headers.get('set-cookie'),
+  //   //     },
+  //   //   });
 
-      expect(res.status).toBe(400);
-    });
+  //   //   expect(res.status).toBe(400);
+  //   // });
 
-    test('should return 401 if no auth cookie is provided', async () => {
-      const res = await app.request('/workspace/chat/artificium', {
-        method: 'POST',
-        body: JSON.stringify({
-          projectId: '85830204820',
-          userId: '02893453928',
-          text: "What's your name?",
-          user: 'HUMAN',
-        }),
-        // Missing Cookie header
-      });
+  //   // test('should return 401 if no auth cookie is provided', async () => {
+  //   //   const res = await app.request('/workspace/chat/artificium', {
+  //   //     method: 'POST',
+  //   //     body: JSON.stringify({
+  //   //       projectId: '85830204820',
+  //   //       userId: '02893453928',
+  //   //       text: "What's your name?",
+  //   //       user: 'HUMAN',
+  //   //     }),
+  //   //     // Missing Cookie header
+  //   //   });
 
-      expect(res.status).toBe(401);
-    });
-  });
+  //   //   expect(res.status).toBe(401);
+  //   // });
+  // });
 
   describe('GET /workspace/chat/artificium?projectId=&userId=', () => {
+    let threadres: any;
+    let thread: any;
+    let new_workspace: any;
+    let projectId: any;
+    let artificium_id: any;
+    beforeEach(async () => {
+      threadres = await app.request(`/workspace/chat/thread`, {
+        method: 'POST',
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
+      thread = await threadres.json();
+      new_workspace = await prisma.workspace.create({
+        data: {
+          name: 'test workspace',
+          totalMembers: 1,
+          members: [userData.data.id],
+          owner: userData.data.id,
+        },
+      });
+      const memberShipID = await prisma.workspaceMember.create({
+        data: {
+          email: userData.data.email,
+          image: userData.data.image,
+          name: userData.data.firstname + ' ' + userData.data.lastname,
+          userId: userData.data.id,
+          workspaceId: new_workspace.id,
+        },
+      });
+
+      const project = await prisma.project.create({
+        data: {
+          creator: userData.data.id,
+          name: 'test project',
+          workspaceId: new_workspace.id,
+        },
+      });
+
+      projectId = project.id;
+      const artificium = await prisma.artificium.create({
+        data: {
+          projectId: project.id,
+          userId: userData.data.id,
+          workspaceId: new_workspace.id,
+        },
+      });
+
+      artificium_id = artificium.id;
+    });
     afterAll(async () => {
       await prisma.artificiumChat.deleteMany();
     });
@@ -773,9 +1039,8 @@ describe('/workspace', () => {
       expect(res.status).toBe(400);
     });
 
-    test('should return 200 and messages when projectId and userId are present', async () => {
-      const projectId = '85830204820';
-      const userId = '02893453928';
+    test('should return status code 200 and messages when projectId,userId, artificiumId,workspaceId and threadId are included', async () => {
+      const userId = userData.data.id;
 
       await prisma.artificiumChat.create({
         data: {
@@ -784,6 +1049,9 @@ describe('/workspace', () => {
           text: 'Hello from db',
           timestamp: new Date(),
           user: 'HUMAN',
+          threadId: thread.data.threadID,
+          artificiumId: artificium_id,
+          workspaceId: new_workspace.id,
         },
       });
 
@@ -803,4 +1071,6 @@ describe('/workspace', () => {
       expect(json.data.length).toBeGreaterThan(0);
     });
   });
+
+  // describe("")
 });

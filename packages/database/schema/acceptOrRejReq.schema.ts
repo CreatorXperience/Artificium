@@ -1,6 +1,8 @@
 import z from 'zod';
 const acceptOrRejectReq = z.object({
-  signal: z.string({ message: 'property signal is required' }),
+  signal: z.enum(['accept', 'reject'], {
+    message: 'property signal is required',
+  }),
   channelId: z.string({ message: 'property channelId is required' }),
   userId: z.string({ message: 'property userId is required' }),
 });
