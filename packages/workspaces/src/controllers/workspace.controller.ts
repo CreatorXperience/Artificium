@@ -864,7 +864,6 @@ const createChannel = async (c: Context) => {
 
     return c.json({ message: 'Channel created successfully', data: result });
   } catch (err) {
-    console.error(err);
     return c.json({ message: err.message || 'Internal Server Error' }, 500);
   }
 };
