@@ -25,7 +25,7 @@ const uploadProfile = async (c: Context) => {
 
   cloudinary.config({
     cloud_name: 'dtah4aund',
-    api_key: '232487372395222',
+    api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_SECRET,
     secure: true,
   });

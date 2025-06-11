@@ -258,17 +258,19 @@ const leaveworkspace = async (c: Context) => {
 
   const filteredMembers = workspace.members.filter((item) => item !== userID);
 
-  await prisma.workspace.update({
-    where: { id: workspaceId },
-    data: { members: filteredMembers },
-  });
+  await prisma.$transaction(async () => {
+    await prisma.workspace.update({
+      where: { id: workspaceId },
+      data: { members: filteredMembers },
+    });
 
-  const member = await prisma.workspaceMember.findFirst({
-    where: { userId: user.id, workspaceId: workspace.id },
-  });
+    const member = await prisma.workspaceMember.findFirst({
+      where: { userId: user.id, workspaceId: workspace.id },
+    });
 
-  await prisma.workspaceMember.delete({
-    where: { id: member.id, workspaceId: workspace.id, userId: userID },
+    await prisma.workspaceMember.delete({
+      where: { id: member.id, workspaceId: workspace.id, userId: userID },
+    });
   });
 
   return c.json({ message: 'successfully removed user from  workspace' });
@@ -1604,7 +1606,7 @@ const uploadWorkspaceImage = async (c: Context) => {
 
   cloudinary.config({
     cloud_name: 'dtah4aund',
-    api_key: '232487372395222',
+    api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_SECRET,
     secure: true,
   });

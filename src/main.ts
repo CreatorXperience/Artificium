@@ -38,9 +38,7 @@ const MONGO_URL =
     ? process.env.DATABASE_URL_TEST
     : process.env.DATABASE_URL;
 
-const client = new MongoClient(
-  'mongodb+srv://VeloxGrid:clBGQcjY2sVIvQtF@cluster1.tfrsr.mongodb.net/mydatabase?retryWrites=true&w=majority&appName=Cluster1'
-);
+const client = new MongoClient(MONGO_URL);
 const DB_NAME = 'socketio-adapter-database';
 const COLLECTION = 'socketio-events';
 type TOnline = { userId: string; socketId: string; username: string };
@@ -162,7 +160,7 @@ client
     }
   })
   .catch((err) => {
-    console.log('error occured while connecting to mongodb');
+    console.log('error occured while connecting to mongodb', err);
   });
 
 app.use('*', cors());
