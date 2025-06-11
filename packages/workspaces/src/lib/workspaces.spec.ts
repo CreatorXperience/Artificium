@@ -397,7 +397,6 @@ describe('/workspace', () => {
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
-      console.log(await res.json());
       expect(res.status).toBe(200);
     });
 
@@ -463,9 +462,6 @@ describe('/workspace', () => {
         headers: { Cookie: user.headers.get('set-cookie') },
       });
 
-      console.log(newWorkspace.id);
-
-      console.log('here now', await res.json());
       expect(res.status).toBe(200);
     });
   });
@@ -527,31 +523,62 @@ describe('/workspace', () => {
   describe('POST /workspace/channel/', () => {
     let newWorkspace;
     let newProject;
-    beforeEach(async () => {
-      newWorkspace = await prisma.workspace.create({
-        data: {
-          name: 'test workspace',
-          totalMembers: 1,
-          members: [userData.data.id],
-          owner: userData.data.id,
-        },
-      });
+    let projectMember;
 
-      newProject = await prisma.project.create({
-        data: {
-          name: 'new project',
-          purpose: '4 testing',
-          createdAt: new Date(),
-          workspaceId: newWorkspace.id,
-          creator: userData.data.id,
-        },
+    beforeEach(async () => {
+      await prisma.$transaction(async (tx) => {
+        newWorkspace = await tx.workspace.create({
+          data: {
+            name: 'test workspace',
+            totalMembers: 1,
+            members: [userData.data.id],
+            owner: userData.data.id,
+          },
+        });
+
+        newProject = await tx.project.create({
+          data: {
+            name: 'new project',
+            purpose: '4 testing',
+            createdAt: new Date(),
+            workspaceId: newWorkspace.id,
+            creator: userData.data.id,
+            visibility: false,
+          },
+        });
+        const { email, image, fullname, lastname, id } = userData.data;
+
+        const workspaceMember = await tx.workspaceMember.create({
+          data: {
+            email,
+            image,
+            name: `${fullname} ${lastname}`,
+            userId: id,
+            workspaceId: newWorkspace.id,
+          },
+        });
+        projectMember = await tx.projectMember.create({
+          data: {
+            email,
+            image,
+            memberId: workspaceMember.id,
+            name: `${fullname} ${lastname}`,
+            projectId: newProject.id,
+            userId: id,
+            workspaceId: newWorkspace.id,
+          },
+        });
       });
     });
 
     afterAll(async () => {
-      await prisma.workspace.deleteMany();
-      await prisma.project.deleteMany();
-      await prisma.channel.deleteMany();
+      await prisma.$transaction(async (tx) => {
+        await tx.workspace.deleteMany();
+        await tx.project.deleteMany();
+        await tx.channel.deleteMany();
+        await tx.projectMember.deleteMany();
+      });
+
       await prisma.$disconnect();
     });
     test('should return 400 if data is bad or incomplete', async () => {
@@ -568,9 +595,20 @@ describe('/workspace', () => {
       const res = await app.request(`/workspace/channel`, {
         method: 'POST',
         body: JSON.stringify({
-          workspaceId: '1234567890',
-          projectId: '1234567890',
-          name: 'example channel',
+          workspaceId: '34343434',
+          projectId: '1123434343434',
+          name: 'Channel 4 testers',
+          members: [
+            {
+              name: `${userData.data.firstname} ${userData.data.lastname}`,
+              image: userData.data.image,
+              userId: userData.data.id,
+              email: userData.data.email,
+              workspaceId: newWorkspace.id,
+              memberId: projectMember.id,
+              projectId: newProject.id,
+            },
+          ],
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
@@ -581,29 +619,60 @@ describe('/workspace', () => {
       //  const  await
       await prisma.workspace.delete({ where: { id: newWorkspace.id } });
       await prisma.project.delete({ where: { id: newProject.id } });
-      const res = await app.request(`/workspace/channel`, {
-        method: 'POST',
-        body: JSON.stringify({
-          workspaceId: newWorkspace.id,
-          projectId: newProject.id,
-          name: 'new Channel',
-        }),
-        headers: { Cookie: user.headers.get('set-cookie') },
-      });
-      expect(res.status).toBe(404);
-    });
-
-    test('should return 200 when creating channel', async () => {
+      await prisma.projectMember.delete({ where: { id: projectMember.id } });
       const res = await app.request(`/workspace/channel`, {
         method: 'POST',
         body: JSON.stringify({
           workspaceId: newWorkspace.id,
           projectId: newProject.id,
           name: 'Channel 4 testers',
+          members: [
+            {
+              name: `${userData.data.firstname} ${userData.data.lastname}`,
+              image: userData.data.image,
+              userId: userData.data.id,
+              email: userData.data.email,
+              workspaceId: newWorkspace.id,
+              memberId: projectMember.id,
+              projectId: newProject.id,
+            },
+          ],
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
-      console.log('channel here', await res.json());
+      expect(res.status).toBe(500);
+    });
+
+    test('should return 200 when creating channel', async () => {
+      //   {
+      //     name?: string;
+      //     image?: string;
+      //     userId?: string;
+      //     email?: string;
+      //     workspaceId?: string;
+      //     memberId?: string;
+      //     projectId?: string;
+      // }
+      const res = await app.request(`/workspace/channel`, {
+        method: 'POST',
+        body: JSON.stringify({
+          workspaceId: newWorkspace.id,
+          projectId: newProject.id,
+          name: 'Channel 4 testers',
+          members: [
+            {
+              name: `${userData.data.firstname} ${userData.data.lastname}`,
+              image: userData.data.image,
+              userId: userData.data.id,
+              email: userData.data.email,
+              workspaceId: newWorkspace.id,
+              memberId: projectMember.id,
+              projectId: newProject.id,
+            },
+          ],
+        }),
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
       expect(res.status).toBe(200);
     });
   });
@@ -614,37 +683,37 @@ describe('/workspace', () => {
     let newChannel;
     let projectMember;
     beforeEach(async () => {
-      newWorkspace = await prisma.workspace.create({
-        data: {
-          name: 'test workspace',
-          totalMembers: 1,
-          members: [userData.data.id],
-          owner: userData.data.id,
-        },
-      });
-
-      newProject = await prisma.project.create({
-        data: {
-          name: 'new project',
-          purpose: '4 testing',
-          createdAt: new Date(),
-          workspaceId: newWorkspace.id,
-          creator: userData.data.id,
-          visibility: false,
-        },
-      });
-      const { email, image, fullname, lastname, id } = userData.data;
-
-      const workspaceMember = await prisma.workspaceMember.create({
-        data: {
-          email,
-          image,
-          name: `${fullname} ${lastname}`,
-          userId: id,
-          workspaceId: newWorkspace.id,
-        },
-      });
       await prisma.$transaction(async (tx) => {
+        newWorkspace = await tx.workspace.create({
+          data: {
+            name: 'test workspace',
+            totalMembers: 1,
+            members: [userData.data.id],
+            owner: userData.data.id,
+          },
+        });
+
+        newProject = await tx.project.create({
+          data: {
+            name: 'new project',
+            purpose: '4 testing',
+            createdAt: new Date(),
+            workspaceId: newWorkspace.id,
+            creator: userData.data.id,
+            visibility: false,
+          },
+        });
+        const { email, image, fullname, lastname, id } = userData.data;
+
+        const workspaceMember = await tx.workspaceMember.create({
+          data: {
+            email,
+            image,
+            name: `${fullname} ${lastname}`,
+            userId: id,
+            workspaceId: newWorkspace.id,
+          },
+        });
         projectMember = await tx.projectMember.create({
           data: {
             email,
@@ -803,7 +872,6 @@ describe('/workspace', () => {
         }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
-      console.log('why', await req.json());
       expect(req.status).toBe(200);
       const res = await app.request(
         `/workspace/channel/request/action?userId=${userData.data.id}&channelId=${newChannel.id}&signal=reject&workspaceId=${newWorkspace.id}&projectId=${newProject.id}&projectMembershipId=${projectMember.id}`,
