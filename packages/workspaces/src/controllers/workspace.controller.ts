@@ -27,8 +27,6 @@ import { google } from 'googleapis';
 import EventEmitter from 'node:events';
 const redis = new Redis();
 
-const MAX_CACHE_SIZE = 2;
-
 redis
   .connect()
   .then(() => {
@@ -158,17 +156,30 @@ const getWorkspaceMembers = async (c: Context) => {
   return c.json({ message: 'success', data: workspaceMembers });
 };
 
-// test this code below
 const getLoggedInUserWorkspaceMembership = async (c: Context) => {
   const userID = c.var.getUser().id;
   const workspaceID = c.req.param().workspaceId;
-  const member = await prisma.workspaceMember.findFirst({
-    where: { userId: userID, workspaceId: workspaceID },
-  });
-  if (!member) {
+
+  const [workspace, membership] = await prisma.$transaction([
+    prisma.workspace.findFirst({ where: { id: workspaceID } }),
+    prisma.workspaceMember.findFirst({
+      where: { userId: userID, workspaceId: workspaceID },
+    }),
+  ]);
+  if (!workspace) {
+    return c.json({ message: 'workspace not found' }, 404);
+  }
+  if (!membership) {
     return c.json({ message: 'membership not found' }, 404);
   }
-  return c.json({ message: 'membership retrieved successfully', data: member });
+
+  // if(workspace.id !== membership.workspaceId){
+  //   return
+  // }
+  return c.json({
+    message: 'membership retrieved successfully',
+    data: membership,
+  });
 };
 
 const joinWorkspace = async (c: Context) => {
@@ -182,7 +193,8 @@ const joinWorkspace = async (c: Context) => {
     c.status(400);
     return c.json({ message: 'empty or bad workspace Id' });
   }
-  const [member, workspace] = await Promise.all([
+
+  const [member, workspace] = await prisma.$transaction([
     prisma.workspaceMember.findFirst({
       where: { userId: userID, workspaceId: workspaceId },
     }),
@@ -202,22 +214,26 @@ const joinWorkspace = async (c: Context) => {
 
   const user = c.var.getUser();
   let updatedWorkspace;
-  await prisma.$transaction(async (tx) => {
-    const newMember = await tx.workspaceMember.create({
-      data: {
-        email: user.email,
-        image: user.image,
-        name: `${user.firstname} ${user.lastname}`,
-        userId: userID,
-        workspaceId: workspaceId,
-      },
-    });
+  try {
+    await prisma.$transaction(async (tx) => {
+      const newMember = await tx.workspaceMember.create({
+        data: {
+          email: user.email,
+          image: user.image,
+          name: `${user.firstname} ${user.lastname}`,
+          userId: userID,
+          workspaceId: workspaceId,
+        },
+      });
 
-    updatedWorkspace = await tx.workspace.update({
-      where: { id: workspaceId },
-      data: { members: [...workspace.members, newMember.id] },
+      updatedWorkspace = await tx.workspace.update({
+        where: { id: workspaceId },
+        data: { members: [...workspace.members, newMember.id] },
+      });
     });
-  });
+  } catch (e) {
+    return c.json({ message: 'an error occured while joining workspace' }, 500);
+  }
 
   return c.json({
     message: 'your are now a member of this workspace',
@@ -225,16 +241,16 @@ const joinWorkspace = async (c: Context) => {
   });
 };
 
-// test this code below !
 const leaveworkspace = async (c: Context) => {
   const workspaceId = c.req.query('workspaceId');
-  const userID =
-    (c.req.query('userId') as string) || (c.var.getUser().id as string);
+  const user = c.var.getUser();
+  const userID = (c.req.query('userId') as string) || (user.id as string);
 
   if (!workspaceId) {
     c.status(400);
     return c.json({ message: 'empty or bad workspace Id' });
   }
+
   if (!ObjectId.isValid(workspaceId)) {
     c.status(400);
     return c.json({ message: 'empty or bad workspace Id' });
@@ -246,14 +262,7 @@ const leaveworkspace = async (c: Context) => {
 
   if (!workspace) {
     c.status(404);
-    return c.json({ message: 'workspace not found, Bad workspaceId' });
-  }
-
-  const user = await prisma.user.findUnique({ where: { id: userID } });
-
-  if (!user) {
-    c.status(404);
-    return c.json({ message: 'user not found, Bad user ID' });
+    return c.json({ message: 'workspace not found' });
   }
 
   const filteredMembers = workspace.members.filter((item) => item !== userID);
@@ -299,7 +308,6 @@ const getAllWorskpaceProjects = async (c: Context) => {
   });
 };
 
-//test this code below !
 const createNewWorkspaceProject = async (c: Context) => {
   const { id: creatorId } = c.var.getUser();
   const body: TProject = await c.req.json();
@@ -365,31 +373,39 @@ const createNewWorkspaceProject = async (c: Context) => {
 
 //test this code below !
 const getProjectMembership = async (c: Context) => {
-  const param = c.req.param();
-  const workspaceId = param.workspaceId;
-  const projectId = param.projectId;
-  const memberId = param.memberId;
-  const workspaceMembership = await prisma.workspaceMember.findUnique({
-    where: { id: memberId },
-  });
-  if (!workspaceMembership) {
-    return c.json({ message: 'membership not found' }, 404);
-  }
-  const projectMembership = await prisma.projectMember.findFirst({
-    where: {
-      workspaceId,
-      projectId,
-      memberId,
-    },
-  });
+  const param = c.req.query();
+  const workspaceId = param['workspaceId'];
+  const projectId = param['projectId'];
+  const memberId = param['workspaceMembershipId'];
 
-  if (!projectMembership) {
-    return c.json({ message: 'you are not a member of this project.' });
+  if (
+    ObjectId.isValid(workspaceId) &&
+    ObjectId.isValid(projectId) &&
+    ObjectId.isValid(memberId)
+  ) {
+    const workspaceMembership = await prisma.workspaceMember.findUnique({
+      where: { id: memberId },
+    });
+    if (!workspaceMembership) {
+      return c.json({ message: 'membership not found' }, 404);
+    }
+    const projectMembership = await prisma.projectMember.findFirst({
+      where: {
+        workspaceId,
+        projectId,
+        memberId,
+      },
+    });
+
+    if (!projectMembership) {
+      return c.json({ message: 'you are not a member of this project.' }, 404);
+    }
+    return c.json({
+      message: 'project membership retrieved successfully',
+      data: projectMembership,
+    });
   }
-  return c.json({
-    message: 'project membership retrieved successfully',
-    data: projectMembership,
-  });
+  return c.json({ message: "Invalid params id's" }, 400);
 };
 
 // TODO: GET  USER controller

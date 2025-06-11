@@ -186,7 +186,7 @@ describe('/workspace', () => {
       expect(res.status).toBe(400);
     });
 
-    test('should reutrn 201 response if user is already a member of the provided workspaceId', async () => {
+    test('should return 201 response if user is already a member of the provided workspaceId', async () => {
       await prisma.workspaceMember.create({
         data: {
           email: userData.data.email,
@@ -331,12 +331,88 @@ describe('/workspace', () => {
       expect(res.status).toBe(400);
     });
 
-    test('should return 400 if workspaceId is Invalid or empty', async () => {
+    test('should return 200 if workspaceId  valid', async () => {
       const res = await app.request(`/workspace/project/${newWorkspace.id}`, {
         method: 'GET',
         headers: { Cookie: user.headers.get('set-cookie') },
       });
       expect(res.status).toBe(200);
+    });
+  });
+
+  describe('GET /workspace/membership/:workspaceId', () => {
+    let workspace;
+    beforeAll(async () => {
+      workspace = await prisma.workspace.create({
+        data: {
+          name: `${userData.data.firstname} ${userData.data.lastname}`,
+          owner: userData.data.id,
+          totalMembers: 1,
+        },
+      });
+    });
+    afterEach(async () => {
+      await prisma.workspaceMember.deleteMany();
+    });
+    test('should return 200 if workspace exist and membership is found', async () => {
+      await prisma.workspaceMember.create({
+        data: {
+          email: userData.data.email,
+          image: userData.data.image,
+          name: `${userData.data.firstname} ${userData.data.lastname}`,
+          userId: userData.data.id,
+          workspaceId: workspace.id,
+        },
+      });
+      const membership = await app.request(
+        `/workspace/membership/${workspace.id}`,
+        {
+          method: 'GET',
+          headers: { Cookie: user.headers.get('set-cookie') },
+        }
+      );
+      expect(membership.status).toBe(200);
+    });
+
+    test('should return 404 if workspace does not  exist and membership is not found', async () => {
+      await prisma.workspace.deleteMany();
+      const membership = await app.request(
+        `/workspace/membership/${workspace.id}`,
+        {
+          method: 'GET',
+          headers: { Cookie: user.headers.get('set-cookie') },
+        }
+      );
+      expect(membership.status).toBe(404);
+    });
+
+    test('should return 404 if workspace does not  exist and membership is not found', async () => {
+      const membership = await app.request(
+        `/workspace/membership/${workspace.id}`,
+        {
+          method: 'GET',
+          headers: { Cookie: user.headers.get('set-cookie') },
+        }
+      );
+      expect(membership.status).toBe(404);
+    });
+
+    test('should return 404 if workspace exist but no workspace membership ', async () => {
+      workspace = await prisma.workspace.create({
+        data: {
+          name: `${userData.data.firstname} ${userData.data.lastname}`,
+          owner: userData.data.id,
+          totalMembers: 1,
+        },
+      });
+      const membership = await app.request(
+        `/workspace/membership/${workspace.id}`,
+        {
+          method: 'GET',
+          headers: { Cookie: user.headers.get('set-cookie') },
+        }
+      );
+      expect(membership.status).toBe(404);
     });
   });
 
@@ -372,6 +448,30 @@ describe('/workspace', () => {
       const res = await app.request(`/workspace/project`, {
         method: 'POST',
         body: JSON.stringify({}),
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
+      expect(res.status).toBe(400);
+    });
+
+    test('should return status of 400 if workspaceId is invalid', async () => {
+      const invalidId = '1233434454545';
+      const res = await app.request(`/workspace/project`, {
+        method: 'POST',
+        body: JSON.stringify({
+          workspaceId: invalidId,
+          name: 'Project one',
+          purpose: 'For testing purpose',
+          members: [
+            {
+              name: 'peter',
+              email: 'peterparker@gmail.com',
+              image: 'http:///peter',
+              memberId: memberShipID.id,
+              workspaceId: newWorkspace.id,
+              userId: userData.data.id,
+            },
+          ],
+        }),
         headers: { Cookie: user.headers.get('set-cookie') },
       });
       expect(res.status).toBe(400);
@@ -415,7 +515,6 @@ describe('/workspace', () => {
     });
 
     test('should return 404 if workspace is deleted ', async () => {
-      //  const  await
       await prisma.workspace.delete({ where: { id: newWorkspace.id } });
       const res = await app.request(`/workspace/project`, {
         method: 'POST',
@@ -464,6 +563,123 @@ describe('/workspace', () => {
 
       expect(res.status).toBe(200);
     });
+  });
+
+  describe('GET /project/membership', () => {
+    let newWorkspace;
+    let newProject;
+    let projectMember;
+    let workspaceMember;
+
+    beforeEach(async () => {
+      await prisma.$transaction(async (tx) => {
+        newWorkspace = await tx.workspace.create({
+          data: {
+            name: 'test workspace',
+            totalMembers: 1,
+            members: [userData.data.id],
+            owner: userData.data.id,
+          },
+        });
+
+        newProject = await tx.project.create({
+          data: {
+            name: 'new project',
+            purpose: '4 testing',
+            createdAt: new Date(),
+            workspaceId: newWorkspace.id,
+            creator: userData.data.id,
+            visibility: false,
+          },
+        });
+        const { email, image, fullname, lastname, id } = userData.data;
+
+        workspaceMember = await tx.workspaceMember.create({
+          data: {
+            email,
+            image,
+            name: `${fullname} ${lastname}`,
+            userId: id,
+            workspaceId: newWorkspace.id,
+          },
+        });
+        projectMember = await tx.projectMember.create({
+          data: {
+            email,
+            image,
+            memberId: workspaceMember.id,
+            name: `${fullname} ${lastname}`,
+            projectId: newProject.id,
+            userId: id,
+            workspaceId: newWorkspace.id,
+          },
+        });
+      });
+    });
+
+    afterAll(async () => {
+      await prisma.$transaction(async (tx) => {
+        await tx.workspace.deleteMany();
+        await tx.project.deleteMany();
+        await tx.channel.deleteMany();
+        await tx.projectMember.deleteMany();
+      });
+
+      await prisma.$disconnect();
+    });
+    test('should return 400 if any of the parameters id is invalid', async () => {
+      const res = await app.request(
+        `/workspace/project/membership?workspaceId=${
+          newWorkspace.id
+        }&projectId=${32546757686}&workspaceMembershipId=${workspaceMember.id}`,
+        {
+          method: 'GET',
+          headers: { Cookie: user.headers.get('set-cookie') },
+        }
+      );
+
+      expect(res.status).toBe(400);
+    });
+
+    test('should return 400 if all the paramater are valid ObjectId', async () => {
+      const res = await app.request(
+        `/workspace/project/membership?workspaceId=${newWorkspace.id}&projectId=${newProject.id}&workspaceMembershipId=${workspaceMember.id}`,
+        {
+          method: 'GET',
+          headers: { Cookie: user.headers.get('set-cookie') },
+        }
+      );
+      console.log(await res.json());
+      expect(res.status).toBe(200);
+    });
+
+    // test('should return 404 if no ProjectMember found for the given id', async () => {
+    //   const res = await app.request(
+    //     `/workspace/project/membership?workspaceId=${
+    //       newWorkspace.id
+    //     }&projectId=${new ObjectId().toHexString()}`,
+    //     {
+    //       method: 'GET',
+    //       headers: { Cookie: user.headers.get('set-cookie') },
+    //     }
+    //   );
+
+    //   expect(res.status).toBe(404);
+    // });
+
+    // test('should return 404 if no ProjectMember found for the given id', async () => {
+    //   const res = await app.request(
+    //     `/workspace/project/membership?workspaceId=${
+    //       newWorkspace.id
+    //     }&projectId=${new ObjectId().toHexString()}`,
+    //     {
+    //       method: 'GET',
+    //       headers: { Cookie: user.headers.get('set-cookie') },
+    //     }
+    //   );
+
+    //   expect(res.status).toBe(404);
+    // });
   });
 
   describe('PATCH /workspace/project/:projectId', () => {
@@ -743,11 +959,6 @@ describe('/workspace', () => {
       await prisma.$disconnect();
     });
 
-    // afterAll(async () => {
-    //   await prisma.workspace.deleteMany();
-    //   await prisma.project.deleteMany();
-    //   await prisma.$disconnect();
-    // });
     test('should return 400 if updateChannel data is invalid', async () => {
       const res = await app.request(`/workspace/channel/${newChannel.id}`, {
         method: 'PATCH',

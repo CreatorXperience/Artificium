@@ -1,8 +1,4 @@
-import {
-  artificiumMessagePayloadValidator,
-  artificiumValidator,
-  Redis,
-} from '@org/database';
+import { artificiumMessagePayloadValidator, Redis } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Emitter } from '@socket.io/mongo-emitter';
 import { ObjectId } from 'mongodb';
