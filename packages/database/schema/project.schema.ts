@@ -46,19 +46,27 @@ const projectUpdateValidator = (
 };
 
 const projectMember = z.object({
-  projectId: z.string({ message: 'projectId is required' }).length(24, {
-    message: 'property projectId must be exactly 24 in length',
-  }),
-  username: z.string({ message: 'property username is required' }),
-  memberId: z.string({ message: 'property userId is required' }).length(24, {
+  projectId: z
+    .string({ message: 'property projectId is required' })
+    .length(24, {
+      message: 'property projectId must be exactly 24 in length',
+    }),
+  memberId: z.string({ message: 'property memberId is required' }).length(24, {
     message: 'property memberId must be exactly 24 in length',
   }),
+  workspaceMembershipId: z
+    .string({ message: 'property workspaceMembershipId is required' })
+    .length(24, {
+      message: 'property memberId must be exactly 24 in length',
+    }),
+
+  username: z.string({ message: 'property username is required' }),
 });
 
 const projectMemberValidator = (
   payload: Required<z.infer<typeof projectMember>>
 ) => {
-  return projectMember.safeParse(payload);
+  return projectMember.partial({ username: true }).safeParse(payload);
 };
 
 const projectRole = z.object({

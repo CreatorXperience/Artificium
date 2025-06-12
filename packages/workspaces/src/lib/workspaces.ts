@@ -30,7 +30,8 @@ import {
   getLoggedInUserWorkspaceMembership,
   getProjectMembership,
   joinProject,
-  inviteWithLink,
+  invitationWithLink,
+  leaveProject,
 } from '../controllers/workspace.controller';
 import winston from 'winston';
 
@@ -81,7 +82,9 @@ app.get('/project/membership', authMiddleWare, getProjectMembership);
 
 app.get('/project/join', authMiddleWare, joinProject);
 
-app.post('/project/invite', authMiddleWare, inviteWithLink);
+app.post('/project/leave', authMiddleWare, leaveProject);
+
+app.post('/project/invitation', authMiddleWare, invitationWithLink);
 
 app.get('/project/:workspaceId', authMiddleWare, getAllWorskpaceProjects);
 

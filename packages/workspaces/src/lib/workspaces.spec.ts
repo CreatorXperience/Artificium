@@ -857,7 +857,94 @@ describe('/workspace', () => {
     });
   });
 
-  describe('POST /workspace/project/invite', () => {
+  describe('POST /workspace/project/leave', () => {
+    let newWorkspace;
+    let newProject;
+    let workspaceMember;
+    let projectMember;
+
+    beforeEach(async () => {
+      await prisma.$transaction(async (tx) => {
+        newWorkspace = await tx.workspace.create({
+          data: {
+            name: 'test workspace',
+            totalMembers: 1,
+            members: [userData.data.id],
+            owner: userData.data.id,
+          },
+        });
+
+        newProject = await tx.project.create({
+          data: {
+            name: 'new project',
+            purpose: '4 testing',
+            createdAt: new Date(),
+            workspaceId: newWorkspace.id,
+            creator: userData.data.id,
+            visibility: false,
+          },
+        });
+        const { email, image, fullname, lastname, id } = userData.data;
+
+        workspaceMember = await tx.workspaceMember.create({
+          data: {
+            email,
+            image,
+            name: `${fullname} ${lastname}`,
+            userId: id,
+            workspaceId: newWorkspace.id,
+          },
+        });
+        projectMember = await tx.projectMember.create({
+          data: {
+            email,
+            image,
+            memberId: workspaceMember.id,
+            name: `${fullname} ${lastname}`,
+            projectId: newProject.id,
+            userId: id,
+            workspaceId: newWorkspace.id,
+          },
+        });
+      });
+    });
+
+    afterAll(async () => {
+      await prisma.$transaction(async (tx) => {
+        await tx.workspace.deleteMany();
+        await tx.project.deleteMany();
+        await tx.channel.deleteMany();
+        await tx.projectMember.deleteMany();
+      });
+
+      await prisma.$disconnect();
+    });
+    // test('should return status code of 400 if payload is bad', async () => {
+    //   const res = await app.request('/workspace/project/leave', {
+    //     method: 'POST',
+    //     body: JSON.stringify({}),
+    //     headers: { Cookie: user.headers.get('set-cookie') },
+    //   });
+
+    //   expect(res.status).toBe(400);
+    // });
+
+    test('should return status code of 500 if member userId or projectId  is bad', async () => {
+      const res = await app.request('/workspace/project/leave', {
+        method: 'POST',
+        body: JSON.stringify({
+          memberId: projectMember.id,
+          workspaceMembershipId: new ObjectId().toHexString(),
+          projectId: newProject.Id,
+        }),
+        headers: { Cookie: user.headers.get('set-cookie') },
+      });
+      console.log(await res.json());
+      expect(res.status).toBe(500);
+    });
+  });
+
+  describe('POST /workspace/project/invitation', () => {
     let newWorkspace;
     let newProject;
 
@@ -896,7 +983,7 @@ describe('/workspace', () => {
       await prisma.$disconnect();
     });
     test('should return status code of 200 if projectId and role is given', async () => {
-      const res = await app.request('/workspace/project/invite', {
+      const res = await app.request('/workspace/project/invitation', {
         method: 'POST',
         body: JSON.stringify({
           projectId: newProject.id,
@@ -909,7 +996,7 @@ describe('/workspace', () => {
     });
 
     test('should return status code of 400 if projectId is bad', async () => {
-      const res = await app.request('/workspace/project/invite', {
+      const res = await app.request('/workspace/project/invitation', {
         method: 'POST',
         body: JSON.stringify({
           projectId: '123456789oh',
@@ -923,7 +1010,7 @@ describe('/workspace', () => {
 
     test('should return status code of 404 is project is not found', async () => {
       await prisma.project.delete({ where: { id: newProject.id } });
-      const res = await app.request('/workspace/project/invite', {
+      const res = await app.request('/workspace/project/invitation', {
         method: 'POST',
         body: JSON.stringify({
           projectId: newProject.id,

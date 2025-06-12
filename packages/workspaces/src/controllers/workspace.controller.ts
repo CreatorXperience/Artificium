@@ -479,7 +479,7 @@ const joinProject = async (c: Context) => {
   });
 };
 
-const inviteWithLink = async (c: Context) => {
+const invitationWithLink = async (c: Context) => {
   const { image, email, firstname, lastname, id } = c.var.getUser();
   const userId = id;
   const body = await c.req.json();
@@ -554,6 +554,8 @@ const leaveProject = async (c: Context) => {
   const userId = user.id;
 
   const body = await c.req.json();
+  console.log(body);
+
   const { data, error } = projectMemberValidator(body);
 
   if (error) {
@@ -566,25 +568,21 @@ const leaveProject = async (c: Context) => {
   try {
     await prisma.$transaction(async (tx) => {
       // 1. Get the workspace member
-      const workspaceMember = await tx.workspaceMember.findFirst({
-        where: { userId },
+      const workspaceMember = await tx.workspaceMember.findUnique({
+        where: { id: data.workspaceMembershipId, userId },
       });
       if (!workspaceMember) {
-        throw new Error('Workspace member not found');
+        throw new Error('Workspace membership not found');
       }
 
-      // 2. Get the project member
-      const projectMember = await tx.projectMember.findFirst({
-        where: {
-          memberId: workspaceMember.id,
-          projectId: data.projectId,
-        },
-      });
-      if (!projectMember) {
-        throw new Error('Project member not found');
-      }
+      // const projectMember = await tx.projectMember.findUnique({
+      //   where: { id: data.memberId },
+      // });
 
-      // 3. Remove the member from the project's `members` array
+      // if (!projectMember) {
+      //   throw new Error('Project member not found');
+      // }
+
       const project = await tx.project.findUnique({
         where: { id: data.projectId },
         select: { members: true },
@@ -601,13 +599,13 @@ const leaveProject = async (c: Context) => {
 
       // 4. Delete the project member
       await tx.projectMember.delete({
-        where: { id: projectMember.id },
+        where: { id: data.memberId },
       });
 
       // 5. Delete channel memberships
       await tx.channelMember.deleteMany({
         where: {
-          memberId: projectMember.id,
+          memberId: data.memberId,
           projectId: data.projectId,
         },
       });
@@ -615,7 +613,7 @@ const leaveProject = async (c: Context) => {
       // 6. Update all channels where this member was included
       const affectedChannels = await tx.channel.findMany({
         where: {
-          members: { hasSome: [projectMember.id] },
+          members: { hasSome: [data.memberId] },
         },
         select: { id: true, members: true },
       });
@@ -623,7 +621,7 @@ const leaveProject = async (c: Context) => {
       await Promise.all(
         affectedChannels.map((channel) => {
           const newMembers = channel.members.filter(
-            (id) => id !== projectMember.id
+            (id) => id !== data.memberId
           );
           return tx.channel.update({
             where: { id: channel.id },
@@ -634,7 +632,7 @@ const leaveProject = async (c: Context) => {
     });
 
     return c.json({
-      message: `${data.username} has been removed from this project`,
+      message: `${user.username} has been removed from this project`,
     });
   } catch (err) {
     console.error(err);
@@ -1725,6 +1723,6 @@ export {
   getLoggedInUserWorkspaceMembership,
   getProjectMembership,
   joinProject,
-  inviteWithLink,
+  invitationWithLink,
   getArtificium,
 };
