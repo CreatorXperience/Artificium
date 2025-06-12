@@ -371,7 +371,6 @@ const createNewWorkspaceProject = async (c: Context) => {
   return c.json({ message: 'Project successfully created', data: project });
 };
 
-//test this code below !
 const getProjectMembership = async (c: Context) => {
   const param = c.req.query();
   const workspaceId = param['workspaceId'];
@@ -387,7 +386,7 @@ const getProjectMembership = async (c: Context) => {
       where: { id: memberId },
     });
     if (!workspaceMembership) {
-      return c.json({ message: 'membership not found' }, 404);
+      return c.json({ message: 'workspace membership not found' }, 404);
     }
     const projectMembership = await prisma.projectMember.findFirst({
       where: {
@@ -410,9 +409,9 @@ const getProjectMembership = async (c: Context) => {
 
 // TODO: GET  USER controller
 
-//test this code below !
 const joinProject = async (c: Context) => {
-  const userId = c.var.getUser().id;
+  const user = c.var.getUser();
+  const userId = user.id;
   const { projectId, workspaceId } = c.req.query();
 
   // Validate IDs
@@ -429,14 +428,15 @@ const joinProject = async (c: Context) => {
   if (!workspace) return c.json({ message: 'Workspace not found' }, 404);
 
   if (!workspace.members.includes(userId)) {
-    return c.json({ message: "You don't belong to this workspace" }, 403);
+    return c.json({ message: "You don't belong to this workspace" }, 404);
   }
 
   const workspaceMember = await prisma.workspaceMember.findFirst({
     where: { userId, workspaceId },
   });
+
   if (!workspaceMember) {
-    return c.json({ message: 'Invalid workspace membership' }, 400);
+    return c.json({ message: 'workspace membership not found' }, 404);
   }
 
   const existingMember = await prisma.projectMember.findFirst({
@@ -449,8 +449,6 @@ const joinProject = async (c: Context) => {
     });
   }
 
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) return c.json({ message: 'User not found' }, 404);
   let projectMembership, updatedProject;
   await prisma.$transaction(async (tx) => {
     projectMembership = await tx.projectMember.create({
@@ -481,7 +479,6 @@ const joinProject = async (c: Context) => {
   });
 };
 
-//test this code below !
 const inviteWithLink = async (c: Context) => {
   const { image, email, firstname, lastname, id } = c.var.getUser();
   const userId = id;
@@ -491,10 +488,14 @@ const inviteWithLink = async (c: Context) => {
     return c.json({ message: `Validation Error: ${error.errors[0].message}` });
   }
 
+  if (!ObjectId.isValid(data.projectId)) {
+    return c.json({ message: 'invalid project id' }, 400);
+  }
+
   const project = await prisma.project.findUnique({
     where: { id: data.projectId },
   });
-  if (!project) return c.json({ message: 'project not found' });
+  if (!project) return c.json({ message: 'project not found' }, 404);
   let membership = await prisma.workspaceMember.findFirst({
     where: { userId, workspaceId: project.workspaceId },
   });
@@ -534,15 +535,12 @@ const inviteWithLink = async (c: Context) => {
         },
       });
     }
-    const filtered_members = project.members.filter(
-      (member) => member !== membership.id
-    );
 
     await tx.project.update({
       where: {
         id: data.projectId,
       },
-      data: { members: filtered_members },
+      data: { members: [...project.members, membership.id] },
     });
   });
 

@@ -29,6 +29,8 @@ import {
   createGmailIntegration,
   getLoggedInUserWorkspaceMembership,
   getProjectMembership,
+  joinProject,
+  inviteWithLink,
 } from '../controllers/workspace.controller';
 import winston from 'winston';
 
@@ -75,11 +77,15 @@ app.post('/', authMiddleWare, uploadWorkspaceImage);
 
 app.patch('/:id', authMiddleWare, updateWorkspace);
 
+app.get('/project/membership', authMiddleWare, getProjectMembership);
+
+app.get('/project/join', authMiddleWare, joinProject);
+
+app.post('/project/invite', authMiddleWare, inviteWithLink);
+
 app.get('/project/:workspaceId', authMiddleWare, getAllWorskpaceProjects);
 
 app.post('/project', authMiddleWare, createNewWorkspaceProject);
-
-app.get('/project/membership', authMiddleWare, getProjectMembership);
 
 app.patch('/project/:projectId', authMiddleWare, updateProject);
 
