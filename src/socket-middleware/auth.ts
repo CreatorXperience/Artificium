@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { getSignedCookie } from 'hono/cookie';
 import {} from 'hono/utils/cookie';
-import { parse } from 'cookie';
 import { V4 } from 'paseto';
 import { DefaultEventsMap, ExtendedError, Socket } from 'socket.io';
 type TUSignatureObj = { userId: string };

@@ -32,6 +32,8 @@ import {
   joinProject,
   invitationWithLink,
   leaveProject,
+  removeProjectMember,
+  manageProjectRole,
 } from '../controllers/workspace.controller';
 import winston from 'winston';
 
@@ -78,17 +80,21 @@ app.post('/', authMiddleWare, uploadWorkspaceImage);
 
 app.patch('/:id', authMiddleWare, updateWorkspace);
 
+app.post('/project', authMiddleWare, createNewWorkspaceProject);
+
 app.get('/project/membership', authMiddleWare, getProjectMembership);
 
 app.get('/project/join', authMiddleWare, joinProject);
 
-app.post('/project/leave', authMiddleWare, leaveProject);
+app.post('/project/role', authMiddleWare, manageProjectRole);
+
+app.delete('/project/me/leave', authMiddleWare, leaveProject);
+
+app.delete('/project/member/remove', authMiddleWare, removeProjectMember);
 
 app.post('/project/invitation', authMiddleWare, invitationWithLink);
 
 app.get('/project/:workspaceId', authMiddleWare, getAllWorskpaceProjects);
-
-app.post('/project', authMiddleWare, createNewWorkspaceProject);
 
 app.patch('/project/:projectId', authMiddleWare, updateProject);
 

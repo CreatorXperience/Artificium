@@ -8,9 +8,15 @@ import winston from 'winston';
 
 const logger = new winston.Logger({
   level: 'info',
+  format: winston.format.combine(
+    winston.format.colorize(),
+    winston.format.timestamp(),
+    winston.format.printf(({ level, message, timestamp }) => {
+      return `[${timestamp}] ${level}: ${message}`;
+    })
+  ),
   transports: new winston.transports.Console(),
 });
-export default logger;
 
 const redis = new Redis();
 
@@ -127,4 +133,4 @@ const chatInGroups = async (
   socket.emit('success', { message: '📤 message sent successfully' });
 };
 
-export { chatWithArtificium, chatInGroups };
+export { chatWithArtificium, chatInGroups, logger };

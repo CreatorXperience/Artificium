@@ -397,7 +397,10 @@ const getProjectMembership = async (c: Context) => {
     });
 
     if (!projectMembership) {
-      return c.json({ message: 'you are not a member of this project.' }, 404);
+      return c.json(
+        { message: 'you are not a member of this project.', data: null },
+        404
+      );
     }
     return c.json({
       message: 'project membership retrieved successfully',
@@ -547,27 +550,30 @@ const invitationWithLink = async (c: Context) => {
   return c.json({ message: 'you are now a member of this project' });
 };
 
-//test this code below !
-
 const leaveProject = async (c: Context) => {
   const user = c.var.getUser();
   const userId = user.id;
 
   const body = await c.req.json();
-  console.log(body);
 
   const { data, error } = projectMemberValidator(body);
 
   if (error) {
     return c.json(
-      { error: `Validation Error: ${error.errors[0].message}` },
+      { message: `Validation Error: ${error.errors[0].message}` },
       400
     );
   }
 
   try {
     await prisma.$transaction(async (tx) => {
-      // 1. Get the workspace member
+      const project = await tx.project.findUnique({
+        where: { id: data.projectID },
+        select: { members: true },
+      });
+      if (!project) {
+        throw new Error('project not found');
+      }
       const workspaceMember = await tx.workspaceMember.findUnique({
         where: { id: data.workspaceMembershipId, userId },
       });
@@ -575,45 +581,32 @@ const leaveProject = async (c: Context) => {
         throw new Error('Workspace membership not found');
       }
 
-      // const projectMember = await tx.projectMember.findUnique({
-      //   where: { id: data.memberId },
-      // });
-
-      // if (!projectMember) {
-      //   throw new Error('Project member not found');
-      // }
-
-      const project = await tx.project.findUnique({
-        where: { id: data.projectId },
-        select: { members: true },
-      });
-
       const updatedMembers = project.members.filter(
         (id) => id !== workspaceMember.id
       );
 
       await tx.project.update({
-        where: { id: data.projectId },
+        where: { id: data.projectID },
         data: { members: updatedMembers },
       });
 
       // 4. Delete the project member
       await tx.projectMember.delete({
-        where: { id: data.memberId },
+        where: { id: data.projectMembershipId },
       });
 
       // 5. Delete channel memberships
       await tx.channelMember.deleteMany({
         where: {
-          memberId: data.memberId,
-          projectId: data.projectId,
+          memberId: data.projectMembershipId,
+          projectId: data.projectID,
         },
       });
 
       // 6. Update all channels where this member was included
       const affectedChannels = await tx.channel.findMany({
         where: {
-          members: { hasSome: [data.memberId] },
+          members: { hasSome: [data.projectMembershipId] },
         },
         select: { id: true, members: true },
       });
@@ -621,7 +614,7 @@ const leaveProject = async (c: Context) => {
       await Promise.all(
         affectedChannels.map((channel) => {
           const newMembers = channel.members.filter(
-            (id) => id !== data.memberId
+            (id) => id !== data.projectMembershipId
           );
           return tx.channel.update({
             where: { id: channel.id },
@@ -632,24 +625,23 @@ const leaveProject = async (c: Context) => {
     });
 
     return c.json({
-      message: `${user.username} has been removed from this project`,
+      message: `${user.firstname} ${user.lastname} has been removed from this project`,
     });
   } catch (err) {
     console.error(err);
-    return c.json({ error: err.message }, 500);
+    return c.json({ message: err.message }, 500);
   }
 };
 
-//test this code below !
 const removeProjectMember = async (c: Context) => {
   const userId = c.var.getUser().id;
   const body = await c.req.json();
   const { data, error } = projectMemberValidator(body);
   if (error) {
-    return c.json(`Validation Error:  ${error.errors[0].message}`);
+    return c.json(`Validation Error:  ${error.errors[0].message}`, 400);
   }
   const project = await prisma.project.findUnique({
-    where: { id: data.projectId },
+    where: { id: data.projectID },
   });
 
   if (project.creator !== userId) {
@@ -662,21 +654,21 @@ const removeProjectMember = async (c: Context) => {
   }
 
   const [projectMembership, workspaceMembership] = await Promise.all([
-    prisma.projectMember.findFirst({
-      where: { memberId: data.memberId, projectId: data.projectId },
+    prisma.projectMember.findUnique({
+      where: { id: data.projectMembershipId, projectId: data.projectID },
     }),
     prisma.workspaceMember.findUnique({
       where: {
-        id: data.memberId,
+        id: data.workspaceMembershipId,
       },
     }),
   ]);
 
   if (!projectMembership)
-    return c.json({ message: 'project membership not found' });
+    return c.json({ message: 'project membership not found' }, 404);
 
   if (!workspaceMembership)
-    return c.json({ message: 'workspace membership not found' });
+    return c.json({ message: 'workspace membership not found' }, 404);
 
   const filter_members = project.members.filter(
     (member) => member !== workspaceMembership.id
@@ -685,7 +677,7 @@ const removeProjectMember = async (c: Context) => {
   await prisma.$transaction(async (tx) => {
     await tx.project.update({
       where: {
-        id: data.projectId,
+        id: data.projectID,
       },
       data: { members: filter_members },
     });
@@ -693,8 +685,8 @@ const removeProjectMember = async (c: Context) => {
     await prisma.projectMember.delete({
       where: {
         id: projectMembership.id,
-        projectId: data.projectId,
-        memberId: data.memberId,
+        projectId: data.projectID,
+        memberId: data.workspaceMembershipId,
       },
     });
   });
@@ -704,7 +696,6 @@ const removeProjectMember = async (c: Context) => {
   });
 };
 
-//test this code below !
 const updateProject = async (c: Context) => {
   const projectId = c.req.param('projectId');
   const body: Partial<TProject> = await c.req.json();
@@ -714,6 +705,14 @@ const updateProject = async (c: Context) => {
     return c.json({
       message: `Validation Error: ${data.error.errors[0].message} `,
     });
+  }
+
+  const isProjectExist = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { id: true },
+  });
+  if (!isProjectExist) {
+    return c.json({ message: "project doesn't exist" }, 404);
   }
   const project = await prisma.project.update({
     where: { id: projectId },
@@ -786,7 +785,9 @@ const manageProjectRole = async (c: Context) => {
   }
 
   // Run all tasks concurrently
-  await Promise.all(tasks);
+  if (tasks && tasks.length) {
+    await Promise.all(tasks);
+  }
 
   return c.json({ message: 'Operation completed successfully' });
 };

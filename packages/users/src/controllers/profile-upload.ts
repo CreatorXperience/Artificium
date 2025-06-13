@@ -61,4 +61,10 @@ const createOrEditUsername = async (c: Context) => {
   return c.json({ message: 'username updated successfully' });
 };
 
-export { uploadProfile, createOrEditUsername };
+const getLoginUser = async (c: Context) => {
+  const user = c.var.getUser();
+
+  return c.json({ message: 'user retrieved successfully', data: user });
+};
+
+export { uploadProfile, createOrEditUsername, getLoginUser };

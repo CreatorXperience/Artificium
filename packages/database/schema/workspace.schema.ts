@@ -39,12 +39,6 @@ const workspace = z.object({
   plan: z.string(),
 });
 
-const access = z.object({
-  read: z.boolean(),
-  write: z.boolean(),
-  userId: z.string(),
-});
-
 type TWorkspace = Required<z.infer<typeof workspace>>;
 
 type TCreateWorkspace = z.infer<typeof createWorkspace>;
@@ -55,8 +49,7 @@ const workspaceValidator = (
   return createWorkspace.required({ name: true }).safeParse(payload);
 };
 const updateWorkspaceValidator = (payload: TWorkspace) => {
-  const workspaceSchema = workspace.partial();
-  return workspaceSchema.safeParse(payload);
+  return workspace.partial().safeParse(payload);
 };
 
 export {
