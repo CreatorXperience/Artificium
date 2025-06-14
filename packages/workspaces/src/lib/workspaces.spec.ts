@@ -1402,7 +1402,7 @@ describe('/workspace', () => {
       const res = await app.request('/workspace/project/role', {
         method: 'POST',
         body: JSON.stringify({
-          workspaceId: workspace.id,
+          workspaceId: workspace.data.id,
           projectId: new ObjectId().toHexString(), // Non-existent project ID
           projectMembers: [
             {
@@ -1414,12 +1414,13 @@ describe('/workspace', () => {
         headers: { Cookie: user.headers.get('set-cookie') },
       });
 
-      expect(res.status).toBe(404);
       const json = await res.json();
+      expect(res.status).toBe(404);
       expect(json.message).toBe('Project not found');
     });
 
     test('should successfully update project member roles', async () => {
+      console.log('id', workspace.data.id);
       const res = await app.request('/workspace/project/role', {
         method: 'POST',
         body: JSON.stringify({
@@ -1524,7 +1525,6 @@ describe('/workspace', () => {
     });
 
     test('should return 404 workspaceIds and projectIds are invalid', async () => {
-      //  const  await
       const res = await app.request(`/workspace/channel`, {
         method: 'POST',
         body: JSON.stringify({
@@ -1577,15 +1577,6 @@ describe('/workspace', () => {
     });
 
     test('should return 200 when creating channel', async () => {
-      //   {
-      //     name?: string;
-      //     image?: string;
-      //     userId?: string;
-      //     email?: string;
-      //     workspaceId?: string;
-      //     memberId?: string;
-      //     projectId?: string;
-      // }
       const res = await app.request(`/workspace/channel`, {
         method: 'POST',
         body: JSON.stringify({
@@ -1693,18 +1684,6 @@ describe('/workspace', () => {
       });
       expect(res.status).toBe(404);
     });
-    //   // NOTE: False Failing test below ⤵️
-    //   // test('should return 200 if user successfully joins a public channel', async () => {
-    //   //   const res = await workspace.request(
-    //   //     `/workspace/channel/join/${newChannel.id}/${userData.data.id}`,
-    //   //     {
-    //   //       method: 'POST',
-    //   //       headers: { Cookie: user.headers.get('set-cookie') },
-    //   //     }
-    //   //   );
-    //   //   console.log(await res.json());
-    //   //   expect(res.status).toBe(200);
-    //   // });
 
     test('should return 404 if joining a non-existent channel', async () => {
       const res = await app.request(
@@ -1999,6 +1978,4 @@ describe('/workspace', () => {
       expect(json.data.length).toBeGreaterThan(0);
     });
   });
-
-  // describe("")
 });

@@ -79,7 +79,7 @@ const projectRole = z.object({
     }),
   workspaceId: z
     .string({ message: 'property workspaceId is required' })
-    .length(12, {
+    .length(24, {
       message: 'property workspaceId must be exactly 12 in length',
     }),
   projectMembers: z.array(
@@ -91,7 +91,7 @@ const projectRole = z.object({
         .string({
           message: 'property membershipId is required',
         })
-        .length(12, {
+        .length(24, {
           message: 'property projectMembershipId must be exactly 12 in length',
         }),
     })
@@ -100,10 +100,10 @@ const projectRole = z.object({
     z.object({
       memberId: z
         .string({ message: 'property memberId is required' })
-        .length(12, {
+        .length(24, {
           message: 'property memberId must be exactly 12 in length',
         }),
-      userId: z.string({ message: 'property userId is required' }).length(12, {
+      userId: z.string({ message: 'property userId is required' }).length(24, {
         message: 'property userId must be exactly 12 in length',
       }),
     }),

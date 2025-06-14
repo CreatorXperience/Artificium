@@ -722,7 +722,6 @@ const updateProject = async (c: Context) => {
   return c.json({ message: 'project updated successfully', data: project });
 };
 
-//test this code below !
 const manageProjectRole = async (c: Context) => {
   const body = await c.req.json();
   const { error, data } = projectRoleValidator(body);
@@ -1155,7 +1154,6 @@ const acceptOrRevokeJoinChannelReq = async (c: Context) => {
   }
 };
 
-//test this code below !
 const getArtificium = async (c: Context) => {
   const body = await c.req.json();
   const {
