@@ -4,7 +4,7 @@ import { auth } from '@org/auth';
 import { users } from '@org/users';
 import { workspace } from '@org/workspaces';
 import { Server } from 'socket.io';
-import { chatInGroups, chatWithArtificium } from './socketUtils';
+import { chatInGroups, chatWithArtificium, logger } from './socketUtils';
 import { MongoClient } from 'mongodb';
 import { createAdapter } from '@socket.io/mongo-adapter';
 import dotenv from 'dotenv';
@@ -12,8 +12,7 @@ import { Emitter } from '@socket.io/mongo-emitter';
 import winston from 'winston';
 import { cors } from 'hono/cors';
 import { PrismaClient } from '@prisma/client';
-import { customEmitter } from 'packages/workspaces/src/controllers/workspace.controller';
-
+import { customEmitter } from '@org/workspaces';
 dotenv.config();
 
 winston.createLogger({
@@ -35,7 +34,7 @@ const io = new Server(server, { cors: { allowedHeaders: ['*'], origin: '*' } });
 
 const MONGO_URL =
   process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
-    ? process.env.DATABASE_URL_TEST
+    ? process.env.DATABASE_URL
     : process.env.DATABASE_URL;
 
 const client = new MongoClient(MONGO_URL);
@@ -58,7 +57,7 @@ let onlineUsers: Array<TOnline> = [];
 client
   .connect()
   .then(async (client) => {
-    console.log('🔗 connected to mongodb database successfully');
+    logger.log('info', '🔗 connected to mongodb database successfully');
     try {
       const collection = await client.db(DB_NAME).createCollection(COLLECTION, {
         capped: true,
@@ -68,14 +67,8 @@ client
 
       const emitter = new Emitter(collection);
 
-      // setInterval(() => emitter.emit('something', 'HEllo my people'), 2000);
-
       io.use((socket, next) => {
         const cookie = socket.handshake.headers.cookie;
-
-        // const parsed_cookie = parse(cookie);
-        // console.log(parsed_cookie);
-        // console.log('hi');
         next();
       });
       io.on('connection', (socket) => {
@@ -93,9 +86,6 @@ client
           emitter.to(userId).emit('Empty notification');
         });
 
-        // socket.on("new_notification", async (userId)=>{
-
-        // })
         socket.on('online', (payload: Omit<TOnline, 'socketId'>) => {
           onlineUsers = onlineUsers.filter(
             (item) => item.userId !== payload.userId

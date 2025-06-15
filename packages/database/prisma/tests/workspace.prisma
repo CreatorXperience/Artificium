@@ -28,7 +28,7 @@ model Project {
     id          String   @id @default(auto()) @map("_id") @db.ObjectId
     name        String
     purpose     String?  @default("")
-    workspaceId String   @unique @db.ObjectId
+    workspaceId String   @db.ObjectId
     createdAt   DateTime @default(now())
     creator     String   @db.ObjectId
     visibility  Boolean  @default(false)
