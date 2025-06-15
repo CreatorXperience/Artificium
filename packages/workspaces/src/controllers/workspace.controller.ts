@@ -1603,7 +1603,9 @@ const uploadWorkspaceImage = async (c: Context) => {
       400
     );
   }
-  const user = c.var.getUser().id;
+
+  const user = c.var.getUser();
+  const userId = user.id;
   const body = await c.req.parseBody({ dot: true });
   const file = body['image'] as File;
 
@@ -1611,29 +1613,45 @@ const uploadWorkspaceImage = async (c: Context) => {
     return c.json('no file uploaded');
   }
 
+  const result = await cloudinary.api.resource(userId);
+  if (result) {
+    await cloudinary.uploader.destroy(
+      userId,
+      { resource_type: 'image' },
+      (err, _) => {
+        if (err) {
+          return c.json(
+            { message: 'an error occured while updating profile picture' },
+            404
+          );
+        }
+      }
+    );
+  }
+
   const imageBuffer = await file.arrayBuffer();
   const base64 = Buffer.from(imageBuffer).toString('base64');
   const dataUri = `data:${file.type};base64,${base64}`;
 
-  cloudinary.config({
-    cloud_name: 'dtah4aund',
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_SECRET,
-    secure: true,
+  const workspace_result = await prisma.workspace.findUnique({
+    where: { owner: user.id, id: data.workspaceId },
   });
+
+  if (!workspace_result) {
+    return c.json({ message: 'workspace not found' }, 404);
+  }
+
   const uploadResult = (await cloudinary.uploader
     .upload(dataUri, {
-      public_id: 'profile',
+      public_id: `${data.workspaceId}`,
+      folder: 'workspacess',
     })
     .catch((error) => {
       console.log(error);
     })) as UploadApiResponse;
-  const existing_user = await prisma.user.findUnique({
-    where: { id: user.id },
-  });
 
   const workspace = await prisma.workspace.update({
-    where: { owner: existing_user.id, id: data.workspaceId },
+    where: { owner: user.id, id: data.workspaceId },
     data: { image: uploadResult.secure_url },
   });
 

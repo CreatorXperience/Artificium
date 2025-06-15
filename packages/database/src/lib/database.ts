@@ -47,7 +47,16 @@ import usernameUpdateValidator from '../../schema/user.schema';
 import Redis from '../../redis/redis';
 import validateImageUpdateSchema from '../../schema/workspaceImageUpdate.schema';
 import * as integration from '../../schema/integration.schema';
+import { v2 as cloudinary } from 'cloudinary';
 const prisma = new PrismaClient();
+
+const cloudinary_config = cloudinary.config({
+  cloud_name: 'dtah4aund',
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET,
+  secure: true,
+});
+
 export function database(): string {
   return 'database';
 }
@@ -95,4 +104,6 @@ export {
   artificiumValidator,
   TInvite,
   validateInvitePayload,
+  cloudinary_config,
+  cloudinary,
 };

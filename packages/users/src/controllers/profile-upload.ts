@@ -1,18 +1,35 @@
 import { PrismaClient } from '@prisma/client';
-import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
-import { usernameUpdateValidator } from '@org/database';
+import { usernameUpdateValidator, cloudinary } from '@org/database';
+
 import { Context } from 'hono';
+import { UploadApiResponse } from 'cloudinary';
 const prisma = new PrismaClient();
 const uploadProfile = async (c: Context) => {
-  const user = c.var.getUser().id;
+  const userId = c.var.getUser().id;
+
   const body = await c.req.parseBody({ dot: true });
   const file = body['image'] as File;
 
-  console.log(file.size / 1024);
   const max_size = 5 * 1024 * 1024;
 
   if (!file) {
     return c.json({ message: 'no file uploaded' });
+  }
+
+  const result = await cloudinary.api.resource(userId);
+  if (result) {
+    await cloudinary.uploader.destroy(
+      userId,
+      { resource_type: 'image' },
+      (err, _) => {
+        if (err) {
+          return c.json(
+            { message: 'an error occured while updating profile picture' },
+            404
+          );
+        }
+      }
+    );
   }
 
   if (file.size > max_size) {
@@ -23,22 +40,17 @@ const uploadProfile = async (c: Context) => {
   const base64 = Buffer.from(imageBuffer).toString('base64');
   const dataUri = `data:${file.type};base64,${base64}`;
 
-  cloudinary.config({
-    cloud_name: 'dtah4aund',
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_SECRET,
-    secure: true,
-  });
   const uploadResult = (await cloudinary.uploader
     .upload(dataUri, {
-      public_id: 'profile',
+      public_id: `${userId}`,
+      folder: 'profile',
     })
     .catch((error) => {
       console.log(error);
     })) as UploadApiResponse;
 
   await prisma.user.update({
-    where: { id: user },
+    where: { id: userId },
     data: { image: uploadResult.secure_url },
   });
 
