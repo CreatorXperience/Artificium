@@ -33,10 +33,9 @@ const server = serve({ fetch: app.fetch, port: PORT });
 const io = new Server(server, { cors: { allowedHeaders: ['*'], origin: '*' } });
 
 const MONGO_URL =
-  'mongodb+srv://deleteme:09031216949Habeeb@cluster0.pult5qz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
-// process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
-//   ? process.env.DATABASE_URL
-//   : process.env.DATABASE_URL;
+  process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
+    ? process.env.DATABASE_URL
+    : process.env.DATABASE_URL;
 
 const client = new MongoClient(MONGO_URL);
 const DB_NAME = 'socketio-adapter-database';
