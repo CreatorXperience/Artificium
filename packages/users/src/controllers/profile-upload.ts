@@ -13,7 +13,11 @@ const uploadProfile = async (c: Context) => {
   const max_size = 5 * 1024 * 1024;
 
   if (!file) {
-    return c.json({ message: 'no file uploaded' });
+    return c.json({ message: 'no file uploaded' }, 400);
+  }
+
+  if (file.size > max_size) {
+    return c.json({ message: 'file is larger than 5mb' }, 400);
   }
 
   const result = await cloudinary.api.resource(userId);
@@ -30,10 +34,6 @@ const uploadProfile = async (c: Context) => {
         }
       }
     );
-  }
-
-  if (file.size > max_size) {
-    return c.json({ message: 'file is larger than 5mb' });
   }
 
   const imageBuffer = await file.arrayBuffer();

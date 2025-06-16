@@ -3,10 +3,28 @@ import app from './workspaces';
 import { auth } from '@org/auth';
 import redis from 'redis';
 import { ObjectId } from 'mongodb';
+import { v2 as cloudinary } from 'cloudinary';
 
 const redisClient = redis.createClient();
 
 const prisma = new PrismaClient();
+
+jest.mock('cloudinary', () => ({
+  ...jest.requireActual('cloudinary'),
+  v2: {
+    config: jest.fn().mockResolvedValue(undefined),
+    api: {
+      resource: jest.fn().mockResolvedValue({ public_id: '' }),
+    },
+    uploader: {
+      destroy: jest.fn().mockResolvedValue(null),
+      upload: jest.fn().mockResolvedValue({
+        public_id: 'test_id',
+        secure_url: 'http://secure_cloudinary.com/test.jpg',
+      }),
+    },
+  },
+}));
 describe('/workspace', () => {
   let user;
   let userData;
@@ -942,7 +960,6 @@ describe('/workspace', () => {
           Cookie: user.headers.get('set-cookie'),
         },
       });
-      console.log(await res.json());
       expect(res.status).toBe(500);
     });
 
@@ -1069,7 +1086,6 @@ describe('/workspace', () => {
         headers: { Cookie: user.headers.get('set-cookie') },
       });
 
-      console.log(await res.json());
       expect(res.status).toBe(200);
 
       const removedMember = await prisma.projectMember.findUnique({
@@ -1346,7 +1362,6 @@ describe('/workspace', () => {
         headers: { Cookie: user.headers.get('set-cookie') },
       });
       workspace = await res.json();
-      console.log(workspace);
 
       // Get the current user’s workspace membership
       workspaceMember = await prisma.workspaceMember.findFirst({
@@ -1420,7 +1435,6 @@ describe('/workspace', () => {
     });
 
     test('should successfully update project member roles', async () => {
-      console.log('id', workspace.data.id);
       const res = await app.request('/workspace/project/role', {
         method: 'POST',
         body: JSON.stringify({
@@ -1442,7 +1456,6 @@ describe('/workspace', () => {
         headers: { Cookie: user.headers.get('set-cookie') },
       });
       const json = await res.json();
-      console.log(json);
       expect(res.status).toBe(200);
 
       // expect(json.message).toBe('Operation completed successfully');
@@ -1976,6 +1989,126 @@ describe('/workspace', () => {
       const json = await res.json();
       expect(json.message).toBe('message retrieved successfully');
       expect(json.data.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('POST /workspace/upload?workspaceId', () => {
+    let new_workspace;
+    beforeEach(async () => {
+      new_workspace = await prisma.workspace.create({
+        data: {
+          name: 'test workspace',
+          totalMembers: 1,
+          members: [userData.data.id],
+          owner: userData.data.id,
+        },
+      });
+    });
+    test('should return 400 if file is not found', async () => {
+      const res = await app.request(
+        `/workspace/upload?workspaceId=${new_workspace.id}`,
+        {
+          method: 'POST',
+          body: JSON.stringify({}),
+          headers: {
+            Cookie: user.headers.get('set-cookie'),
+          },
+        }
+      );
+      expect(cloudinary.config).toHaveBeenCalled();
+      expect(cloudinary.api.resource).not.toHaveBeenCalled();
+      expect(res.status).toBe(400);
+    });
+
+    test('should return 400 if file size is larger than 5mb', async () => {
+      const form = new FormData();
+      const bytes = 10 * 1024 * 1024;
+      const content = 'a'.repeat(bytes);
+      const blob = new Blob([content], { type: 'text/plain' });
+
+      const file = new File([blob], 'filename.txt', { type: 'text/plain' });
+      form.append('image', file);
+      const res = await app.request(
+        `/workspace/upload?workspaceId=${new_workspace.id}`,
+        {
+          method: 'POST',
+          body: form,
+          headers: {
+            Cookie: user.headers.get('set-cookie'),
+          },
+        }
+      );
+
+      expect(res.status).toBe(400);
+    });
+    test('should return 200 if file size is within 5mb', async () => {
+      const form = new FormData();
+      const bytes = 4 * 1024 * 1024;
+      const content = 'a'.repeat(bytes);
+      const blob = new Blob([content], { type: 'text/plain' });
+
+      const file = new File([blob], 'filename.txt', { type: 'text/plain' });
+      form.append('image', file);
+      const res = await app.request(
+        `/workspace/upload?workspaceId=${new_workspace.id}`,
+        {
+          method: 'POST',
+          body: form,
+          headers: {
+            Cookie: user.headers.get('set-cookie'),
+          },
+        }
+      );
+      expect(cloudinary.config).toHaveBeenCalled();
+      expect(cloudinary.api.resource).toHaveBeenCalled();
+      expect(cloudinary.api.resource).toHaveReturned();
+      expect(cloudinary.uploader.destroy).toHaveBeenCalled();
+      expect(cloudinary.uploader.upload).toHaveBeenCalled();
+      expect(res.status).toBe(200);
+    });
+
+    test('should return 200 if file size is within 5mb', async () => {
+      const form = new FormData();
+      const bytes = 4 * 1024 * 1024;
+      const content = 'a'.repeat(bytes);
+      const blob = new Blob([content], { type: 'text/plain' });
+
+      const file = new File([blob], 'filename.txt', { type: 'text/plain' });
+      form.append('image', file);
+      const invalidWorkspaceId = 1223434343;
+      const res = await app.request(
+        `/workspace/upload?workspaceId=${invalidWorkspaceId}`,
+        {
+          method: 'POST',
+          body: form,
+          headers: {
+            Cookie: user.headers.get('set-cookie'),
+          },
+        }
+      );
+      expect(res.status).toBe(400);
+    });
+
+    test('should return 404 if workspaceId is not attached to a workspace', async () => {
+      const form = new FormData();
+      const bytes = 4 * 1024 * 1024;
+      const content = 'a'.repeat(bytes);
+      const blob = new Blob([content], { type: 'text/plain' });
+
+      const file = new File([blob], 'filename.txt', { type: 'text/plain' });
+      form.append('image', file);
+      const workspaceId = new ObjectId().toHexString();
+      const res = await app.request(
+        `/workspace/upload?workspaceId=${workspaceId}`,
+        {
+          method: 'POST',
+          body: form,
+          headers: {
+            Cookie: user.headers.get('set-cookie'),
+          },
+        }
+      );
+      expect(res.status).toBe(404);
     });
   });
 });
