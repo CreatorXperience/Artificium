@@ -76,7 +76,7 @@ app.get('/:id', authMiddleWare, getWorkspace);
 
 app.post('/', authMiddleWare, createWorkspace);
 
-app.post('/', authMiddleWare, uploadWorkspaceImage);
+app.post('/upload', authMiddleWare, uploadWorkspaceImage);
 
 app.patch('/:id', authMiddleWare, updateWorkspace);
 

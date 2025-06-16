@@ -11,7 +11,6 @@ import {
   Redis,
   updateArtificiumMessagePayloadSchema,
   deleteArtificiumMessageValidator,
-  validateImageUpdateSchema,
   integration,
   projectMemberValidator,
   projectRoleValidator,
@@ -1595,22 +1594,31 @@ const createThread = async (c: Context) => {
 };
 
 const uploadWorkspaceImage = async (c: Context) => {
-  const req = await c.req.json();
-  const { error, data } = validateImageUpdateSchema(req);
-  if (error) {
-    return c.json(
-      { message: `Validation Error: ${error.errors[0].message}` },
-      400
-    );
+  const workspaceId = c.req.query('workspaceId');
+  if (!ObjectId.isValid(workspaceId)) {
+    return c.json({ message: 'invalid object id' }, 400);
   }
 
+  const getWorkspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+  });
+
+  if (!getWorkspace) {
+    return c.json({ message: 'workspace not found' }, 404);
+  }
   const user = c.var.getUser();
   const userId = user.id;
   const body = await c.req.parseBody({ dot: true });
   const file = body['image'] as File;
 
+  const max_size = 5 * 1024 * 1024;
+
   if (!file) {
-    return c.json('no file uploaded');
+    return c.json({ message: 'no file uploaded' }, 400);
+  }
+
+  if (file.size > max_size) {
+    return c.json({ message: 'file size greater than 5 mb' }, 400);
   }
 
   const result = await cloudinary.api.resource(userId);
@@ -1634,7 +1642,7 @@ const uploadWorkspaceImage = async (c: Context) => {
   const dataUri = `data:${file.type};base64,${base64}`;
 
   const workspace_result = await prisma.workspace.findUnique({
-    where: { owner: user.id, id: data.workspaceId },
+    where: { owner: user.id, id: workspaceId },
   });
 
   if (!workspace_result) {
@@ -1643,7 +1651,7 @@ const uploadWorkspaceImage = async (c: Context) => {
 
   const uploadResult = (await cloudinary.uploader
     .upload(dataUri, {
-      public_id: `${data.workspaceId}`,
+      public_id: `${workspaceId}`,
       folder: 'workspacess',
     })
     .catch((error) => {
@@ -1651,7 +1659,7 @@ const uploadWorkspaceImage = async (c: Context) => {
     })) as UploadApiResponse;
 
   const workspace = await prisma.workspace.update({
-    where: { owner: user.id, id: data.workspaceId },
+    where: { owner: user.id, id: workspaceId },
     data: { image: uploadResult.secure_url },
   });
 
