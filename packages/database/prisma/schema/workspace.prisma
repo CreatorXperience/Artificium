@@ -13,6 +13,7 @@ model Workspace {
     owner          String   @db.ObjectId
     plan           String?  @default("free")
     members        String[] @default([])
+    integrations   Json[]   @default([])
 }
 
 model WorkspaceMember {
