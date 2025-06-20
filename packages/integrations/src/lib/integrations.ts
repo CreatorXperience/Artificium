@@ -20,19 +20,25 @@ const main = async () => {
         if (!ObjectId.isValid(workspaceId)) {
             return c.json({ message: "Invalid workspace Id" }, 400)
         }
-        const slackInstallation = await prisma.slackInstallation.findUnique({ where: { workspaceId } })
-        if (slackInstallation) {
+
+        const [installation, integration] = await Promise.all([prisma.slackInstallation.findUnique({ where: { workspaceId } }), prisma.integration.findUnique({ where: { service: "slack", workspaceId } })
+        ])
+
+        if (installation) {
+            return c.json({ message: "slack is already installed on this workspace" })
+        }
+        if (integration) {
             return c.json({ message: "slack is already installed on this workspace" })
         }
         const queue = "slack_installation"
         channel.assertQueue(queue, {
-            durable: false
+            durable: true
         })
 
         channel.sendToQueue(queue, Buffer.from(workspaceId))
         console.log("[artificium-360] sent %s", workspaceId)
 
-        return c.redirect("https://53c1-105-112-26-102.ngrok-free.app/slack/install")
+        return c.redirect("https://ec39-105-112-193-98.ngrok-free.app/slack/install")
 
     })
 
