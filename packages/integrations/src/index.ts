@@ -1,1 +1,3 @@
-export * from './lib/integrations';
+import integration from "./lib/integrations"
+
+export { integration }

@@ -1,6 +1,6 @@
 model Integration {
-    id          String @id @default(auto()) @map("_id") @db.ObjectId
-    service     String
-    userId      String
-    credentials Json
+    id          String  @id @default(auto()) @map("_id") @db.ObjectId
+    service     String  @unique
+    status      Boolean
+    workspaceId String
 }

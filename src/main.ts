@@ -3,6 +3,7 @@ import { serve } from '@hono/node-server';
 import { auth } from '@org/auth';
 import { users } from '@org/users';
 import { workspace } from '@org/workspaces';
+import { integration } from "@org/integrations"
 import { Server } from 'socket.io';
 import { chatInGroups, chatWithArtificium, logger } from './socketUtils';
 import { MongoClient } from 'mongodb';
@@ -163,7 +164,17 @@ app.get('/me', (c) => {
   return c.json({ name: 'habeeb' });
 });
 
-app.route('/', auth);
-app.route('/', users);
-app.route('/', workspace);
+async function registerRoutes() {
+  const integrationRoute = await integration()
+  app.route('/', auth);
+  app.route('/', users);
+  app.route('/', workspace);
+  app.route("/", integrationRoute)
+}
+
+
+
+
+
+registerRoutes()
 export default app;

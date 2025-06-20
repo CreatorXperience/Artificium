@@ -22,7 +22,6 @@ import { Context } from 'hono';
 import { ObjectId } from 'mongodb';
 import logger from '../../utils/logger';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
-import { google } from 'googleapis';
 import EventEmitter from 'node:events';
 const redis = new Redis();
 
@@ -37,7 +36,7 @@ redis
 
 const prisma = new PrismaClient();
 
-class CustomEmitter extends EventEmitter {}
+class CustomEmitter extends EventEmitter { }
 
 const customEmitter = new CustomEmitter();
 
@@ -1474,13 +1473,13 @@ const deleteChatWithArtificium = async (c: Context) => {
   if (!msg) {
     const updated_data = data['deleteForAll']
       ? await prisma.artificiumChat.update({
-          where: { id: data.messageId },
-          data: { deletedForAll: true, timestamp: mTime },
-        })
+        where: { id: data.messageId },
+        data: { deletedForAll: true, timestamp: mTime },
+      })
       : await prisma.artificiumChat.update({
-          where: { id: data.messageId },
-          data: { deletedForMe: true, timestamp: mTime },
-        });
+        where: { id: data.messageId },
+        data: { deletedForMe: true, timestamp: mTime },
+      });
     return c.json({
       message: `message with the id ${updated_data.id} successfully deleted.`,
     });
@@ -1490,28 +1489,27 @@ const deleteChatWithArtificium = async (c: Context) => {
 
   const deleted = data['deleteForAll']
     ? await redis.client.LSET(
-        'new_message',
-        indexToUpdateAt,
-        JSON.stringify({
-          ...parsed_messages,
-          timestamp: mTime,
-          deletedForAll: true,
-        })
-      )
+      'new_message',
+      indexToUpdateAt,
+      JSON.stringify({
+        ...parsed_messages,
+        timestamp: mTime,
+        deletedForAll: true,
+      })
+    )
     : await redis.client.LSET(
-        'new_message',
-        indexToUpdateAt,
-        JSON.stringify({
-          ...parsed_messages,
-          timestamp: mTime,
-          deletedForMe: true,
-        })
-      );
+      'new_message',
+      indexToUpdateAt,
+      JSON.stringify({
+        ...parsed_messages,
+        timestamp: mTime,
+        deletedForMe: true,
+      })
+    );
 
   return c.json({
-    message: `message with the id ${
-      parsed_messages.id || JSON.parse(deleted).id
-    } successfully deleted`,
+    message: `message with the id ${parsed_messages.id || JSON.parse(deleted).id
+      } successfully deleted`,
   });
 };
 
@@ -1535,13 +1533,13 @@ const deleteUserChatInGroup = async (c: Context) => {
   if (!msg) {
     const updated_data = data['deleteForAll']
       ? await prisma.message.update({
-          where: { id: data.messageId },
-          data: { deletedForAll: true, timestamp: mTime },
-        })
+        where: { id: data.messageId },
+        data: { deletedForAll: true, timestamp: mTime },
+      })
       : await prisma.message.update({
-          where: { id: data.messageId },
-          data: { deletedForMe: true, timestamp: mTime },
-        });
+        where: { id: data.messageId },
+        data: { deletedForMe: true, timestamp: mTime },
+      });
     return c.json({
       message: `message with the id ${updated_data.id} successfully deleted.`,
     });
@@ -1551,28 +1549,27 @@ const deleteUserChatInGroup = async (c: Context) => {
 
   const deleted = data['deleteForAll']
     ? await redis.client.LSET(
-        'chat_messages',
-        indexToUpdateAt,
-        JSON.stringify({
-          ...parsed_messages,
-          timestamp: mTime,
-          deletedForAll: true,
-        })
-      )
+      'chat_messages',
+      indexToUpdateAt,
+      JSON.stringify({
+        ...parsed_messages,
+        timestamp: mTime,
+        deletedForAll: true,
+      })
+    )
     : await redis.client.LSET(
-        'chat_messages',
-        indexToUpdateAt,
-        JSON.stringify({
-          ...parsed_messages,
-          timestamp: mTime,
-          deletedForMe: true,
-        })
-      );
+      'chat_messages',
+      indexToUpdateAt,
+      JSON.stringify({
+        ...parsed_messages,
+        timestamp: mTime,
+        deletedForMe: true,
+      })
+    );
 
   return c.json({
-    message: `message with the id ${
-      parsed_messages.id || JSON.parse(deleted).id
-    } successfully deleted`,
+    message: `message with the id ${parsed_messages.id || JSON.parse(deleted).id
+      } successfully deleted`,
   });
 };
 
@@ -1666,53 +1663,53 @@ const uploadWorkspaceImage = async (c: Context) => {
   return c.json({ message: 'message uploaded successfully', data: workspace });
 };
 
-const createGmailIntegration = async (c: Context) => {
-  const userId = c.var.getUser().id;
-  const body = await c.req.json();
+// const createGmailIntegration = async (c: Context) => {
+//   const userId = c.var.getUser().id;
+//   const body = await c.req.json();
 
-  const { error, data } = integration.validateGmailIntegrationPayload(body);
-  if (error) {
-    return c.json(
-      { message: `Validation Error: ${error.errors[0].message}` },
-      400
-    );
-  }
+//   const { error, data } = integration.validateGmailIntegrationPayload(body);
+//   if (error) {
+//     return c.json(
+//       { message: `Validation Error: ${error.errors[0].message}` },
+//       400
+//     );
+//   }
 
-  const found = await prisma.integration.findFirst({
-    where: { service: 'gmail', userId: userId },
-  });
+//   const found = await prisma.integration.findFirst({
+//     where: { service: 'gmail', userId: userId },
+//   });
 
-  if (found) {
-    return c.json({ message: 'Integration success' });
-  }
-  const REDIRECT_URI =
-    process.env.NODE_ENV === 'development' ? 'http://localhost:5174' : '';
+//   if (found) {
+//     return c.json({ message: 'Integration success' });
+//   }
+//   const REDIRECT_URI =
+//     process.env.NODE_ENV === 'development' ? 'http://localhost:5174' : '';
 
-  const google_auth_client = new google.auth.OAuth2(
-    process.env.CLIENT_ID,
-    process.env.CLIENT_SECRET,
-    REDIRECT_URI
-  );
+//   const google_auth_client = new google.auth.OAuth2(
+//     process.env.CLIENT_ID,
+//     process.env.CLIENT_SECRET,
+//     REDIRECT_URI
+//   );
 
-  const {
-    tokens: { access_token, refresh_token },
-  } = await google_auth_client.getToken(data.code);
+//   const {
+//     tokens: { access_token, refresh_token },
+//   } = await google_auth_client.getToken(data.code);
 
-  console.log(process.env.CLIENT_ID, process.env.CLIENT_SECRET);
+//   console.log(process.env.CLIENT_ID, process.env.CLIENT_SECRET);
 
-  await prisma.integration.create({
-    data: {
-      service: 'gmail',
-      userId: userId,
-      credentials: {
-        access_token,
-        refresh_token,
-      },
-    },
-  });
+//   await prisma.integration.create({
+//     data: {
+//       service: 'gmail',
+//       userId: userId,
+//       credentials: {
+//         access_token,
+//         refresh_token,
+//       },
+//     },
+//   });
 
-  return c.json({ message: 'Integration success' });
-};
+//   return c.json({ message: 'Integration success' });
+// };
 
 export {
   getAllUserWorkspace,
@@ -1740,7 +1737,7 @@ export {
   deleteChatWithArtificium,
   deleteUserChatInGroup,
   createThread,
-  createGmailIntegration,
+  // createGmailIntegration,
   removeProjectMember,
   leaveProject,
   manageProjectRole,

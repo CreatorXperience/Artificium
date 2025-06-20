@@ -26,7 +26,7 @@ import {
   deleteUserChatInGroup,
   createThread,
   uploadWorkspaceImage,
-  createGmailIntegration,
+  // createGmailIntegration,
   getLoggedInUserWorkspaceMembership,
   getProjectMembership,
   joinProject,
@@ -134,7 +134,7 @@ app.delete('/chat/group', authMiddleWare, deleteUserChatInGroup);
 
 app.post('/chat/thread', authMiddleWare, createThread);
 
-app.post('/integration/google-oauth', authMiddleWare, createGmailIntegration);
+// app.post('/integration/google-oauth', authMiddleWare, createGmailIntegration);
 
 app.get('/new', (c) => {
   return c.json({ messages: 'workspace created  successfully', data: {} });

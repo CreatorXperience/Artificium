@@ -1,0 +1,7 @@
+model SlackInstallation {
+    id             String  @id @default(auto()) @map("_id") @db.ObjectId()
+    installation   String  @default("")
+    installationId String  @unique @default("")
+    workspaceId    String  @unique @default("")
+    connected      Boolean @default(false)
+}

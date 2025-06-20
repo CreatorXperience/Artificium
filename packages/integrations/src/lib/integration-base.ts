@@ -1,12 +1,12 @@
 type TIntegrationConfig = any;
 
 class IntegrationBase {
-  config: TIntegrationConfig;
-  constructor(config) {
-    this.config = config;
+  haswebhook: boolean;
+  constructor() {
+    this.haswebhook = false;
   }
 
-  connect<T>(data: T) {
+  connect(data: any) {
     console.log(data);
     throw new Error('connect not implemented');
   }

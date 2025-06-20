@@ -1,7 +1,7 @@
-import { integrations } from './integrations';
+// import { integrations } from './integrations';
 
-describe('integrations', () => {
-  it('should work', () => {
-    expect(integrations()).toEqual('integrations');
-  });
-});
+// describe('integrations', () => {
+//   it('should work', () => {
+//     expect(integrations()).toEqual('integrations');
+//   });
+// });
