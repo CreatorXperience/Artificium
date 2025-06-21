@@ -38,7 +38,7 @@ const main = async () => {
         channel.sendToQueue(queue, Buffer.from(workspaceId))
         console.log("[artificium-360] sent %s", workspaceId)
 
-        return c.redirect("https://ec39-105-112-193-98.ngrok-free.app/slack/install")
+        return c.redirect("https://d22a-105-112-181-42.ngrok-free.app/slack/install")
 
     })
 
@@ -87,6 +87,12 @@ const main = async () => {
     })
 
 
+
+    app.onError((err, c) => {
+        if (err) {
+            return c.json({ message: "error occured on the server", stack: process.env.NODE_ENV.includes("dev") ? err.stack : null })
+        }
+    })
     return app
 
 
