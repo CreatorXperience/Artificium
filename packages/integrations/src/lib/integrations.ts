@@ -42,6 +42,33 @@ const main = async () => {
 
     })
 
+    app.get("/command", async (c) => {
+        return c.json([
+            {
+                service: "gmail",
+                logo: "",
+                commands: [
+                    {
+                        alias: "/send-email",
+                        name: "send email",
+                        link: ""
+                    }
+                ]
+            },
+            {
+                service: "slack",
+                logo: "",
+                commands: [
+                    {
+                        alias: "/send-slack",
+                        name: "send slack message",
+                        link: ""
+                    }
+                ]
+            }
+        ])
+    })
+
     app.get("/", async (c) => {
 
         return c.json({
