@@ -170,6 +170,7 @@ async function registerRoutes() {
   app.route('/', users);
   app.route('/', workspace);
   app.route("/", integrationRoute)
+
 }
 
 
