@@ -43,10 +43,12 @@ import {
 } from '../../schema/artificiumMessage.schema';
 
 import { TInvite, validateInvitePayload } from '../../schema/invite.schema';
+import { validateSlackConfigPayload, validateSlackMsgPayload } from "../../schema/slack-message.schema"
 import usernameUpdateValidator from '../../schema/user.schema';
 import Redis from '../../redis/redis';
 import * as integration from '../../schema/integration.schema';
 import { v2 as cloudinary } from 'cloudinary';
+
 const prisma = new PrismaClient();
 
 const cloudinary_config = cloudinary.config({
@@ -104,4 +106,6 @@ export {
   validateInvitePayload,
   cloudinary_config,
   cloudinary,
+  validateSlackMsgPayload,
+  validateSlackConfigPayload
 };
