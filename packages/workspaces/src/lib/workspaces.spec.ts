@@ -1,11 +1,19 @@
 import { PrismaClient } from '@prisma/client';
-import app from './workspaces';
+import workspace from './workspaces';
 import { auth } from '@org/auth';
-import redis from 'redis';
 import { ObjectId } from 'mongodb';
 import { v2 as cloudinary } from 'cloudinary';
 
-const redisClient = redis.createClient();
+const app = workspace.getWorkspaceApp()
+
+jest.mock("redis", () => ({
+  ...jest.requireActual("redis"),
+  createClient: jest.fn().mockResolvedValue({
+    LRANGE: jest.fn(),
+    LPUSH: jest.fn(),
+    LSET: jest.fn(),
+  })
+}))
 
 const prisma = new PrismaClient();
 
@@ -647,8 +655,7 @@ describe('/workspace', () => {
     });
     test('should return 400 if any of the parameters id is invalid', async () => {
       const res = await app.request(
-        `/workspace/project/membership?workspaceId=${
-          newWorkspace.id
+        `/workspace/project/membership?workspaceId=${newWorkspace.id
         }&projectId=${32546757686}&workspaceMembershipId=${workspaceMember.id}`,
         {
           method: 'GET',
@@ -792,8 +799,7 @@ describe('/workspace', () => {
     });
     test('should return 400 if id are not valid ObjectId', async () => {
       const res = await app.request(
-        `/workspace/project/join?projectId=${
-          newProject.id
+        `/workspace/project/join?projectId=${newProject.id
         }&workspaceId=${12345566}`,
         {
           method: 'GET',

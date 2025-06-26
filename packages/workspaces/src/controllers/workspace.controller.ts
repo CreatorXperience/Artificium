@@ -11,11 +11,11 @@ import {
   Redis,
   updateArtificiumMessagePayloadSchema,
   deleteArtificiumMessageValidator,
-  integration,
   projectMemberValidator,
   projectRoleValidator,
   artificiumValidator,
   validateInvitePayload,
+  makeAdminSchemaValidator,
 } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Context } from 'hono';
@@ -30,8 +30,8 @@ redis
   .then(() => {
     logger.log({ level: 'info', message: 'connected to redis successfully' });
   })
-  .catch(() => {
-    logger.log('error', 'encountered an error while connecting to redis');
+  .catch((e) => {
+    logger.log('error', `encountered an error while connecting to redis: \n ${e}`);
   });
 
 const prisma = new PrismaClient();
@@ -90,7 +90,7 @@ const createWorkspace = async (c: Context) => {
   let workspace;
 
   await prisma.$transaction(async (tx) => {
-    const newMember = await tx.workspaceMember.create({
+    const workspaceMember = await tx.workspaceMember.create({
       data: {
         email: user.email,
         image: user.image,
@@ -107,7 +107,7 @@ const createWorkspace = async (c: Context) => {
       url: `http://localhost:3030/workspace/${workspaceID}`,
       totalMembers: 1,
       workspaceAdmin: [owner],
-      members: [newMember.id],
+      members: [workspaceMember.id],
       readAccess: [owner],
       writeAccess: [owner],
     };
@@ -117,6 +117,59 @@ const createWorkspace = async (c: Context) => {
         ...workspaceObj,
       },
     });
+
+    const projectId = new ObjectId().toHexString()
+
+    const projectMember = await tx.projectMember.create({
+      data: {
+        email: user.email,
+        image: user.image,
+        memberId: workspaceMember.id,
+        name: `${user.firstname} ${user.lastname}`,
+        projectId,
+        userId: owner,
+        workspaceId: workspace.id,
+        role: "owner"
+      }
+    })
+
+    const project = await tx.project.create({
+      data: {
+        id: projectId,
+        creator: owner,
+        name: "Welcome",
+        workspaceId: workspace.id,
+        members: [workspaceMember.id],
+        purpose: "A welcome project",
+      }
+    })
+
+    const channel = await tx.channel.create({
+      data: {
+        admin: owner,
+        name: " 👋🏼 Welcome Channel",
+        projectId: project.id,
+        workspaceId: workspace.id,
+        members: [projectMember.id]
+      }
+    })
+
+    await tx.channelMember.create({
+      data: {
+        channelId: channel.id,
+        email: user.email,
+        image: user.image,
+        memberId: projectMember.id,
+        name: `${user.firstname} ${user.lastname}`,
+        projectId,
+        userId: owner,
+        workspaceId: workspace.id,
+        role: "owner"
+      }
+    })
+
+
+
   });
 
   return c.json({ messages: 'workspace created', data: workspace });
@@ -170,10 +223,6 @@ const getLoggedInUserWorkspaceMembership = async (c: Context) => {
   if (!membership) {
     return c.json({ message: 'membership not found' }, 404);
   }
-
-  // if(workspace.id !== membership.workspaceId){
-  //   return
-  // }
   return c.json({
     message: 'membership retrieved successfully',
     data: membership,
@@ -855,6 +904,7 @@ const createChannel = async (c: Context) => {
                   userId,
                   projectId,
                   workspaceId,
+                  role: userId === creator ? "owner" : "editor"
                 },
               });
             }
@@ -909,7 +959,6 @@ const updateChannel = async (c: Context) => {
   return c.json({ message: 'channel updated successfully', data: channel });
 };
 //CHECK JoinChannel Middleware
-//test this code below !
 const joinChannel = async (c: Context) => {
   const { email, image, firstname, lastname, id } = c.var.getUser();
   const param = c.req.param();
@@ -963,7 +1012,6 @@ const joinChannel = async (c: Context) => {
   return c.json({ message: 'joined channel successfully', data: channel });
 };
 
-//test this code below !
 const leaveChannel = async (c: Context) => {
   const param = c.req.param();
 
@@ -1002,6 +1050,55 @@ const leaveChannel = async (c: Context) => {
 
   return c.json({ message: 'leaved channel successfully', data: channel });
 };
+
+
+// test this below !
+const getChannelMembership = async (c: Context) => {
+  const { userId, channelId, projectId, workspaceId } = c.req.query()
+  if (ObjectId.isValid(userId) && ObjectId.isValid(channelId) && ObjectId.isValid(projectId) && ObjectId.isValid(workspaceId)) {
+    const channelMember = await prisma.channelMember.findFirst({ where: { channelId, userId, projectId, workspaceId } })
+    if (!channelMember) {
+      return c.json({ message: "channel member not found" }, 404)
+    }
+    return c.json({ message: "channel membership retrieved successfully" })
+  }
+
+}
+
+// test this below !
+const getChannelMembers = async (c: Context) => {
+  const { channelId } = c.req.param()
+  const channelMembers = await prisma.channelMember.findMany({ where: { channelId } })
+
+  return c.json({ message: "channel members retrieved sucessfully", data: channelMembers })
+}
+
+
+// test this below
+
+const updateChannelMemberRole = async (c: Context) => {
+  const { id: user } = c.var.getUser()
+  const { channelId, channelMembershipId, role } = c.req.query()
+  if (role !== "admin" && role !== "editor" && role !== "viewer") {
+    return c.json({ message: "role must either be admin, editor or viewer" })
+  }
+
+  const channel = await prisma.channel.findUnique({ where: { id: channelId } })
+  if (!channel) {
+    return c.json({ message: "channel not found" }, 404)
+  }
+
+  if (channel.admin !== user) {
+    return c.json({ message: "Permission denied, not an admin" }, 401)
+  }
+
+  const channelMember = await prisma.channelMember.findUnique({ where: { id: channelMembershipId } })
+  if (!channelMember) {
+    return c.json({ message: "channel member not found" }, 404)
+  }
+  await prisma.channelMember.update({ where: { id: channelMembershipId }, data: { role: role } })
+
+}
 
 const joinChannelRequest = async (c: Context) => {
   const user = c.var.getUser();
@@ -1178,88 +1275,6 @@ const getArtificium = async (c: Context) => {
     data: artificium,
   });
 };
-
-// const chatWithArtificium = async (c: Context) => {
-//   const payload = await c.req.json();
-//   const { error, data } = artificiumMessagePayloadValidator(payload);
-
-//   if (error) {
-//     return c.json({ message: error.errors[0].message }, 400);
-//   }
-//   const message_length = await redis.client.LLEN('art_message');
-//   if (message_length >= MAX_CACHE_SIZE) {
-//     const messages = await redis.client.LRANGE('art_message', 0, 50);
-//     const parsed_messages = messages
-//       .map((message) => ({
-//         ...JSON.parse(message),
-//         timestamp: new Date(JSON.parse(message).timestamp),
-//       }))
-//       .reverse();
-//     await prisma.artificiumChat.createMany({
-//       data: [...parsed_messages],
-//     });
-
-//     await redis.client.LTRIM('art_message', 50, -1);
-//   }
-//   let artificiumId = data.artificiumId;
-//   if (!artificiumId) {
-//     const artificium = await prisma.artificium.create({
-//       data: {
-//         projectId: data.projectId,
-//         userId: data.userId,
-//         workspaceId: data.workspaceId,
-//       },
-//     });
-//     artificiumId = artificium.id;
-//   }
-
-//   await redis.client.LPUSH(
-//     'art_message',
-//     JSON.stringify({
-//       id: new ObjectId().toHexString(),
-//       timestamp: Date.now(),
-//       ...data,
-//       artificiumId,
-//     })
-//   );
-
-//   //send a request to the AI
-
-//   return c.json({ message: 'message sent successfully' });
-// };
-
-// const chatInGroups = async (c: Context) => {
-//   const payload = await c.req.json();
-//   const { error, data } = artificiumMessagePayloadValidator(payload);
-//   if (error) {
-//     return c.json({ message: error.errors[0].message }, 400);
-//   }
-//   const message_length = await redis.client.LLEN('chat_messages');
-//   if (message_length >= MAX_CACHE_SIZE) {
-//     const messages = await redis.client.LRANGE('chat_messages', 0, 50);
-//     const parsed_messages = messages
-//       .map((message) => ({
-//         ...JSON.parse(message),
-//         timestamp: new Date(JSON.parse(message).timestamp),
-//       }))
-//       .reverse();
-//     await prisma.message.createMany({
-//       data: [...parsed_messages],
-//     });
-
-//     await redis.client.LTRIM('chat_messages', 50, -1);
-//   }
-//   await redis.client.LPUSH(
-//     'chat_messages',
-//     JSON.stringify({
-//       id: new ObjectId().toHexString(),
-//       timestamp: Date.now(),
-//       ...data,
-//     })
-//   );
-
-//   return c.json({ message: 'message sent successfully' });
-// };
 
 const getUserChatWithArtificium = async (c: Context) => {
   const param = c.req.query();
@@ -1663,53 +1678,34 @@ const uploadWorkspaceImage = async (c: Context) => {
   return c.json({ message: 'message uploaded successfully', data: workspace });
 };
 
-// const createGmailIntegration = async (c: Context) => {
-//   const userId = c.var.getUser().id;
-//   const body = await c.req.json();
 
-//   const { error, data } = integration.validateGmailIntegrationPayload(body);
-//   if (error) {
-//     return c.json(
-//       { message: `Validation Error: ${error.errors[0].message}` },
-//       400
-//     );
-//   }
+// test this code below !
+const updateWorkspaceMemberRole = async (c: Context) => {
+  const user = c.var.getUser()
+  const req = await c.req.json()
 
-//   const found = await prisma.integration.findFirst({
-//     where: { service: 'gmail', userId: userId },
-//   });
+  const { error, data } = makeAdminSchemaValidator(req)
+  if (error) {
+    return c.json({ message: `Validation Error: ${error.errors[0].message}` }, 400)
+  }
 
-//   if (found) {
-//     return c.json({ message: 'Integration success' });
-//   }
-//   const REDIRECT_URI =
-//     process.env.NODE_ENV === 'development' ? 'http://localhost:5174' : '';
+  const workspace = await prisma.workspace.findUnique({ where: { id: data.workspaceId } })
+  if (workspace.owner !== user.id) {
+    return c.json({ message: "Permission Denied, Not the workspace admin" }, 401)
+  }
 
-//   const google_auth_client = new google.auth.OAuth2(
-//     process.env.CLIENT_ID,
-//     process.env.CLIENT_SECRET,
-//     REDIRECT_URI
-//   );
+  const member = await prisma.workspaceMember.findUnique({ where: { id: data.workspaceMembershipId, workspaceId: workspace.id } })
+  if (!member) {
+    return c.json({ message: "workspace membership not found" }, 404)
+  }
+  await prisma.workspaceMember.update({ where: { id: data.workspaceMembershipId, workspaceId: workspace.id }, data: { role: data.role } })
 
-//   const {
-//     tokens: { access_token, refresh_token },
-//   } = await google_auth_client.getToken(data.code);
+  return c.json({ message: "member role updated successfully" })
+}
 
-//   console.log(process.env.CLIENT_ID, process.env.CLIENT_SECRET);
 
-//   await prisma.integration.create({
-//     data: {
-//       service: 'gmail',
-//       userId: userId,
-//       credentials: {
-//         access_token,
-//         refresh_token,
-//       },
-//     },
-//   });
 
-//   return c.json({ message: 'Integration success' });
-// };
+
 
 export {
   getAllUserWorkspace,
@@ -1737,7 +1733,6 @@ export {
   deleteChatWithArtificium,
   deleteUserChatInGroup,
   createThread,
-  // createGmailIntegration,
   removeProjectMember,
   leaveProject,
   manageProjectRole,
@@ -1747,4 +1742,9 @@ export {
   joinProject,
   invitationWithLink,
   getArtificium,
+  redis,
+  updateWorkspaceMemberRole,
+  getChannelMembership,
+  getChannelMembers,
+  updateChannelMemberRole
 };

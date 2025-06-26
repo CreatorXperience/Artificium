@@ -12,6 +12,7 @@ import {
   TCreateWorkspace,
   updateWorkspaceValidator,
   TWorkspace,
+  makeAdminSchemaValidator
 } from '../../schema/workspace.schema';
 import { validateSession, TSession } from '../../schema/session.schema';
 import {
@@ -40,10 +41,11 @@ import {
   updateArtificiumMessagePayloadSchema,
   deleteArtificiumMessageValidator,
   artificiumValidator,
+  userMessagePayloadValidator
 } from '../../schema/artificiumMessage.schema';
 
 import { TInvite, validateInvitePayload } from '../../schema/invite.schema';
-import { validateSlackConfigPayload, validateSlackMsgPayload } from "../../schema/slack-message.schema"
+import { validateSlackConfigPayload, validateSlackMsgPayload, validateSlackSchedule } from "../../schema/slack-message.schema"
 import usernameUpdateValidator from '../../schema/user.schema';
 import Redis from '../../redis/redis';
 import * as integration from '../../schema/integration.schema';
@@ -107,5 +109,7 @@ export {
   cloudinary_config,
   cloudinary,
   validateSlackMsgPayload,
-  validateSlackConfigPayload
+  validateSlackSchedule,
+  validateSlackConfigPayload, userMessagePayloadValidator,
+  makeAdminSchemaValidator
 };

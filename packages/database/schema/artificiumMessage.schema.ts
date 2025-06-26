@@ -8,7 +8,7 @@ const artificiumMessageSchema = z.object({
   threadId: z.string({ message: 'property threadID is required' }),
   workspaceId: z.string({ message: 'property workspaceId is required' }),
   artificiumId: z.string({ message: 'property artificiumId is required' }),
-  channelId: z.string({ message: 'property channelId is required' }),
+  // channelId: z.string({ message: 'property channelId is required' }),
 });
 
 const artificiumMessageUpdateSchema = z.object({
@@ -43,6 +43,21 @@ const artificiumMessagePayloadValidator = (payload: TArtficiumMessage) => {
   return artificiumMessageSchema.required().safeParse(payload);
 };
 
+
+const userMessageSchema = z.object({
+  projectId: z.string({ message: 'property projectId is required' }),
+  userId: z.string({ message: 'property userId is required' }),
+  text: z.string({ message: 'property text is required' }),
+  user: z.string({ message: 'property user is required' }),
+  threadId: z.string({ message: 'property threadID is required' }),
+  channelId: z.string({ message: 'property channelId is required' }),
+});
+
+type TUserMessage = Required<z.infer<typeof userMessageSchema>>;
+const userMessagePayloadValidator = (payload: TUserMessage) => {
+  return userMessageSchema.required().safeParse(payload);
+};
+
 const updateArtificiumMessagePayloadSchema = (payload: TArtficiumMessage) => {
   return artificiumMessageUpdateSchema.required().safeParse(payload);
 };
@@ -69,4 +84,5 @@ export {
   updateArtificiumMessagePayloadSchema,
   deleteArtificiumMessageValidator,
   artificiumValidator,
+  userMessagePayloadValidator
 };
