@@ -17,7 +17,7 @@ const SERVER_URIS = {
 }
 
 const main = async () => {
-    let channel
+    let channel: amqp.Channel
     try {
         const connection = await amqp.connect(amqpServer)
         channel = await connection.createChannel()
@@ -108,7 +108,10 @@ const main = async () => {
                 if (error) {
                     return c.json({ message: `Validation Error: ${error.errors[0].message}` })
                 }
-                c.redirect(`${SERVER_URIS.slack}/slack/schedule?workspaceId=${decodeURIComponent(data.workspaceId)}&text=${decodeURIComponent(data.text)}&channel=${decodeURIComponent(data.channel)}&post_at=${decodeURIComponent(data.post_at)}`)
+                const q = "slack-schedule"
+                channel.assertQueue(q, { durable: true })
+                const content = Buffer.from(JSON.stringify(data))
+                channel.sendToQueue(q, content, { persistent: true })
             })
 
             app.get("/slack/channels/:workspaceId", async (c) => {
