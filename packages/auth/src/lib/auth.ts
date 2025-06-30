@@ -1,4 +1,3 @@
-import { Hono } from 'hono';
 import {
   login,
   logout,
@@ -10,9 +9,14 @@ import {
 } from '../controllers/auth.controller';
 import auth from '../middlewares/auth.middleware';
 import customFormat from '../utils/customFormat';
+import { swaggerUI } from "@hono/swagger-ui"
 import winston = require('winston');
-
-const app = new Hono().basePath('/auth');
+import { OpenAPIHono } from '@hono/zod-openapi'
+import loginRouteDoc from '../docs/swagger-routes/login';
+import signupRoute from '../docs/swagger-routes/signup';
+import otpRoute from '../docs/swagger-routes/otp';
+import verifyOtpRoute from '../docs/swagger-routes/verifyOtp';
+const app = new OpenAPIHono().basePath('/auth');
 
 winston.createLogger({
   level: 'error',
@@ -34,6 +38,20 @@ winston.createLogger({
   ],
 });
 
+app.openapi(loginRouteDoc, login as never)
+app.openapi(signupRoute, signup as never)
+app.openapi(otpRoute, sendOtp as never)
+app.openapi(verifyOtpRoute, verifyOtp as never)
+
+app.get("/ui", swaggerUI({ url: "/auth/docs" }))
+
+app.doc("docs", {
+  info: {
+    title: "Artificium Auth swagger docs",
+    version: "v1"
+  },
+  openapi: "3.1.0"
+})
 app.post('/login', login);
 
 app.post('/signup', signup);

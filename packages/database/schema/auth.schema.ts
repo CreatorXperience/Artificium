@@ -23,7 +23,7 @@ type TAuth = Required<z.infer<typeof user>>;
 
 const loginSchemaValidator = (userPayload: Partial<TAuth>) => {
   const reqUser = user
-    .partial({ firstname: true, lastname: true })
+    .omit({ firstname: true, lastname: true })
     .required({ email: true, password: true });
   return reqUser.safeParse(userPayload);
 };
@@ -50,4 +50,5 @@ export {
   TAuth,
   forgotPasswordValidator,
   resetPassValidator,
+  user
 };

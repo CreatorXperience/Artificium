@@ -5,8 +5,9 @@ import {
   forgotPasswordValidator,
   TAuth,
   resetPassValidator,
+  user
 } from '../../schema/auth.schema';
-import { validateOtp, TOtp } from '../../schema/otp.schema';
+import { validateOtp, TOtp, otp } from '../../schema/otp.schema';
 import {
   workspaceValidator,
   TCreateWorkspace,
@@ -111,5 +112,7 @@ export {
   validateSlackMsgPayload,
   validateSlackSchedule,
   validateSlackConfigPayload, userMessagePayloadValidator,
-  makeAdminSchemaValidator
+  makeAdminSchemaValidator,
+  user,
+  otp
 };

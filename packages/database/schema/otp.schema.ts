@@ -16,4 +16,4 @@ const validateOtp = (payload: z.infer<typeof otp>) => {
   return newOtp.safeParse(payload);
 };
 
-export { validateOtp, TOtp };
+export { validateOtp, TOtp, otp };

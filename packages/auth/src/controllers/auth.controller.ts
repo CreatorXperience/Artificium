@@ -26,6 +26,7 @@ const login = async (c: Context<BlankEnv, '/auth/login', BlankInput>) => {
 
   if (data.error) {
     c.status(400);
+    console.log(data.error.errors[0].message)
     return c.json({
       status: 400,
       message: data.error.errors[0].message,
@@ -241,6 +242,8 @@ const forgotPassword = async (c: Context) => {
     },
   });
 
+
+
   return c.json({
     message: 'forgotten password successfully, check your email',
     status: 200,
@@ -261,6 +264,9 @@ const resetPassword = async (c: Context) => {
   const forgot = await prisma.forgot.findUnique({
     where: { email: payload.email },
   });
+  if (!forgot) {
+    return c.json({ message: "forgot password token not found" })
+  }
   const currentTime = Math.floor(Date.now());
 
   const ONE_HOUR = 60 * 60 * 1000;
@@ -290,6 +296,10 @@ const resetPassword = async (c: Context) => {
     where: { email: payload.email },
     data: { password: hash },
   });
+
+  await prisma.forgot.delete({
+    where: { email: payload.email }
+  })
 
   return c.json({
     message: 'password updated successfully',
