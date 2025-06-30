@@ -26,7 +26,7 @@ import {
   deleteUserChatInGroup,
   createThread,
   uploadWorkspaceImage,
-  // createGmailIntegration,
+  redis,
   getLoggedInUserWorkspaceMembership,
   getProjectMembership,
   joinProject,
@@ -34,6 +34,10 @@ import {
   leaveProject,
   removeProjectMember,
   manageProjectRole,
+  updateWorkspaceMemberRole,
+  getChannelMembership,
+  getChannelMembers,
+  updateChannelMemberRole
 } from '../controllers/workspace.controller';
 import winston from 'winston';
 
@@ -58,95 +62,108 @@ winston.createLogger({
 });
 const app = new Hono().basePath('/workspace');
 
-app.get('/', authMiddleWare, getAllUserWorkspace);
+const workspace = {
+  getWorkspaceApp: () => {
+    app.get('/', authMiddleWare, getAllUserWorkspace);
 
-app.get('/members', authMiddleWare, getWorkspaceMembers);
+    app.get('/members', authMiddleWare, getWorkspaceMembers);
 
-app.get(
-  '/membership/:workspaceId',
-  authMiddleWare,
-  getLoggedInUserWorkspaceMembership
-);
+    app.get(
+      '/membership/:workspaceId',
+      authMiddleWare,
+      getLoggedInUserWorkspaceMembership
+    );
 
-app.post('/join', authMiddleWare, joinWorkspace);
+    app.post('/join', authMiddleWare, joinWorkspace);
 
-app.post('/leave', authMiddleWare, leaveworkspace);
+    app.post('/leave', authMiddleWare, leaveworkspace);
 
-app.get('/:id', authMiddleWare, getWorkspace);
+    app.get('/:id', authMiddleWare, getWorkspace);
 
-app.post('/', authMiddleWare, createWorkspace);
+    app.post('/', authMiddleWare, createWorkspace);
 
-app.post('/upload', authMiddleWare, uploadWorkspaceImage);
+    app.post("/admin", authMiddleWare, updateWorkspaceMemberRole)
 
-app.patch('/:id', authMiddleWare, updateWorkspace);
+    app.post('/upload', authMiddleWare, uploadWorkspaceImage);
 
-app.post('/project', authMiddleWare, createNewWorkspaceProject);
+    app.patch('/:id', authMiddleWare, updateWorkspace);
 
-app.get('/project/membership', authMiddleWare, getProjectMembership);
+    app.post('/project', authMiddleWare, createNewWorkspaceProject);
 
-app.get('/project/join', authMiddleWare, joinProject);
+    app.get('/project/membership', authMiddleWare, getProjectMembership);
 
-app.post('/project/role', authMiddleWare, manageProjectRole);
+    app.get('/project/join', authMiddleWare, joinProject);
 
-app.delete('/project/me/leave', authMiddleWare, leaveProject);
+    app.post('/project/role', authMiddleWare, manageProjectRole);
 
-app.delete('/project/member/remove', authMiddleWare, removeProjectMember);
+    app.delete('/project/me/leave', authMiddleWare, leaveProject);
 
-app.post('/project/invitation', authMiddleWare, invitationWithLink);
+    app.delete('/project/member/remove', authMiddleWare, removeProjectMember);
 
-app.get('/project/:workspaceId', authMiddleWare, getAllWorskpaceProjects);
+    app.post('/project/invitation', authMiddleWare, invitationWithLink);
 
-app.patch('/project/:projectId', authMiddleWare, updateProject);
+    app.get('/project/:workspaceId', authMiddleWare, getAllWorskpaceProjects);
 
-app.get('/channel/:projectId', authMiddleWare, getAllProjectChannel);
+    app.patch('/project/:projectId', authMiddleWare, updateProject);
 
-app.post('/channel', authMiddleWare, createChannel);
+    app.get('/channel/:projectId', authMiddleWare, getAllProjectChannel);
 
-app.patch('/channel/:channelId', authMiddleWare, updateChannel);
+    app.get("/channel/membership", authMiddleWare, getChannelMembership)
 
-app.post('/channel/join/:channelId/:userId', authMiddleWare, joinChannel);
+    app.get("/channel/members/:channelId", authMiddleWare, getChannelMembers)
 
-app.post('/channel/leave/:channelId/:userId', authMiddleWare, leaveChannel);
+    app.post('/channel', authMiddleWare, createChannel);
 
-app.post('/channel/request', authMiddleWare, joinChannelRequest);
+    app.patch('/channel/:channelId', authMiddleWare, updateChannel);
 
-app.post(
-  '/channel/request/action',
-  authMiddleWare,
-  acceptOrRevokeJoinChannelReq
-);
+    app.patch("/channel/member/role", authMiddleWare, updateChannelMemberRole)
 
-// app.post('/chat/artificium', authMiddleWare, chatWithArtificium);
+    app.post('/channel/join/:channelId/:userId', authMiddleWare, joinChannel);
 
-app.get('/chat/artificium', authMiddleWare, getUserChatWithArtificium);
+    app.post('/channel/leave/:channelId/:userId', authMiddleWare, leaveChannel);
 
-app.patch('/chat/artificium', authMiddleWare, updateUserChatWithArtificium);
+    app.post('/channel/request', authMiddleWare, joinChannelRequest);
 
-app.delete('/chat/artificium', authMiddleWare, deleteChatWithArtificium);
+    app.post(
+      '/channel/request/action',
+      authMiddleWare,
+      acceptOrRevokeJoinChannelReq
+    );
 
-// app.post('/chat/group', authMiddleWare, chatInGroups);
 
-app.get('/chat/group', authMiddleWare, getUsersChat);
+    app.get('/chat/artificium', authMiddleWare, getUserChatWithArtificium);
 
-app.patch('/chat/group', authMiddleWare, updateUserChatInGroups);
+    app.patch('/chat/artificium', authMiddleWare, updateUserChatWithArtificium);
 
-app.delete('/chat/group', authMiddleWare, deleteUserChatInGroup);
+    app.delete('/chat/artificium', authMiddleWare, deleteChatWithArtificium);
 
-app.post('/chat/thread', authMiddleWare, createThread);
+    app.get('/chat/group', authMiddleWare, getUsersChat);
 
-// app.post('/integration/google-oauth', authMiddleWare, createGmailIntegration);
+    app.patch('/chat/group', authMiddleWare, updateUserChatInGroups);
 
-app.get('/new', (c) => {
-  return c.json({ messages: 'workspace created  successfully', data: {} });
-});
+    app.delete('/chat/group', authMiddleWare, deleteUserChatInGroup);
 
-app.onError((err, c) => {
-  return c.json(
-    {
-      message: err.message || 'Internal Server Error',
-      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    },
-    500
-  );
-});
-export default app;
+    app.post('/chat/thread', authMiddleWare, createThread);
+
+    app.get('/new', (c) => {
+      return c.json({ messages: 'workspace created  successfully', data: {} });
+    });
+
+    app.onError((err, c) => {
+      return c.json(
+        {
+          message: err.message || 'Internal Server Error',
+          stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+        },
+        500
+      );
+    });
+
+
+    return app
+  },
+  getRedis: () => redis
+}
+
+
+export default workspace;

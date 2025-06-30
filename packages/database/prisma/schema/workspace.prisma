@@ -23,6 +23,7 @@ model WorkspaceMember {
     email       String
     image       String
     workspaceId String @db.ObjectId
+    role        String @default("member")
 }
 
 model Project {
@@ -101,6 +102,7 @@ model Message {
     deletedForMe  Boolean  @default(false)
     deletedForAll Boolean  @default(false)
     threadId      String
+    attachement   String[] @default([])
 }
 
 model Artificium {

@@ -1,7 +1,8 @@
-import { artificiumMessagePayloadValidator, Redis } from '@org/database';
+import { artificiumMessagePayloadValidator, userMessagePayloadValidator } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Emitter } from '@socket.io/mongo-emitter';
 import { ObjectId } from 'mongodb';
+import { workspace } from "@org/workspaces"
 
 import { DefaultEventsMap } from 'socket.io';
 import winston from 'winston';
@@ -18,20 +19,14 @@ const logger = new winston.Logger({
   transports: new winston.transports.Console(),
 });
 
-const redis = new Redis();
 
 const prisma = new PrismaClient();
 
 const MAX_CACHE_SIZE = 2;
 
-redis
-  .connect()
-  .then(() => {
-    logger.log({ level: 'info', message: 'connected to redis successfully' });
-  })
-  .catch(() => {
-    logger.log('error', 'encountered an error while connecting to redis');
-  });
+
+
+const redis = workspace.getRedis()
 
 winston.createLogger({
   level: 'error',
@@ -47,7 +42,7 @@ winston.createLogger({
 
 const chatWithArtificium = async (
   payload: any,
-  socket: Emitter<DefaultEventsMap, DefaultEventsMap>
+  socket: Emitter<DefaultEventsMap, DefaultEventsMap>,
 ) => {
   const { error, data } = artificiumMessagePayloadValidator(payload);
   if (error) {
@@ -86,16 +81,17 @@ const chatWithArtificium = async (
 
   //send a request to the AI then emit the response
 
-  socket.emit('art_message_success', {
+
+  socket.to(data.userId).emit("new_art_message", {
     message: '📤 message sent successfully',
-  });
+  })
 };
 
 const chatInGroups = async (
   payload: any,
-  socket: Emitter<DefaultEventsMap, DefaultEventsMap>
+  socket: Emitter<DefaultEventsMap, DefaultEventsMap>,
 ) => {
-  const { error, data } = artificiumMessagePayloadValidator(payload);
+  const { error, data } = userMessagePayloadValidator(payload);
   if (error) {
     return socket.emit('socket-validation-error', {
       message: error.errors[0].message,
@@ -106,10 +102,12 @@ const chatInGroups = async (
   if (message_length >= MAX_CACHE_SIZE) {
     const messages = await redis.client.LRANGE('chat_messages', 0, 50);
     const parsed_messages = messages
-      .map((message) => ({
-        ...JSON.parse(message),
-        timestamp: new Date(JSON.parse(message).timestamp),
-      }))
+      .map((message) => {
+        return {
+          ...JSON.parse(message),
+          timestamp: new Date(JSON.parse(message).timestamp),
+        }
+      })
       .reverse();
     await prisma.message.createMany({
       data: [...parsed_messages],
@@ -117,10 +115,12 @@ const chatInGroups = async (
 
     await redis.client.LTRIM('chat_messages', 50, -1);
   }
+
+  const messageId = new ObjectId().toHexString()
   await redis.client.LPUSH(
     'chat_messages',
     JSON.stringify({
-      id: new ObjectId().toHexString(),
+      id: messageId,
       timestamp: Date.now(),
       ...data,
     })
@@ -130,7 +130,7 @@ const chatInGroups = async (
     //send a request to the AI and return the response then emit the response
   }
 
-  socket.emit('success', { message: '📤 message sent successfully' });
+  socket.to(data.channelId).emit("new_message", { message: '📤 message sent successfully', data: { messageId } });
 };
 
 export { chatWithArtificium, chatInGroups, logger };

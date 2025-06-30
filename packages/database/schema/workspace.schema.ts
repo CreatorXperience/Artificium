@@ -1,19 +1,5 @@
 import z, { SafeParseReturnType } from 'zod';
 
-// id             String   @id @default(auto()) @map("_id") @db.ObjectId
-// url            String?  @unique @default("")
-// visibility     Boolean  @default(false)
-// readAccess     Json?
-// writeAccess    Json?
-// totalMembers   Int
-// name           String
-// description    String?  @default("")
-// RandR          String?  @default("")
-// image          String?  @default("https://i.pinimg.com/736x/4e/38/e7/4e38e73208c8a9c2410e4f1d9cb90ee5.jpg")
-// workspaceAdmin Json
-// members        String[]
-// owner          String   @db.ObjectId
-// plan           String?  @default("free")
 const createWorkspace = z.object({
   visibility: z.boolean().optional().default(false),
   name: z
@@ -52,9 +38,21 @@ const updateWorkspaceValidator = (payload: TWorkspace) => {
   return workspace.partial().safeParse(payload);
 };
 
+
+const makeAdminSchema = z.object({
+  workspaceId: z.string({ message: "property workspaceId is required" }),
+  workspaceMembershipId: z.string({ message: "property workspaceMembershipId is required" }),
+  role: z.enum(["admin", "viewer", 'editor'])
+})
+
+type TMakeAdminSchemaPayload = Required<z.infer<typeof makeAdminSchema>>
+const makeAdminSchemaValidator = (payload: TMakeAdminSchemaPayload) => {
+  return makeAdminSchema.required().safeParse(payload)
+}
 export {
   workspaceValidator,
   TCreateWorkspace,
   updateWorkspaceValidator,
   TWorkspace,
+  makeAdminSchemaValidator
 };
