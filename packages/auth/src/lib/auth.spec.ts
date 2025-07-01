@@ -1,5 +1,5 @@
 import app from './auth';
-import {} from '@org/database';
+import { } from '@org/database';
 import hashPassword from '../utils/hashPassword';
 import prisma from '../../jest.setup';
 import _ from 'lodash';
@@ -326,12 +326,12 @@ describe('POST reset-password', () => {
   test('should return 404 if password expire', async () => {
     const ONE_HOUR = 60 * 60 * 1000;
     const forgotResBody = await forgotRes.json();
-    const forgot = await prisma.forgot.findUnique({
+    const forgot = await prisma.forgot.findFirst({
       where: { email: newUser.email },
     });
 
     await prisma.forgot.update({
-      where: { email: newUser.email },
+      where: { email: newUser.email, id: forgot.id },
       data: { ttl: `${+forgot.ttl - ONE_HOUR}` },
     });
     const reset = await app.request('/auth/reset-password', {
@@ -361,7 +361,7 @@ describe('POST reset-password', () => {
   test('should return 200 if payload is correct', async () => {
     const NEW_PASS = 'newpass';
 
-    const forgot = await prisma.forgot.findUnique({
+    const forgot = await prisma.forgot.findFirst({
       where: { email: newUser.email },
     });
 

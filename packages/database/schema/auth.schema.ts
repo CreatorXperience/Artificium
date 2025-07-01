@@ -1,7 +1,7 @@
 import z from 'zod';
 
 const user = z.object({
-  email: z.string({ message: 'email is required' }),
+  email: z.string({ message: 'email is required' }).email({ message: "must be a valid email" }),
   password: z
     .string({ message: 'password is required' })
     .min(6, { message: 'password not long enough' }),
@@ -10,7 +10,7 @@ const user = z.object({
 });
 
 const resetPassPayload = z.object({
-  email: z.string({ message: 'email is required and must be a string' }),
+  email: z.string({ message: 'email is required and must be a string' }).email({ message: "must be a valid email" }),
   token: z.string({ message: 'invalid token' }),
   password: z
     .string({ message: 'password is required' })
@@ -34,7 +34,7 @@ const signupSchemaValidator = (userPayload: TAuth) => {
 
 const forgotPasswordValidator = (userPayload: Partial<TAuth>) => {
   const forgotPassUser = user
-    .partial({ firstname: true, lastname: true, password: true })
+    .omit({ firstname: true, lastname: true, password: true })
     .required({ email: true });
 
   return forgotPassUser.safeParse(userPayload);

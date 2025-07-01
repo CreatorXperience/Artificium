@@ -76,7 +76,7 @@ const login = async (c: Context<BlankEnv, '/auth/login', BlankInput>) => {
 
 const logout = async (c: Context<BlankEnv, '/auth/login', BlankInput>) => {
   deleteCookie(c, 'signed_key');
-  return c.json({ messaage: 'cookie removed successfully', status: 200 });
+  return c.json({ messaage: 'cookie removed successfully' });
 };
 
 const signup = async (c: Context<BlankEnv, '/auth/signup', BlankInput>) => {
@@ -149,7 +149,8 @@ const verifyOtp = async (c: Context) => {
     Required<database.TOtp>,
     'id' | 'userId' | 'expiresIn' | 'createdAt'
   > = await c.req.json();
-  const userId = c.var.getUser().id;
+  const user = c.var.getUser()
+  const userId = user.id
   const data = database.validateOtp(otpPayload);
   if (data.error) {
     c.status(400);
@@ -187,23 +188,19 @@ const verifyOtp = async (c: Context) => {
       c.status(404);
       return c.json({ message: 'Incorrect or Malformed otp ', status: 404 });
     }
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+
 
     if (user) {
-      const newUser = { ...user, isVerified: true };
-      await prisma.user.update({
-        data: _.omit(newUser, ['id']),
+      const user = await prisma.user.update({
+        data: { isVerified: true },
         where: { id: userId },
       });
       c.status(200);
       await prisma.otp.deleteMany({ where: { userId: userId } });
-      return c.json({ message: 'otp verified successfully', user: newUser });
+      return c.json({ message: 'otp verified successfully', user: _.omit(user, "password") });
     }
   } else {
     await prisma.otp.deleteMany({ where: { userId: userId } });
-    console.log('3');
     return c.json({ message: 'otp expired' });
   }
 };
@@ -261,11 +258,13 @@ const resetPassword = async (c: Context) => {
     return c.json({ message: data.error.errors[0].message });
   }
 
-  const forgot = await prisma.forgot.findUnique({
+  const forgot = await prisma.forgot.findFirst({
     where: { email: payload.email },
   });
   if (!forgot) {
-    return c.json({ message: "forgot password token not found" })
+    return c.json({
+      message: " forgot session expired"
+    }, 404)
   }
   const currentTime = Math.floor(Date.now());
 
@@ -279,13 +278,12 @@ const resetPassword = async (c: Context) => {
     c.status(404);
     return c.json({
       message: 'forgot password token expired try again',
-      status: 404,
     });
   }
 
   if (!(forgot.hash === payload.token)) {
     c.status(400);
-    return c.json({ message: 'bad token, try again', status: 400 });
+    return c.json({ message: 'bad token, try again', });
   }
 
   const salt = await bcrypt.genSalt(10);
@@ -298,7 +296,7 @@ const resetPassword = async (c: Context) => {
   });
 
   await prisma.forgot.delete({
-    where: { email: payload.email }
+    where: { id: forgot.id, email: forgot.email }
   })
 
   return c.json({

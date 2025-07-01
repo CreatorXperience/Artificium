@@ -13,7 +13,8 @@ import {
   TCreateWorkspace,
   updateWorkspaceValidator,
   TWorkspace,
-  makeAdminSchemaValidator
+  makeAdminSchemaValidator,
+  workspace
 } from '../../schema/workspace.schema';
 import { validateSession, TSession } from '../../schema/session.schema';
 import {
@@ -22,6 +23,7 @@ import {
   projectUpdateValidator,
   projectMemberValidator,
   projectRoleValidator,
+  project
 } from '../../schema/project.schema';
 
 import {
@@ -114,5 +116,7 @@ export {
   validateSlackConfigPayload, userMessagePayloadValidator,
   makeAdminSchemaValidator,
   user,
-  otp
+  otp,
+  workspace,
+  project
 };

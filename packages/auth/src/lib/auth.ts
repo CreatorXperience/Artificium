@@ -16,6 +16,9 @@ import loginRouteDoc from '../docs/swagger-routes/login';
 import signupRoute from '../docs/swagger-routes/signup';
 import otpRoute from '../docs/swagger-routes/otp';
 import verifyOtpRoute from '../docs/swagger-routes/verifyOtp';
+import forgotPasswordRoute from '../docs/swagger-routes/forgotPassword';
+import resetPasswordRoute from '../docs/swagger-routes/resetPassword';
+import logoutRoute from '../docs/swagger-routes/logout';
 const app = new OpenAPIHono().basePath('/auth');
 
 winston.createLogger({
@@ -42,8 +45,12 @@ app.openapi(loginRouteDoc, login as never)
 app.openapi(signupRoute, signup as never)
 app.openapi(otpRoute, sendOtp as never)
 app.openapi(verifyOtpRoute, verifyOtp as never)
+app.openapi(forgotPasswordRoute, forgotPassword as never)
+app.openapi(resetPasswordRoute, resetPassword as never)
+app.openapi(logoutRoute, logout as never)
 
-app.get("/ui", swaggerUI({ url: "/auth/docs" }))
+
+app.get("/swagger", swaggerUI({ url: "/auth/docs" }))
 
 app.doc("docs", {
   info: {

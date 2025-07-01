@@ -60,6 +60,9 @@ const getAllUserWorkspace = async (c: Context) => {
 const getWorkspace = async (c: Context) => {
   const id = c.req.param('id');
   const workspace = await prisma.workspace.findUnique({ where: { id } });
+  if (!workspace) {
+    return c.json({ message: 'workspace not found' }, 404)
+  }
 
   c.status(200);
   return c.json({ messages: 'success', data: workspace });
@@ -74,7 +77,6 @@ const createWorkspace = async (c: Context) => {
     c.status(400);
     return c.json({
       message: `Validation Error: ${data.error.errors[0].message}`,
-      status: 400,
     });
   }
 
@@ -561,6 +563,8 @@ const invitationWithLink = async (c: Context) => {
           workspaceId: project.workspaceId,
         },
       });
+
+      await tx.workspace.update({ where: { id: project.workspaceId }, data: { members: { push: userId } } })
     }
 
     let projectMember = await tx.projectMember.findFirst({
@@ -669,6 +673,9 @@ const leaveProject = async (c: Context) => {
           });
         })
       );
+
+
+
     });
 
     return c.json({
@@ -729,13 +736,40 @@ const removeProjectMember = async (c: Context) => {
       data: { members: filter_members },
     });
 
-    await prisma.projectMember.delete({
+    await tx.projectMember.delete({
       where: {
         id: projectMembership.id,
         projectId: data.projectID,
         memberId: data.workspaceMembershipId,
       },
     });
+
+    const affectedChannels = await tx.channel.findMany({
+      where: {
+        members: { hasSome: [data.projectMembershipId] },
+      },
+      select: { id: true, members: true },
+    });
+
+    await Promise.all(
+      affectedChannels.map((channel) => {
+        const newMembers = channel.members.filter(
+          (id) => id !== data.projectMembershipId
+        );
+        return tx.channel.update({
+          where: { id: channel.id },
+          data: { members: newMembers },
+        });
+      })
+    );
+
+
+    await tx.channelMember.deleteMany({
+      where: {
+        memberId: data.projectMembershipId,
+        projectId: data.projectID
+      }
+    })
   });
 
   return c.json({

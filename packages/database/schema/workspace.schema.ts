@@ -19,7 +19,7 @@ const workspace = z.object({
   name: z.string(),
   description: z.string(),
   randr: z.string(),
-  image: z.string(),
+  image: z.string().url({ message: "not a valid url" }),
   workspaceAdmin: z.array(z.string()),
   members: z.array(z.string()),
   plan: z.string(),
@@ -54,5 +54,5 @@ export {
   TCreateWorkspace,
   updateWorkspaceValidator,
   TWorkspace,
-  makeAdminSchemaValidator
+  makeAdminSchemaValidator, workspace
 };

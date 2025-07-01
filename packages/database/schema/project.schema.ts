@@ -15,7 +15,7 @@ const project = z.object({
       }),
       name: z.string({ message: 'name is required' }),
       email: z.string({ message: 'email is required' }),
-      image: z.string({ message: 'image is required' }),
+      image: z.string({ message: 'image is required' }).url({ message: "not a valid url" }),
       workspaceId: z.string({ message: 'workspaceId is required' }),
       userId: z.string({ message: 'userId is required' }).length(24, {
         message: 'property userId must be exactly 24 in length',
@@ -40,9 +40,9 @@ const projectUpdateValidator = (
     .partial()
     .omit({ members: true })
     .safeParse(payload) as z.SafeParseReturnType<
-    Omit<TProject, 'members'>,
-    Omit<TProject, 'members'>
-  >;
+      Omit<TProject, 'members'>,
+      Omit<TProject, 'members'>
+    >;
 };
 
 const projectMember = z.object({
@@ -126,4 +126,5 @@ export {
   projectUpdateValidator,
   projectMemberValidator,
   projectRoleValidator,
+  project
 };

@@ -4,12 +4,12 @@ import z from "zod"
 
 const verifyOtpRoute = createRoute({
     method: 'post',
-    path: '/auth/verify-otp',
+    path: '/verify-otp',
     request: {
         body: {
             content: {
                 'application/json': {
-                    schema: otp
+                    schema: otp.omit({ createdAt: true, expiresIn: true, userId: true })
                 }
             }
         }

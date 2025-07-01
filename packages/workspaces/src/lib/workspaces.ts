@@ -39,7 +39,25 @@ import {
   getChannelMembers,
   updateChannelMemberRole
 } from '../controllers/workspace.controller';
+import { OpenAPIHono } from '@hono/zod-openapi';
 import winston from 'winston';
+import { swaggerUI } from '@hono/swagger-ui';
+import getAllUserWorkspaceRoute from '../docs/swagger-docs/getAllUserWorkspace';
+import getWorkspaceMembersRoute from '../docs/swagger-docs/getWorkspaceMembers';
+import getLoggedInUserWorkspaceMembershipRoute from '../docs/swagger-docs/getLoggedUserWorkspaceMembership';
+import joinWorkspaceRoute from '../docs/swagger-docs/joinWorkspace';
+import leaveWorkspaceRoute from '../docs/swagger-docs/leaveWorkspace';
+import getWorkspaceRoute from '../docs/swagger-docs/getWorkspace';
+import createWorkspaceRoute from '../docs/swagger-docs/createWorkspace';
+import updateWorkspaceMemberRoleRoute from '../docs/swagger-docs/updateWorkspaceMembershipRole';
+import uploadWorkspaceImageRoute from '../docs/swagger-docs/uploadWorkspaceImage';
+import updateWorkspaceRoute from '../docs/swagger-docs/updateWorkspace';
+import createNewWorkspaceProjectRoute from '../docs/swagger-docs/createNewWorkspaceProject';
+import getProjectMembershipRoute from '../docs/swagger-docs/getProjectMembership';
+import joinProjectRoute from '../docs/swagger-docs/joinProject';
+import leaveProjectRoute from '../docs/swagger-docs/leaveProject';
+import removeProjectMemberRoute from '../docs/swagger-docs/removeProjectMember';
+import invitationWithLinkRoute from '../docs/swagger-docs/invitationIWithLink';
 
 winston.createLogger({
   level: 'error',
@@ -60,7 +78,39 @@ winston.createLogger({
     new winston.transports.Console({ level: 'info' }),
   ],
 });
-const app = new Hono().basePath('/workspace');
+const app = new OpenAPIHono().basePath('/workspace');
+
+
+
+app.get("/swagger", swaggerUI({ url: "/workspace/docs" }))
+
+
+app.doc("/docs", {
+  info: {
+    title: "workspace API Documentation",
+    version: "v1",
+    description: ' Api documentation for workspace packages',
+  }, openapi: "3.1.0"
+})
+
+
+
+app.openapi(getAllUserWorkspaceRoute, getAllUserWorkspace as never)
+app.openapi(getWorkspaceMembersRoute, getWorkspaceMembers as never)
+app.openapi(getLoggedInUserWorkspaceMembershipRoute, getLoggedInUserWorkspaceMembership as never)
+app.openapi(joinWorkspaceRoute, joinWorkspace as never)
+app.openapi(leaveWorkspaceRoute, leaveworkspace as never)
+app.openapi(getWorkspaceRoute, getWorkspace as never)
+app.openapi(createWorkspaceRoute, createWorkspace as never)
+app.openapi(updateWorkspaceMemberRoleRoute, updateWorkspaceMemberRole as never)
+app.openapi(uploadWorkspaceImageRoute, uploadWorkspaceImage as never)
+app.openapi(updateWorkspaceRoute, updateWorkspace as never)
+app.openapi(createNewWorkspaceProjectRoute, createNewWorkspaceProject as never)
+app.openapi(getProjectMembershipRoute, getProjectMembership as never)
+app.openapi(joinProjectRoute, joinProject as never)
+app.openapi(leaveProjectRoute, leaveProject as never)
+app.openapi(removeProjectMemberRoute, removeProjectMember as never)
+app.openapi(invitationWithLinkRoute, invitationWithLink as never)
 
 const workspace = {
   getWorkspaceApp: () => {
@@ -82,7 +132,7 @@ const workspace = {
 
     app.post('/', authMiddleWare, createWorkspace);
 
-    app.post("/admin", authMiddleWare, updateWorkspaceMemberRole)
+    app.post("/member/update-role", authMiddleWare, updateWorkspaceMemberRole)
 
     app.post('/upload', authMiddleWare, uploadWorkspaceImage);
 
@@ -94,7 +144,7 @@ const workspace = {
 
     app.get('/project/join', authMiddleWare, joinProject);
 
-    app.post('/project/role', authMiddleWare, manageProjectRole);
+    app.post('/project/role', authMiddleWare, manageProjectRole);   // Modify this endpoint logic before creating swagger docs
 
     app.delete('/project/me/leave', authMiddleWare, leaveProject);
 

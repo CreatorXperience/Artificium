@@ -11,7 +11,7 @@ type TOtp = z.infer<typeof otp>;
 
 const validateOtp = (payload: z.infer<typeof otp>) => {
   const newOtp = otp
-    .partial({ userId: true, expiresIn: true, createdAt: true })
+    .omit({ userId: true, expiresIn: true, createdAt: true })
     .required({ otp: true });
   return newOtp.safeParse(payload);
 };
