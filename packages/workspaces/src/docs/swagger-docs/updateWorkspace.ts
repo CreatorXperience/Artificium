@@ -77,8 +77,4 @@ const updateWorkspaceRoute = createRoute({
     }
 })
 
-// -------------------------
-// EXPORT
-// -------------------------
-
 export default updateWorkspaceRoute

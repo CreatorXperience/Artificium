@@ -37,7 +37,7 @@ import {
   channelReqValidator,
 } from '../../schema/channelReq.shema';
 
-import { acceptOrRejectReqValidator } from '../../schema/acceptOrRejReq.schema';
+import { acceptOrRejectReqValidator, acceptOrRejectValidator } from '../../schema/acceptOrRejReq.schema';
 import isHex from '../../utils/isHex';
 import {
   artificiumMessagePayloadValidator,
@@ -118,5 +118,6 @@ export {
   user,
   otp,
   workspace,
+  acceptOrRejectValidator,
   project
 };

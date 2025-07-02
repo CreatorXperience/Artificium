@@ -65,18 +65,7 @@ const updateArtificiumMessagePayloadSchema = (payload: TArtficiumMessage) => {
 type TDeleteMessageSchema = z.infer<typeof artificiumMessageDeleteSchema>;
 const deleteArtificiumMessageValidator = (payload: TDeleteMessageSchema) => {
   return artificiumMessageDeleteSchema
-    .required()
-    .or(
-      z
-        .object({
-          messageId: z.string({ message: 'property messageId is required' }),
-          deleteForMe: z.boolean({
-            message: 'property deleteForMe must be a string',
-          }),
-        })
-        .required()
-    )
-    .safeParse(payload);
+    .required().safeParse(payload);
 };
 
 export {

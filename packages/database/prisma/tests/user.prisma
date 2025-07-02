@@ -12,7 +12,7 @@ model User {
 model Forgot {
   id     String @id @default(auto()) @map("_id") @db.ObjectId
   hash   String
-  userId String @unique
-  email  String @unique
+  userId String
+  email  String
   ttl    String
 }

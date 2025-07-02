@@ -41,13 +41,15 @@ winston.createLogger({
   ],
 });
 
-app.openapi(loginRouteDoc, login as never)
-app.openapi(signupRoute, signup as never)
-app.openapi(otpRoute, sendOtp as never)
-app.openapi(verifyOtpRoute, verifyOtp as never)
-app.openapi(forgotPasswordRoute, forgotPassword as never)
-app.openapi(resetPasswordRoute, resetPassword as never)
-app.openapi(logoutRoute, logout as never)
+if (process.env.NODE_ENV !== "development") {
+  app.openapi(loginRouteDoc, login as never)
+  app.openapi(signupRoute, signup as never)
+  app.openapi(otpRoute, sendOtp as never)
+  app.openapi(verifyOtpRoute, verifyOtp as never)
+  app.openapi(forgotPasswordRoute, forgotPassword as never)
+  app.openapi(resetPasswordRoute, resetPassword as never)
+  app.openapi(logoutRoute, logout as never)
+}
 
 
 app.get("/swagger", swaggerUI({ url: "/auth/docs" }))

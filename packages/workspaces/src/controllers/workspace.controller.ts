@@ -16,6 +16,7 @@ import {
   artificiumValidator,
   validateInvitePayload,
   makeAdminSchemaValidator,
+  acceptOrRejectValidator,
 } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Context } from 'hono';
@@ -802,7 +803,7 @@ const updateProject = async (c: Context) => {
 
   return c.json({ message: 'project updated successfully', data: project });
 };
-
+// rewrite this controller below
 const manageProjectRole = async (c: Context) => {
   const body = await c.req.json();
   const { error, data } = projectRoleValidator(body);
@@ -1049,40 +1050,41 @@ const joinChannel = async (c: Context) => {
 const leaveChannel = async (c: Context) => {
   const param = c.req.param();
 
-  if (!param['channelId'] || !param['projectMemberId']) {
-    return c.json({ message: 'incomplete parameter' });
+  if (ObjectId.isValid(param['channelId']) && ObjectId.isValid(param['projectMemberId']) && ObjectId.isValid(param['channelMemberId'])) {
+    const data = await prisma.channel.findUnique({
+      where: { id: param['channelId'] },
+    });
+
+    if (!data) {
+      return c.json({ message: 'channel not found' }, 404);
+    }
+
+    const filteredMember = data.members.filter(
+      (item) => item !== param['projectMemberId']
+    );
+
+    let channel;
+
+    await prisma.$transaction(async (tx) => {
+      const [channelUpdate] = await Promise.all([
+        tx.channel.update({
+          where: { id: param['channelId'] },
+          data: { members: filteredMember },
+        }),
+
+        tx.channelMember.delete({
+          where: { id: param['channelMemberId'] },
+        }),
+      ]);
+
+      channel = channelUpdate;
+    });
+
+    return c.json({ message: 'leaved channel successfully', data: channel });
   }
-
-  const data = await prisma.channel.findUnique({
-    where: { id: param['channelId'] },
-  });
-
-  if (!data) {
-    return c.json({ message: 'channel not found' }, 404);
+  else {
+    return c.json({ message: "Invalid parameter" }, 400)
   }
-
-  const filteredMember = data.members.filter(
-    (item) => item !== param['projectMemberId']
-  );
-
-  let channel;
-
-  await prisma.$transaction(async (tx) => {
-    const [channelUpdate] = await Promise.all([
-      tx.channel.update({
-        where: { id: param['channelId'] },
-        data: { members: filteredMember },
-      }),
-
-      tx.channelMember.delete({
-        where: { id: param['channelMemberId'] },
-      }),
-    ]);
-
-    channel = channelUpdate;
-  });
-
-  return c.json({ message: 'leaved channel successfully', data: channel });
 };
 
 
@@ -1096,6 +1098,7 @@ const getChannelMembership = async (c: Context) => {
     }
     return c.json({ message: "channel membership retrieved successfully" })
   }
+  return c.json({ message: "Invalid query Params" }, 400)
 
 }
 
@@ -1182,10 +1185,9 @@ const joinChannelRequest = async (c: Context) => {
       }
 
       customEmitter.emit('inapp-notification', [
-        JSON.stringify({
+        JSON.stringify([{
           userId: data.toAdmin,
-          notificationId: notification.id,
-        }),
+        }]),
       ]);
     });
   } catch (e) {
@@ -1200,7 +1202,15 @@ const joinChannelRequest = async (c: Context) => {
 
 const acceptOrRevokeJoinChannelReq = async (c: Context) => {
   const adminId = c.var.getUser().id;
-  const query = c.req.query();
+  const body = await c.req.json();
+
+
+  const { error, data } = acceptOrRejectValidator(body)
+
+  if (error) {
+    return c.json({ message: `Validation Error ${error.errors[0].message}` }, 400)
+  }
+
   const {
     userId,
     channelId,
@@ -1208,7 +1218,7 @@ const acceptOrRevokeJoinChannelReq = async (c: Context) => {
     workspaceId,
     projectId,
     projectMembershipId,
-  } = query;
+  } = data;
 
   if (!userId || !channelId || !signal) {
     return c.json({ message: 'Incomplete query parameters' }, 400);
@@ -1311,8 +1321,8 @@ const getArtificium = async (c: Context) => {
 };
 
 const getUserChatWithArtificium = async (c: Context) => {
-  const param = c.req.query();
-  if (!param['projectId'] && !param['userId']) {
+  const q = c.req.query();
+  if (!q['projectId'] && !q['userId']) {
     return c.json(
       {
         message: "parameter 'projectId' and 'userId' are required",
@@ -1339,12 +1349,12 @@ const getUserChatWithArtificium = async (c: Context) => {
     .map((message) => JSON.parse(message))
     .filter(
       (message) =>
-        message.projectId === param['projectId'] &&
-        message.userId === param['userId']
+        message.projectId === q['projectId'] &&
+        message.userId === q['userId']
     )
     .reverse();
   const dbMessages = await prisma.artificiumChat.findMany({
-    where: { projectId: param['projectId'], userId: param['userId'] },
+    where: { projectId: q['projectId'], userId: q['userId'] },
   });
 
   const groupMessages = [...dbMessages, ...cacheMessages];
@@ -1738,6 +1748,24 @@ const updateWorkspaceMemberRole = async (c: Context) => {
 }
 
 
+const get_notification = async (c: Context) => {
+  const userId = c.var.getUser().id
+
+  const notifications = await prisma.notification.findMany({ where: { userId } })
+
+  return c.json({ message: "notifications retrieved successfully", data: notifications })
+}
+
+
+const MarkNotificationAsSeen = async (c: Context) => {
+  const notificationId = c.req.param("notificationId")
+  if (!ObjectId.isValid(notificationId)) {
+    return c.json({ message: "invalid notification id", }, 400)
+  }
+
+  await prisma.notification.update({ where: { id: notificationId }, data: { status: true } })
+  return c.json({ message: "seen notification" })
+}
 
 
 
@@ -1780,5 +1808,7 @@ export {
   updateWorkspaceMemberRole,
   getChannelMembership,
   getChannelMembers,
-  updateChannelMemberRole
+  updateChannelMemberRole,
+  get_notification,
+  MarkNotificationAsSeen
 };
