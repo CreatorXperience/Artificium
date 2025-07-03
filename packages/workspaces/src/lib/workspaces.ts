@@ -114,8 +114,7 @@ app.doc("/docs", {
 })
 
 
-
-if (process.env.NODE_ENV !== "development") {
+if (process.env.NODE_ENV == "development" || process.env.NODE_ENV == "production") {
   app.openapi(getAllUserWorkspaceRoute, getAllUserWorkspace as never)
   app.openapi(getWorkspaceMembersRoute, getWorkspaceMembers as never)
   app.openapi(getLoggedInUserWorkspaceMembershipRoute, getLoggedInUserWorkspaceMembership as never)
