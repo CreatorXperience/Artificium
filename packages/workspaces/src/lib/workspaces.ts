@@ -38,7 +38,8 @@ import {
   getChannelMembers,
   updateChannelMemberRole,
   get_notification,
-  MarkNotificationAsSeen
+  MarkNotificationAsSeen,
+  updateProjectMembershipRole
 } from '../controllers/workspace.controller';
 import { OpenAPIHono } from '@hono/zod-openapi';
 import winston from 'winston';
@@ -191,6 +192,8 @@ const workspace = {
     app.delete('/project/me/leave', authMiddleWare, leaveProject);
 
     app.delete('/project/member/remove', authMiddleWare, removeProjectMember);
+
+    app.put("/project/member/role", authMiddleWare, updateProjectMembershipRole) // create swagger for  this lates
 
     app.post('/project/invitation', authMiddleWare, invitationWithLink);
 
