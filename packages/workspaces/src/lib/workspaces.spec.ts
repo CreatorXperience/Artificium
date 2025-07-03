@@ -3,17 +3,11 @@ import workspace from './workspaces';
 import { auth } from '@org/auth';
 import { ObjectId } from 'mongodb';
 import { v2 as cloudinary } from 'cloudinary';
+import redis from "redis-mock"
 
 const app = workspace.getWorkspaceApp()
+redis.createClient()
 
-jest.mock("redis", () => ({
-  ...jest.requireActual("redis"),
-  createClient: jest.fn().mockResolvedValue({
-    LRANGE: jest.fn(),
-    LPUSH: jest.fn(),
-    LSET: jest.fn(),
-  })
-}))
 
 const prisma = new PrismaClient();
 
@@ -1625,6 +1619,7 @@ describe('/workspace', () => {
     let newProject;
     let newChannel;
     let projectMember;
+    let channelMember
     beforeEach(async () => {
       await prisma.$transaction(async (tx) => {
         newWorkspace = await tx.workspace.create({
@@ -1677,12 +1672,29 @@ describe('/workspace', () => {
             admin: userData.data.id,
           },
         });
+
+        channelMember = await tx.channelMember.create({
+          data: {
+            channelId: newChannel.id,
+            email: userData.data.email,
+            image: userData.data.image,
+            memberId: projectMember.id,
+            name: userData.data.firstname,
+            projectId: newProject.id,
+            userId: userData.data.id,
+            workspaceId: newWorkspace.id
+          }
+        })
       });
     });
 
     afterEach(async () => {
       await prisma.workspace.deleteMany();
       await prisma.project.deleteMany();
+      await prisma.workspaceMember.deleteMany()
+      await prisma.projectMember.deleteMany()
+      await prisma.channel.deleteMany()
+      await prisma.channelMember.deleteMany()
       await prisma.$disconnect();
     });
 
@@ -1717,9 +1729,9 @@ describe('/workspace', () => {
 
     test('should return 200 when leaving a channel successfully', async () => {
       const res = await app.request(
-        `/workspace/channel/leave/${newChannel.id}/${userData.data.id}`,
+        `/workspace/channel/leave/${newChannel.id}/${userData.data.id}/${channelMember.id}`,
         {
-          method: 'POST',
+          method: 'delete',
           headers: { Cookie: user.headers.get('set-cookie') },
         }
       );
@@ -1770,17 +1782,21 @@ describe('/workspace', () => {
 
       expect(req.status).toBe(200);
       const res = await app.request(
-        `/workspace/channel/request/action?userId=${userData.data.id}&channelId=${newChannel.id}&signal=accept&workspaceId=${newWorkspace.id}&projectId=${newProject.id}&projectMembershipId=${projectMember.id}`,
+        `/workspace/channel/request/action`,
         {
           method: 'POST',
           body: JSON.stringify({
-            signal: 'revoke',
+            signal: 'reject',
             userId: userData.data.id,
             channelId: newChannel.id,
+            workspaceId: newWorkspace.id,
+            projectId: newProject.id,
+            projectMembershipId: projectMember.id,
           }),
           headers: { Cookie: user.headers.get('set-cookie') },
         }
       );
+
       expect(res.status).toBe(200);
     });
 
@@ -1800,13 +1816,16 @@ describe('/workspace', () => {
       });
       expect(req.status).toBe(200);
       const res = await app.request(
-        `/workspace/channel/request/action?userId=${userData.data.id}&channelId=${newChannel.id}&signal=reject&workspaceId=${newWorkspace.id}&projectId=${newProject.id}&projectMembershipId=${projectMember.id}`,
+        `/workspace/channel/request/action`,
         {
           method: 'POST',
           body: JSON.stringify({
-            signal: 'revoke',
+            signal: 'reject',
             userId: userData.data.id,
             channelId: newChannel.id,
+            workspaceId: newWorkspace.id,
+            projectId: newProject.id,
+            projectMembershipId: projectMember.id,
           }),
           headers: { Cookie: user.headers.get('set-cookie') },
         }
@@ -1982,7 +2001,7 @@ describe('/workspace', () => {
       });
 
       const res = await app.request(
-        `/workspace/chat/artificium?projectId=${projectId}`,
+        `/workspace/chat/artificium?projectId=${projectId}&userId=${userId}`,
         {
           method: 'GET',
           headers: {

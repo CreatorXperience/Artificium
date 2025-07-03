@@ -31,15 +31,16 @@ const channel = z.object({
   ),
 });
 
+
 type TChannel = z.infer<typeof channel>;
 
 const channelValidator = (payload: TChannel) => {
   return channel
     .partial({ visibility: true })
     .safeParse(payload) as SafeParseReturnType<
-    Required<TChannel>,
-    Required<TChannel>
-  >;
+      Required<TChannel>,
+      Required<TChannel>
+    >;
 };
 
 const channelUpdateValidator = (payload: TChannel) => {
@@ -47,8 +48,8 @@ const channelUpdateValidator = (payload: TChannel) => {
     .partial()
     .omit({ members: true })
     .safeParse(payload) as z.SafeParseReturnType<
-    Omit<TChannel, 'members'>,
-    Omit<TChannel, 'members'>
-  >;
+      Omit<TChannel, 'members'>,
+      Omit<TChannel, 'members'>
+    >;
 };
 export { TChannel, channelValidator, channelUpdateValidator };

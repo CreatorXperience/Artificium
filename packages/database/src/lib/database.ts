@@ -5,14 +5,16 @@ import {
   forgotPasswordValidator,
   TAuth,
   resetPassValidator,
+  user
 } from '../../schema/auth.schema';
-import { validateOtp, TOtp } from '../../schema/otp.schema';
+import { validateOtp, TOtp, otp } from '../../schema/otp.schema';
 import {
   workspaceValidator,
   TCreateWorkspace,
   updateWorkspaceValidator,
   TWorkspace,
-  makeAdminSchemaValidator
+  makeAdminSchemaValidator,
+  workspace
 } from '../../schema/workspace.schema';
 import { validateSession, TSession } from '../../schema/session.schema';
 import {
@@ -21,6 +23,7 @@ import {
   projectUpdateValidator,
   projectMemberValidator,
   projectRoleValidator,
+  project
 } from '../../schema/project.schema';
 
 import {
@@ -34,7 +37,7 @@ import {
   channelReqValidator,
 } from '../../schema/channelReq.shema';
 
-import { acceptOrRejectReqValidator } from '../../schema/acceptOrRejReq.schema';
+import { acceptOrRejectReqValidator, acceptOrRejectValidator } from '../../schema/acceptOrRejReq.schema';
 import isHex from '../../utils/isHex';
 import {
   artificiumMessagePayloadValidator,
@@ -111,5 +114,10 @@ export {
   validateSlackMsgPayload,
   validateSlackSchedule,
   validateSlackConfigPayload, userMessagePayloadValidator,
-  makeAdminSchemaValidator
+  makeAdminSchemaValidator,
+  user,
+  otp,
+  workspace,
+  acceptOrRejectValidator,
+  project
 };

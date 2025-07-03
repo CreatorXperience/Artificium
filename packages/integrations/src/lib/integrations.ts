@@ -155,6 +155,11 @@ const main = async () => {
                                 alias: "/send-email",
                                 name: "send email",
                                 link: ""
+                            },
+                            {
+                                alias: "/draft-email",
+                                name: "send email",
+                                link: ""
                             }
                         ]
                     },

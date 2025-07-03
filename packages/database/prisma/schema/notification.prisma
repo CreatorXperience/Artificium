@@ -4,4 +4,7 @@ model Notification {
     text      String
     link      String
     userId    String
+    status    Boolean  @default(false)
+    ttl       String   @default("deleteAfterAMonth")
+    createdAt DateTime @default(now())
 }

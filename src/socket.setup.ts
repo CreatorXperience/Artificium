@@ -59,16 +59,15 @@ const setupSocket = (app: Hono<BlankEnv, BlankSchema, "/">) => {
 
                     socket.on('subscribe', (userId) => {
                         socket.join(userId);
-                        console.log('registration successfull');
                     });
-                    socket.on('get_notification', async (userId) => {
-                        const notification = await prisma.notification.findMany({
-                            where: { userId: userId },
+                    socket.on('get_new_notification', async (userId) => {
+                        const notification = await prisma.notification.findFirst({
+                            where: { userId: userId, status: false },
                         });
-                        if (notification && notification.length > 0) {
-                            return emitter.to(userId).emit(JSON.stringify(notification));
+                        if (notification) {
+                            return emitter.to(userId).emit(JSON.stringify(notification))
                         }
-                        emitter.to(userId).emit('Empty notification');
+                        emitter.to(userId).emit(null);
                     });
 
                     socket.on('online', (payload: Omit<TOnline, 'socketId'>) => {
@@ -111,23 +110,15 @@ const setupSocket = (app: Hono<BlankEnv, BlankSchema, "/">) => {
                     });
                 });
 
-                customEmitter.on('inapp-notification', async (members_id: string) => {
-                    const parsed_member_id = JSON.parse(members_id) as Array<{
+                customEmitter.on('inapp-notification', async (data: string) => {
+                    const notifications = JSON.parse(data) as Array<{
                         userId: string;
-                        notificationId: string;
                     }>;
-                    for (const memberNotification of parsed_member_id) {
-                        const notification = await prisma.notification.findUnique({
-                            where: {
-                                id: memberNotification.notificationId,
-                                userId: memberNotification.userId,
-                            },
-                        });
-
+                    notifications.forEach((data) => {
                         emitter
-                            .to(memberNotification.userId)
-                            .emit('new_notification', JSON.stringify(notification));
-                    }
+                            .to(data.userId)
+                            .emit('new_notification', "new notifications");
+                    })
                 });
 
 
