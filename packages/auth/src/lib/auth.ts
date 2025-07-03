@@ -41,7 +41,7 @@ winston.createLogger({
   ],
 });
 
-if (process.env.NODE_ENV !== "development") {
+if (process.env.NODE_ENV == "development" || process.env.NODE_ENV == "production") {
   app.openapi(loginRouteDoc, login as never)
   app.openapi(signupRoute, signup as never)
   app.openapi(otpRoute, sendOtp as never)

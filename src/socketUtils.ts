@@ -6,6 +6,7 @@ import { workspace } from "@org/workspaces"
 
 import { DefaultEventsMap } from 'socket.io';
 import winston from 'winston';
+import axios from 'axios';
 
 const logger = new winston.Logger({
   level: 'info',
@@ -22,7 +23,9 @@ const logger = new winston.Logger({
 
 const prisma = new PrismaClient();
 
-const MAX_CACHE_SIZE = 2;
+const MAX_CACHE_SIZE = process.env.NODE_ENV === "development" ? 2 : 50;
+const MIN_CACHE_SIZE = 0
+const LLM_SERVER = "http://localhost:6000"
 
 
 
@@ -56,7 +59,7 @@ const chatWithArtificium = async (
   }
   const message_length = await redis.client.LLEN('art_message');
   if (message_length >= MAX_CACHE_SIZE) {
-    const messages = await redis.client.LRANGE('art_message', 0, 50);
+    const messages = await redis.client.LRANGE('art_message', MIN_CACHE_SIZE, MAX_CACHE_SIZE);
     const parsed_messages = messages
       .map((message) => ({
         ...JSON.parse(message),
@@ -100,7 +103,7 @@ const chatInGroups = async (
   }
   const message_length = await redis.client.LLEN('chat_messages');
   if (message_length >= MAX_CACHE_SIZE) {
-    const messages = await redis.client.LRANGE('chat_messages', 0, 50);
+    const messages = await redis.client.LRANGE('chat_messages', MIN_CACHE_SIZE, MAX_CACHE_SIZE);
     const parsed_messages = messages
       .map((message) => {
         return {
@@ -127,7 +130,33 @@ const chatInGroups = async (
   );
 
   if (data.text.includes('@artificium')) {
-    //send a request to the AI and return the response then emit the response
+    // a sendrequest to the AI and return the response then emit the response
+    const messages = await redis.client.LRANGE("chat_messages", MIN_CACHE_SIZE, MAX_CACHE_SIZE)
+    const db_messages = await prisma.message.findMany({ where: { threadId: data.threadId } })
+
+    let parsed_msg
+    if (messages) {
+      const current_chat_thread_messages = messages.filter((message) => JSON.parse(message).threadId === data.threadId)
+      parsed_msg = current_chat_thread_messages.map((message) => {
+        return JSON.parse(message)
+      })
+    }
+
+    let llm_message_req = []
+    if (parsed_msg.length && db_messages.length) {
+      llm_message_req = [...parsed_msg, ...db_messages]
+    }
+    else if (parsed_msg.length && !db_messages.length) {
+      llm_message_req = [...parsed_msg]
+    }
+    else if (db_messages.length && !parsed_msg.length) {
+      llm_message_req = [...db_messages]
+    }
+
+
+    await axios.post(LLM_SERVER, {
+      data: llm_message_req
+    })
   }
 
   socket.to(data.channelId).emit("new_message", { message: '📤 message sent successfully', data: { messageId } });
