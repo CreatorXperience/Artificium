@@ -23,7 +23,8 @@ import {
   projectUpdateValidator,
   projectMemberValidator,
   projectRoleValidator,
-  project
+  project,
+  projectMemberRoleUpdateValidator
 } from '../../schema/project.schema';
 
 import {
@@ -119,5 +120,6 @@ export {
   otp,
   workspace,
   acceptOrRejectValidator,
-  project
+  project,
+  projectMemberRoleUpdateValidator
 };

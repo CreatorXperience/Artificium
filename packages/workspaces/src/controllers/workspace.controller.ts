@@ -17,6 +17,7 @@ import {
   validateInvitePayload,
   makeAdminSchemaValidator,
   acceptOrRejectValidator,
+  projectMemberRoleUpdateValidator,
 } from '@org/database';
 import { PrismaClient } from '@prisma/client';
 import { Context } from 'hono';
@@ -839,7 +840,6 @@ const manageProjectRole = async (c: Context) => {
 
       return {
         userId: member.userId,
-        notificationId,
       };
     });
 
@@ -853,18 +853,6 @@ const manageProjectRole = async (c: Context) => {
       })
     );
   }
-
-  if (data.projectMembers?.length > 0) {
-    data.projectMembers.forEach((member) => {
-      tasks.push(
-        prisma.projectMember.update({
-          where: { id: member.projectMembershipId },
-          data: { role: member.role },
-        })
-      );
-    });
-  }
-
   // Run all tasks concurrently
   if (tasks && tasks.length) {
     await Promise.all(tasks);
@@ -1722,7 +1710,6 @@ const uploadWorkspaceImage = async (c: Context) => {
   return c.json({ message: 'message uploaded successfully', data: workspace });
 };
 
-
 // test this code below !
 const updateWorkspaceMemberRole = async (c: Context) => {
   const user = c.var.getUser()
@@ -1756,6 +1743,25 @@ const get_notification = async (c: Context) => {
   return c.json({ message: "notifications retrieved successfully", data: notifications })
 }
 
+// test this code below 
+const updateProjectMembershipRole = async (c: Context) => {
+  const userId = c.var.getUser().id
+  const body = await c.req.json()
+  const { error, data } = projectMemberRoleUpdateValidator(body)
+  if (error) {
+    return c.json({ message: "invalid projectMemberId" }, 400)
+  }
+  const projectMember = await prisma.projectMember.findUnique({ where: { id: data.projectMembershipId } })
+  if (!projectMember) {
+    return c.json({ message: "projectMembership not found" }, 404)
+  }
+  const project = await prisma.project.findUnique({ where: { id: projectMember.projectId } })
+  if (!project.creator == userId) {
+    return c.json({ message: "Permission denied, can't modify member role" }, 401)
+  }
+  await prisma.projectMember.update({ where: { id: projectMember.id }, data: { role: data.role } })
+  return c.json({ message: "membership role updated successfuly" })
+}
 
 const MarkNotificationAsSeen = async (c: Context) => {
   const notificationId = c.req.param("notificationId")
@@ -1810,5 +1816,6 @@ export {
   getChannelMembers,
   updateChannelMemberRole,
   get_notification,
-  MarkNotificationAsSeen
+  MarkNotificationAsSeen,
+  updateProjectMembershipRole
 };

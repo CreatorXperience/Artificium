@@ -82,20 +82,6 @@ const projectRole = z.object({
     .length(24, {
       message: 'property workspaceId must be exactly 12 in length',
     }),
-  projectMembers: z.array(
-    z.object({
-      role: z.enum(['editor', 'viewer'], {
-        message: 'property role must be one of the following: editor , viewer',
-      }),
-      projectMembershipId: z
-        .string({
-          message: 'property membershipId is required',
-        })
-        .length(24, {
-          message: 'property projectMembershipId must be exactly 12 in length',
-        }),
-    })
-  ),
   workspaceMembers: z.array(
     z.object({
       memberId: z
@@ -116,15 +102,31 @@ type TProjectRole = z.infer<typeof projectRole>;
 const projectRoleValidator = (payload: TProjectRole) => {
   return projectRole
     .required()
-    .partial({ projectMembers: true, workspaceMembers: true })
     .safeParse(payload);
 };
 
+const projectMemberRoleUpdate = z.object({
+  role: z.enum(['editor', 'viewer'], {
+    message: 'property role must be one of the following: editor , viewer',
+  }),
+  projectMembershipId: z
+    .string({
+      message: 'property membershipId is required',
+    })
+    .length(24, {
+      message: 'property projectMembershipId must be exactly 12 in length',
+    }),
+})
+
+const projectMemberRoleUpdateValidator = (payload: Required<z.infer<typeof projectMemberRoleUpdate>>) => {
+  return projectMemberRoleUpdate.required().safeParse(payload)
+}
 export {
   projectValidator,
   TProject,
   projectUpdateValidator,
   projectMemberValidator,
   projectRoleValidator,
+  projectMemberRoleUpdateValidator,
   project
 };
