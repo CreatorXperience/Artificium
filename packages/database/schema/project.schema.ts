@@ -77,11 +77,6 @@ const projectRole = z.object({
     .length(24, {
       message: 'property projectId must be exactly 12 in length',
     }),
-  workspaceId: z
-    .string({ message: 'property workspaceId is required' })
-    .length(24, {
-      message: 'property workspaceId must be exactly 12 in length',
-    }),
   workspaceMembers: z.array(
     z.object({
       memberId: z

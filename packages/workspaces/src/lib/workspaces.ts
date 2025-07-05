@@ -32,7 +32,7 @@ import {
   invitationWithLink,
   leaveProject,
   removeProjectMember,
-  manageProjectRole,
+  inviteWorkspaceMemberToProject,
   updateWorkspaceMemberRole,
   getChannelMembership,
   getChannelMembers,
@@ -79,6 +79,8 @@ import deleteUserChatInGroupRoute from '../docs/swagger-docs/deleteUserChatInGro
 import createThreadRoute from '../docs/swagger-docs/createThread';
 import getNotificationRoute from '../docs/swagger-docs/getNotification';
 import markNotificationAsSeenRoute from '../docs/swagger-docs/markNotificationAsSeen';
+import inviteWorkspaceMemberToProjectRoute from '../docs/swagger-docs/InviteWorkspaceMemberToProject';
+import updateProjectMembershipRoleRoute from '../docs/swagger-docs/updateProjectMembershipRole';
 
 winston.createLogger({
   level: 'error',
@@ -151,6 +153,8 @@ if (process.env.NODE_ENV == "development" || process.env.NODE_ENV == "production
   app.openapi(createThreadRoute, createThread as never)
   app.openapi(getNotificationRoute, get_notification as never)
   app.openapi(markNotificationAsSeenRoute, MarkNotificationAsSeen as never)
+  app.openapi(inviteWorkspaceMemberToProjectRoute, inviteWorkspaceMemberToProject as never)
+  app.openapi(updateProjectMembershipRoleRoute, updateProjectMembershipRole as never)
 
 }
 
@@ -187,13 +191,13 @@ const workspace = {
 
     app.get('/project/join', authMiddleWare, joinProject);
 
-    app.post('/project/role', authMiddleWare, manageProjectRole);   // Modify this endpoint logic before creating swagger docs
+    app.post('/project/invite-workspace-members', authMiddleWare, inviteWorkspaceMemberToProject);
 
     app.delete('/project/me/leave', authMiddleWare, leaveProject);
 
     app.delete('/project/member/remove', authMiddleWare, removeProjectMember);
 
-    app.put("/project/member/role", authMiddleWare, updateProjectMembershipRole) // create swagger for  this lates
+    app.put("/project/member/role", authMiddleWare, updateProjectMembershipRole)
 
     app.post('/project/invitation', authMiddleWare, invitationWithLink);
 
