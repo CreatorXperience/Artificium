@@ -46,11 +46,11 @@ const getAllUserWorkspace = async (c: Context) => {
   const userId = c.var.getUser().id;
   const publicWorkspace = await prisma.workspace.findMany({
     take: 20,
-    where: { visibility: false, NOT: { members: { has: userId } } },
+    where: { visibility: false, NOT: { owner: userId } },
   });
 
   const personalWorkspaces = await prisma.workspace.findMany({
-    where: { members: { has: userId } },
+    where: { owner: userId },
   });
 
   return c.json({
@@ -111,7 +111,7 @@ const createWorkspace = async (c: Context) => {
       url: `http://localhost:3030/workspace/${workspaceID}`,
       totalMembers: 1,
       workspaceAdmin: [owner],
-      members: [workspaceMember.id],
+      members: [owner],
       readAccess: [owner],
       writeAccess: [owner],
     };
@@ -267,7 +267,7 @@ const joinWorkspace = async (c: Context) => {
   let updatedWorkspace;
   try {
     await prisma.$transaction(async (tx) => {
-      const newMember = await tx.workspaceMember.create({
+      await tx.workspaceMember.create({
         data: {
           email: user.email,
           image: user.image,
@@ -279,7 +279,7 @@ const joinWorkspace = async (c: Context) => {
 
       updatedWorkspace = await tx.workspace.update({
         where: { id: workspaceId },
-        data: { members: [...workspace.members, newMember.id] },
+        data: { members: [...workspace.members, userID] },
       });
     });
   } catch (e) {
@@ -666,12 +666,12 @@ const leaveProject = async (c: Context) => {
 
       await Promise.all(
         affectedChannels.map((channel) => {
-          const newMembers = channel.members.filter(
+          const updated_members = channel.members.filter(
             (id) => id !== data.projectMembershipId
           );
           return tx.channel.update({
             where: { id: channel.id },
-            data: { members: newMembers },
+            data: { members: updated_members },
           });
         })
       );
@@ -804,8 +804,8 @@ const updateProject = async (c: Context) => {
 
   return c.json({ message: 'project updated successfully', data: project });
 };
-// rewrite this controller below
-const manageProjectRole = async (c: Context) => {
+
+const inviteWorkspaceMemberToProject = async (c: Context) => {
   const body = await c.req.json();
   const { error, data } = projectRoleValidator(body);
 
@@ -831,7 +831,7 @@ const manageProjectRole = async (c: Context) => {
         prisma.notification.create({
           data: {
             id: notificationId,
-            link: `${process.env.BASE_URL}/project/invite?projectId=${data.projectId}&workspaceId=${data.workspaceId}`,
+            link: `${process.env.BASE_URL}/project/join?projectId=${data.projectId}&workspaceId=${project.workspaceId}`,
             text: `You are invited to ${project.name} project`,
             userId: member.userId,
           },
@@ -1749,7 +1749,7 @@ const updateProjectMembershipRole = async (c: Context) => {
   const body = await c.req.json()
   const { error, data } = projectMemberRoleUpdateValidator(body)
   if (error) {
-    return c.json({ message: "invalid projectMemberId" }, 400)
+    return c.json({ message: error.errors[0].message }, 400)
   }
   const projectMember = await prisma.projectMember.findUnique({ where: { id: data.projectMembershipId } })
   if (!projectMember) {
@@ -1762,6 +1762,8 @@ const updateProjectMembershipRole = async (c: Context) => {
   await prisma.projectMember.update({ where: { id: projectMember.id }, data: { role: data.role } })
   return c.json({ message: "membership role updated successfuly" })
 }
+
+// test this code below !
 
 const MarkNotificationAsSeen = async (c: Context) => {
   const notificationId = c.req.param("notificationId")
@@ -1803,7 +1805,7 @@ export {
   createThread,
   removeProjectMember,
   leaveProject,
-  manageProjectRole,
+  inviteWorkspaceMemberToProject,
   customEmitter,
   getLoggedInUserWorkspaceMembership,
   getProjectMembership,
